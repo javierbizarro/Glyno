@@ -140,8 +140,12 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
       <div className="card stack">
         <span className="label">Glyno IA</span>
         <p className="muted small">
-          Clave gratuita de Google AI Studio (aistudio.google.com → «Get API key»). Se guarda solo en tu
-          dispositivo y se usa únicamente para las valoraciones y la foto del plato.
+          Consigue tu clave gratuita en{' '}
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--green)', fontWeight: 600 }}>
+            aistudio.google.com/apikey
+          </a>{' '}
+          (botón «Create API key», sin tarjeta). Se guarda solo en tu dispositivo y se usa únicamente
+          para las valoraciones y la foto del plato.
         </p>
         <input
           type="password"

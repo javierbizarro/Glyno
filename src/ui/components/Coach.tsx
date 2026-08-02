@@ -93,8 +93,11 @@ export function Coach({ profile }: { profile: Profile }) {
       {!hasKey && (
         <div className="card">
           <p className="muted">
-            Para que pueda hablar necesito la clave gratuita de Gemini — se pone una sola vez en{' '}
-            <b>Ajustes → Glyno IA</b> (aistudio.google.com, sin tarjeta).
+            Para que pueda hablar necesito la clave gratuita de Gemini: créala en{' '}
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--green)', fontWeight: 600 }}>
+              aistudio.google.com/apikey
+            </a>{' '}
+            (sin tarjeta) y pégala una sola vez en <b>Ajustes → Glyno IA</b>.
           </p>
         </div>
       )}

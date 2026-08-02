@@ -38,7 +38,9 @@ function entryText(e: Entry): string {
 export function Today({ profile }: { profile: Profile }) {
   const [sheet, setSheet] = useState<Sheet>(null)
 
-  const todayEntries = useWatch(() => entries.watchSince(daysAgo(0)), [])
+  const todayAsc = useWatch(() => entries.watchSince(daysAgo(0)), [])
+  // el diario se lee de más reciente a más antiguo
+  const todayEntries = todayAsc ? [...todayAsc].reverse() : undefined
   const lastGlucose = useWatch(() => entries.watchLastByKind('glucose'), [])
 
   const quick: { key: Sheet; ico: string; label: string; show: boolean }[] = [
