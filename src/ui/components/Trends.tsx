@@ -7,8 +7,10 @@ import { entries as repo } from '../../app/container'
 import { seedDemo } from '../../app/demo'
 import { useWatch } from '../hooks'
 import { fmtDayShort, fmtTime, RANGE_LABEL, RANGE_VAR } from '../format'
+import { Report } from './Report'
 
 export function Trends({ profile }: { profile: Profile }) {
+  const [reportOpen, setReportOpen] = useState(false)
   const entries = useWatch(() => repo.watchSince(daysAgo(13)), [])
 
   if (!entries) return null
@@ -35,8 +37,14 @@ export function Trends({ profile }: { profile: Profile }) {
 
   return (
     <>
-      <h1>Tendencias</h1>
+      <div className="row between">
+        <h1>Tendencias</h1>
+        <button className="btn ghost small" onClick={() => setReportOpen(true)}>
+          Informe médico
+        </button>
+      </div>
       <span className="label">Últimos 14 días</span>
+      {reportOpen && <Report profile={profile} onClose={() => setReportOpen(false)} />}
 
       <div className="stat-tiles">
         <div className="card">
@@ -346,7 +354,7 @@ function BpCard({ entries }: { entries: Entry[] }) {
       </div>
       <svg viewBox={`0 0 ${W} 120`} style={{ width: '100%', display: 'block' }} role="img" aria-label="Tensión arterial">
         <line x1={ML} x2={W - 58} y1={Y(140)} y2={Y(140)} stroke="var(--line)" strokeWidth="1" strokeDasharray="3 3" />
-        <text x={W - 54} y={Y(140) + 3} fontSize="9.5" fill="var(--ink-3)">140</text>
+        <text x={ML + 2} y={Y(140) - 4} fontSize="9.5" fill="var(--ink-3)">140</text>
         <path d={line(e => e.sys!)} fill="none" stroke="var(--ink)" strokeWidth="2" />
         <path d={line(e => e.dia!)} fill="none" stroke="var(--green)" strokeWidth="2" />
         <text x={X(last.ts) + 6} y={Y(last.sys!) + 3} fontSize="10" fill="var(--ink)">

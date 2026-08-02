@@ -97,11 +97,26 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   glucemias con banda de rango + TIR de esa semana + lista día a día de todos los registros
   (reutilizar entryText/KIND_ICO de Today extrayéndolos a ui/). Datos: entries.watchSince ya sirve;
   añadir al puerto un `between(from,to)` si hace falta. Sin IA en esta vista.
-- **FEATURE EN COLA (2026-08-02)**: informe PDF endocrino como VISTA DE IMPRESIÓN HTML (sin
-  librerías; el PDF lo genera el diálogo de imprimir). Secciones por tipo, fuera-de-rango en color
-  (rojo BAJA/ámbar ALTA), gráfica+TIR, tensión ≥140/90 marcada, peso/IMC, botiquín, patrones.
-  Decidido: el CSV es formato de DATOS (se le añadió columna `estado` — verificado: glucosa vs
-  rango del perfil, tensión ≥140/90) y lo visual va al PDF. buildCsv ahora requiere el Profile.
+- ✅ Informe médico (2026-08-02): botón "Informe médico" en Tendencias → vista de impresión
+  (ui/components/Report.tsx en PORTAL a body + app/report.ts getReportData) con selector 14/30/90
+  días. Contiene: cabecera clínica (edad, tipo, tratamiento+botiquín, periodo, rango), 6 métricas
+  (incl. **HbA1c estimada GMI = 3.31 + 0.02392·media**, con asterisco de "orientativa"), gráfica
+  del periodo, medias por momento del día, TABLA día×momento con fuera-de-rango coloreado (rojo
+  bajo/ámbar alto, print-color-adjust exact), tensión (nº ≥140/90), peso/IMC, patrones y pie legal
+  ("Glyno no emite juicio clínico"). PDF vía window.print() (título del documento = nombre de
+  fichero). VERIFICADO en navegador con 14 y 90 días.
+  IMPRESIÓN (bug corregido 2026-08-02): salía una primera hoja EN BLANCO y sin márgenes porque
+  `#root` tiene min-height:100dvh y seguía ocupando página aunque su contenido estuviera oculto.
+  Solución: `@page { size: A4 portrait; margin: 14mm 12mm }` + en @media print ocultar `#root`
+  entero (el informe va en portal a body, así que sobrevive) + html/body height:auto. Añadido
+  thead como table-header-group para repetir cabecera de la tabla diaria en cada página.
+  Truco de verificación: copiar las reglas de @media print a un <style> temporal y medir/capturar.
+  MÁRGENES (2ª iteración): `@page` estaba bien parseado pero NO basta — Safari lo ignora y el
+  diálogo de Chrome puede anularlo con «Márgenes: ninguno». Solución definitiva: `.report` lleva
+  `padding: 8mm 10mm` en @media print (el relleno lateral se aplica en todas las hojas y ningún
+  navegador lo ignora) + `@page margin: 12mm 8mm` para el espaciado vertical entre páginas.
+  El CSV quedó como formato de DATOS con columna `estado` (glucosa vs rango; tensión ≥140/90);
+  buildCsv ahora requiere el Profile.
 - Ideas v2 (no comprometidas): lectura sensor (LibreLinkUp/Nightscout), modo familiar,
   recordatorios de medicación.
 - **Salud iPhone/Android (aclarado 2026-08-02)**: una PWA NO puede leer HealthKit ni Health Connect
