@@ -90,6 +90,13 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   esa es la que se instala en el iPhone (HTTPS → service worker y offline OK). Requiere repo
   PÚBLICO (Pages gratis) . El ?reset usa import.meta.env.BASE_URL.
   RECORDATORIO: Javier debe REGENERAR su clave de Gemini (quedó pegada en el chat de la sesión).
+- **SIGUIENTE FEATURE (decidido 2026-08-02)**: vista "Historial" navegable por semanas — Javier la
+  prefirió frente al selector de rango 14/30/90. Motivo: los datos >14 días se guardan pero hoy no
+  se ven en la app (solo CSV/backup). Diseño acordado: acceso desde Tendencias ("Ver historial"),
+  navegador ‹ semana anterior · rango de fechas · semana siguiente ›, y por semana: mini-gráfica de
+  glucemias con banda de rango + TIR de esa semana + lista día a día de todos los registros
+  (reutilizar entryText/KIND_ICO de Today extrayéndolos a ui/). Datos: entries.watchSince ya sirve;
+  añadir al puerto un `between(from,to)` si hace falta. Sin IA en esta vista.
 - Ideas v2 (no comprometidas): informe PDF endocrino, lectura sensor (LibreLinkUp/Nightscout),
   modo familiar, recordatorios de medicación.
 - **Salud iPhone/Android (aclarado 2026-08-02)**: una PWA NO puede leer HealthKit ni Health Connect
