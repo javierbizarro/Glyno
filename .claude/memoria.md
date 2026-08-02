@@ -137,8 +137,17 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   navegador lo ignora) + `@page margin: 12mm 8mm` para el espaciado vertical entre páginas.
   El CSV quedó como formato de DATOS con columna `estado` (glucosa vs rango; tensión ≥140/90);
   buildCsv ahora requiere el Profile.
-- Ideas v2 (no comprometidas): lectura sensor (LibreLinkUp/Nightscout), modo familiar,
-  recordatorios de medicación.
+- **Datos automáticos (sensor de glucosa, sueño, pasos)**: PLAN ESCRITO, sin implementar, en
+  `.claude/plan-datos-automaticos.md` (decidido así el 2026-08-03). Resumen: la fuente única debe
+  ser Apple Salud / Health Connect (las apps de Libre y Dexcom ya escriben ahí ⇒ una integración da
+  glucosa + sueño + pasos sin sacar datos del dispositivo); el puerto `HealthSource` + adaptadores
+  encajan en la arquitectura actual; hace falta dedupe con `extId` (Dexie v2) y **agregación tipo
+  AGP porque 96 lecturas/día rompen la UI actual**. Fases: A) puente con Atajos de iOS (0 €, sin
+  Xcode), B) Android nativo con Capacitor (0 € distribución), C) iOS (99 $/año). Alternativas de
+  sensor: Nightscout (limpia), API oficial de Dexcom (retraso 3 h, irrelevante para nosotros),
+  LibreLinkUp (no oficial, necesita proxy: evitar).
+- Ideas v2 (no comprometidas): modo familiar, recordatorios de medicación, foto del ticket de la
+  compra para saber qué hay en casa.
 - **Salud iPhone/Android (aclarado 2026-08-02)**: una PWA NO puede leer HealthKit ni Health Connect
   (APIs solo nativas). Plan: v2 con **Capacitor** envolviendo este mismo código + plugins nativos
   (Android gratis vía APK/F-Droid; iOS requiere 99 $/año para distribuir). Truco 0 € para el iPhone
