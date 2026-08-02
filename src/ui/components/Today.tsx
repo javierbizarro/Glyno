@@ -79,6 +79,8 @@ export function Today({ profile }: { profile: Profile }) {
         ))}
       </div>
 
+      <InstallHint />
+
       <div>
         <span className="label">Hoy</span>
         <div className="card" style={{ marginTop: 8, padding: '4px 16px' }}>
@@ -97,8 +99,6 @@ export function Today({ profile }: { profile: Profile }) {
           )}
         </div>
       </div>
-
-      <InstallHint />
 
       {sheet && <QuickSheet kind={sheet} profile={profile} onClose={() => setSheet(null)} />}
     </>

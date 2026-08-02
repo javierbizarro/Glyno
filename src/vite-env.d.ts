@@ -7,3 +7,5 @@ interface BeforeInstallPromptEvent extends Event {
 interface Window {
   glynoInstallPrompt?: BeforeInstallPromptEvent
 }
+
+declare const __BUILD__: string

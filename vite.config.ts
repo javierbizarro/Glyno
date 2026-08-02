@@ -5,6 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   // en GitHub Pages la app vive en /Glyno/; en local, en la raíz
   base: process.env.DEPLOY_BASE ?? '/',
+  // sello de compilación: permite saber si el móvil está sirviendo una versión cacheada
+  define: { __BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')) },
   resolve: { dedupe: ['react', 'react-dom'] },
   optimizeDeps: { include: ['dexie', 'dexie-react-hooks'] },
   plugins: [

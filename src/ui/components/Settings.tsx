@@ -187,7 +187,8 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
           style={{ color: 'var(--red)', borderColor: 'var(--red)' }}
           onClick={() => {
             if (confirm('Se borrará TODO: perfil y diario. ¿Seguro? (Haz antes una copia si dudas)'))
-              location.href = '/?reset'
+              // BASE_URL: en GitHub Pages la app vive en /Glyno/, no en la raíz
+              location.href = `${import.meta.env.BASE_URL}?reset`
           }}
         >
           Borrar todo y empezar de cero
@@ -199,10 +200,20 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
       <div className="card stack">
         <span className="label">Acerca de Glyno</span>
         <p className="muted small">
-          v0.1 · Tus datos viven en este dispositivo y no salen de aquí (salvo lo que tú envíes a la IA
-          con tu clave). Glyno no da consejo médico ni pautas de medicación: para eso, siempre tu equipo
-          sanitario.
+          v0.1 · compilada el {__BUILD__} · Tus datos viven en este dispositivo y no salen de aquí
+          (salvo lo que tú envíes a la IA con tu clave). Glyno no da consejo médico ni pautas de
+          medicación: para eso, siempre tu equipo sanitario.
         </p>
+        <button
+          className="btn ghost small"
+          onClick={async () => {
+            const regs = await navigator.serviceWorker?.getRegistrations()
+            await Promise.all((regs ?? []).map(r => r.update()))
+            location.reload()
+          }}
+        >
+          Buscar actualización
+        </button>
       </div>
     </>
   )

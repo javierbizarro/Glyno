@@ -106,7 +106,12 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   (build con env DEPLOY_BASE=/Glyno/ → vite.config lee process.env.DEPLOY_BASE, local sigue en /;
   configure-pages con enablement:true). URL final: https://javierbizarro.github.io/Glyno/ —
   esa es la que se instala en el iPhone (HTTPS → service worker y offline OK). Requiere repo
-  PÚBLICO (Pages gratis) . El ?reset usa import.meta.env.BASE_URL.
+  PÚBLICO (Pages gratis).
+  **OJO con las rutas absolutas**: en Pages la app NO está en la raíz. Todo enlace o redirección
+  interna debe usar `import.meta.env.BASE_URL` (vale '/' en local y '/Glyno/' en Pages). Ya mordió
+  dos veces: el `?reset` de main.tsx y el botón "Borrar todo" de Settings, que llevaba a
+  javierbizarro.github.io/?reset → 404 (corregido 2026-08-03). Verificación rápida:
+  `grep -o '"/?reset"' dist/assets/*.js` debe salir vacío tras `DEPLOY_BASE=/Glyno/ npm run build`.
   RECORDATORIO: Javier debe REGENERAR su clave de Gemini (quedó pegada en el chat de la sesión).
 - ✅ Historial semanal (2026-08-03): `ui/components/History.tsx`, se abre desde el botón
   "Historial" de Tendencias (sustituye el contenido de la pestaña, sin portal, conserva la barra de
@@ -196,7 +201,17 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   `glyno:installable`); tipos en `src/vite-env.d.ts`. (2) En Safari (y en el panel de preview, que
   es WebKit) ese evento NO EXISTE: no es un fallo de la app. `InstallHint` tiene ahora tres
   estados: botón nativo (Android/Chrome), guía de «Añadir a pantalla de inicio» (iOS) y guía de
-  escritorio (Safari «Añadir al Dock» / Chrome icono ⊕). Se muestra en Hoy y en Ajustes.
+  escritorio (Safari «Añadir al Dock» / Chrome icono ⊕).
+- (3) La causa real de que Javier no la viera en el iPhone: **solo estaba en Hoy y Ajustes, y quien
+  entra por primera vez ve el ONBOARDING**. Ahora `InstallHint` está también en el paso de
+  bienvenida — que además es el mejor momento para instalar, porque en iOS la app añadida a la
+  pantalla de inicio puede tener su propio almacenamiento y perderías el onboarding hecho en Safari
+  (si pasa, se migra con la copia JSON). En Hoy se movió arriba (tras los botones rápidos) para que
+  no haya que hacer scroll.
+- **Diagnóstico de versiones**: Ajustes → "Acerca de Glyno" muestra `compilada el <fecha>`
+  (`define: __BUILD__` en vite.config) y hay un botón **«Buscar actualización»** que fuerza
+  `registration.update()` + reload. Sirve para saber si un móvil está sirviendo una versión
+  cacheada por el service worker antes de buscar el fallo en otra parte.
 
 ## Temas visuales (2026-08-02) — DECIDIDO
 

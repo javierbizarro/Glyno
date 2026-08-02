@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { defaultProfile, DEFAULT_TARGETS, TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
 import { Mascot3D } from './Mascot3D'
+import { InstallHint } from './InstallHint'
 
 const STEPS = 7
 
@@ -77,6 +78,8 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
           <p className="muted small">
             Glyno no da consejo médico ni pautas de medicación. Para eso, siempre tu equipo sanitario.
           </p>
+          {/* mejor instalarla antes de rellenar nada: en iOS la app instalada guarda sus datos aparte */}
+          <InstallHint />
         </>
       )}
 
