@@ -157,6 +157,20 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   mejora el trato del navegador al almacenamiento. SQLite como fichero real solo tendría sentido
   en la app nativa Android (idea v2).
 
+## Icono e instalación (2026-08-03)
+
+- **Logo = la criaturilla**: `public/icon.svg` rehecho como ilustración con degradados radiales
+  (cuerpo de pera sombreado, brazos, pies, barriga, ojos con brillo, mofletes y brote con dos
+  hojas) a juego con el Glyno 3D. `Mascot.tsx` (barra de pestañas) usa la misma silueta plana.
+  `apple-touch-icon.png` (180px) se generó rasterizando el SVG en el navegador y **descargándolo**
+  (`a.download` → ~/Downloads → mv a public/): evita pegar 22 KB de base64 a mano, que corrompe.
+- **Botón de instalar que no aparecía**: dos causas. (1) `beforeinstallprompt` se dispara antes de
+  que React monte → ahora se captura en `main.tsx` (`window.glynoInstallPrompt` + evento
+  `glyno:installable`); tipos en `src/vite-env.d.ts`. (2) En Safari (y en el panel de preview, que
+  es WebKit) ese evento NO EXISTE: no es un fallo de la app. `InstallHint` tiene ahora tres
+  estados: botón nativo (Android/Chrome), guía de «Añadir a pantalla de inicio» (iOS) y guía de
+  escritorio (Safari «Añadir al Dock» / Chrome icono ⊕). Se muestra en Hoy y en Ajustes.
+
 ## Temas visuales (2026-08-02) — DECIDIDO
 
 - Se probaron 3 temas (paper/bento/dark) con pantallazos; Javier eligió **quedarse con paper**

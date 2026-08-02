@@ -3,6 +3,7 @@ import { TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, t
 import { seedDemo } from '../../app/demo'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
 import { download } from '../format'
+import { InstallHint } from './InstallHint'
 
 const KIND_LABEL: Record<Med['kind'], string> = {
   pill: 'Pastilla',
@@ -192,6 +193,8 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
           Borrar todo y empezar de cero
         </button>
       </div>
+
+      <InstallHint />
 
       <div className="card stack">
         <span className="label">Acerca de Glyno</span>
