@@ -24,7 +24,7 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
   }
 
   const exportCsv = async () => {
-    const { csv, count } = await buildCsv()
+    const { csv, count } = await buildCsv(p)
     download(`glyno-diario-${today()}.csv`, new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }))
     flash(`CSV exportado (${count} registros).`)
   }

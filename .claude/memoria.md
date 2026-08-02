@@ -97,8 +97,13 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   glucemias con banda de rango + TIR de esa semana + lista día a día de todos los registros
   (reutilizar entryText/KIND_ICO de Today extrayéndolos a ui/). Datos: entries.watchSince ya sirve;
   añadir al puerto un `between(from,to)` si hace falta. Sin IA en esta vista.
-- Ideas v2 (no comprometidas): informe PDF endocrino, lectura sensor (LibreLinkUp/Nightscout),
-  modo familiar, recordatorios de medicación.
+- **FEATURE EN COLA (2026-08-02)**: informe PDF endocrino como VISTA DE IMPRESIÓN HTML (sin
+  librerías; el PDF lo genera el diálogo de imprimir). Secciones por tipo, fuera-de-rango en color
+  (rojo BAJA/ámbar ALTA), gráfica+TIR, tensión ≥140/90 marcada, peso/IMC, botiquín, patrones.
+  Decidido: el CSV es formato de DATOS (se le añadió columna `estado` — verificado: glucosa vs
+  rango del perfil, tensión ≥140/90) y lo visual va al PDF. buildCsv ahora requiere el Profile.
+- Ideas v2 (no comprometidas): lectura sensor (LibreLinkUp/Nightscout), modo familiar,
+  recordatorios de medicación.
 - **Salud iPhone/Android (aclarado 2026-08-02)**: una PWA NO puede leer HealthKit ni Health Connect
   (APIs solo nativas). Plan: v2 con **Capacitor** envolviendo este mismo código + plugins nativos
   (Android gratis vía APK/F-Droid; iOS requiere 99 $/año para distribuir). Truco 0 € para el iPhone

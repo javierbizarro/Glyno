@@ -34,18 +34,26 @@ export async function restoreBackup(data: { profile?: Profile; entries: Entry[] 
   return null
 }
 
-export async function buildCsv(): Promise<{ csv: string; count: number }> {
+export async function buildCsv(p: Profile): Promise<{ csv: string; count: number }> {
   const rows = await entries.all()
   const esc = (s: unknown) => (s == null ? '' : `"${String(s).replace(/"/g, '""')}"`)
   const time = (ts: number) => new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  // estado: fuera de rango en glucemias (según el rango del perfil) y tensión ≥140/90
+  const estado = (e: Entry): string => {
+    if (e.kind === 'glucose' && e.value != null)
+      return e.value < p.low ? 'BAJA' : e.value > p.high ? 'ALTA' : 'en rango'
+    if (e.kind === 'bp' && e.sys && e.dia) return e.sys >= 140 || e.dia >= 90 ? 'ALTA' : 'normal'
+    return ''
+  }
   const csv = [
-    'fecha;hora;tipo;valor;sistolica;diastolica;etiqueta;hidratos_g;nota',
+    'fecha;hora;tipo;valor;estado;sistolica;diastolica;etiqueta;hidratos_g;nota',
     ...rows.map(e =>
       [
         new Date(e.ts).toLocaleDateString('es-ES'),
         time(e.ts),
         e.kind,
         e.value ?? '',
+        estado(e),
         e.sys ?? '',
         e.dia ?? '',
         esc(e.label),
