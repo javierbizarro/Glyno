@@ -171,6 +171,29 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   mejora el trato del navegador al almacenamiento. SQLite como fichero real solo tendría sentido
   en la app nativa Android (idea v2).
 
+## Medicación no insulínica (2026-08-03)
+
+- Javier detectó que **Ozempic no encajaba**: no es insulina ni pastilla (GLP-1 inyectable semanal;
+  igual Trulicity, Mounjaro, Victoza). Se decidió NO crear una cuarta categoría, porque para la app
+  lo único que cambia el comportamiento es si la dosis varía a diario (solo el bolo).
+- Cambio: la categoría `pills` pasa a llamarse **«Otra medicación»** ("Otra medicación para la
+  diabetes · Pastillas (metformina…) o inyectables como Ozempic o Trulicity"). `treatmentSummary`
+  dice "otra medicación no insulínica" en vez de "medicación oral" (salía en el informe médico y era
+  falso para quien usa GLP-1). La clave interna del perfil sigue siendo `pills` a propósito: no
+  merece una migración de perfiles guardados (documentado en types.ts).
+- La periodicidad se escribe en el campo de dosis, que ahora se llama «Dosis y cuándo»
+  («0,5 mg · los martes»). Icono 💊 para otra medicación y 💉 para las insulinas.
+- IDEA PENDIENTE (no implementada): los GLP-1 son **semanales**, y acordarse del pinchazo semanal es
+  un dolor real → recordatorio/registro de "hoy toca Ozempic" tendría valor. Requiere estructura de
+  periodicidad en `Med` y avisos (ver plan de nativo).
+
+## Sello de compilación en UTC (bug 2026-08-03)
+
+- El sello de «Acerca de Glyno» salía 2 h antes: `new Date().toISOString()` da UTC y GitHub Actions
+  compila en UTC. Corregido con `toLocaleString('es-ES', { timeZone: 'Europe/Madrid', … })` en
+  vite.config. Verificado compilando con el contenedor en TZ=UTC: el bundle salió con la hora
+  española correcta.
+
 ## Momentos del día, teclado y orientación (2026-08-03)
 
 - **MOMENTS pasa al perfil glucémico clásico de 7 puntos** (ayunas, después de desayunar, antes de

@@ -6,7 +6,7 @@ import { download } from '../format'
 import { InstallHint } from './InstallHint'
 
 const KIND_LABEL: Record<Med['kind'], string> = {
-  pill: 'Pastilla',
+  pill: 'Otra medicación',
   basal: 'Insulina basal',
   bolus: 'Insulina rápida',
 }
@@ -88,7 +88,7 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
             [
               ['basal', 'Insulina basal'],
               ['bolus', 'Insulina rápida'],
-              ['pills', 'Pastillas'],
+              ['pills', 'Otra medicación'],
               ['hypertension', 'Hipertensión'],
             ] as ['basal' | 'bolus' | 'pills' | 'hypertension', string][]
           ).map(([k, lbl]) => (
@@ -249,7 +249,7 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
       {p.meds.map((m, i) => (
         <div className="row between" key={i}>
           <span style={{ fontSize: 14.5 }}>
-            💊 {m.name}
+            {m.kind === 'pill' ? '💊' : '💉'} {m.name}
             {m.dose ? ` · ${m.dose}` : ''} <span className="muted small">({KIND_LABEL[m.kind]})</span>
           </span>
           <button className="chip" onClick={() => set({ meds: p.meds.filter((_, j) => j !== i) })}>
@@ -268,7 +268,7 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
       )}
       <div className="row">
         <input type="text" placeholder="Nombre" value={name} onChange={e => setName(e.target.value)} style={{ flex: 2 }} />
-        <input type="text" placeholder="Dosis" value={dose} onChange={e => setDose(e.target.value)} style={{ flex: 1.2 }} />
+        <input type="text" placeholder="Dosis y cuándo" value={dose} onChange={e => setDose(e.target.value)} style={{ flex: 1.2 }} />
         <button className="btn small" disabled={!name.trim()} onClick={add}>
           Añadir
         </button>

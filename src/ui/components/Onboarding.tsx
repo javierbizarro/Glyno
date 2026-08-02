@@ -6,7 +6,7 @@ import { InstallHint } from './InstallHint'
 const STEPS = 7
 
 const KIND_LABEL: Record<Med['kind'], string> = {
-  pill: 'Pastilla',
+  pill: 'Otra medicación',
   basal: 'Insulina basal',
   bolus: 'Insulina rápida',
 }
@@ -166,7 +166,10 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
             </button>
             <button className={`choice check ${p.pills ? 'on' : ''}`} onClick={() => set({ pills: !p.pills })}>
               <Box on={p.pills} />
-              Pastillas (metformina u otras)
+              <span>
+                Otra medicación para la diabetes
+                <div className="muted small">Pastillas (metformina…) o inyectables como Ozempic o Trulicity</div>
+              </span>
             </button>
           </div>
           <div className="row">
@@ -290,8 +293,9 @@ function MedsStep({
     <>
       <h2>Tu botiquín</h2>
       <p className="muted">
-        Tu pauta fija: pastillas e insulina basal con su dosis de siempre. Como no cambia cada día, no
-        tendrás que apuntarla en el diario — Glyno ya contará con ella. Es opcional y se edita en Ajustes.
+        Tu pauta fija, con su dosis y cuándo te toca: «Metformina · 850 mg, desayuno y cena»,
+        «Ozempic · 0,5 mg, los martes», «Lantus · 22 U, noche». Como no cambia cada día no tendrás que
+        apuntarla en el diario — Glyno ya contará con ella. Es opcional y se edita en Ajustes.
       </p>
       {kinds.length > 1 && (
         <div className="wrap">
@@ -312,7 +316,7 @@ function MedsStep({
         />
         <input
           type="text"
-          placeholder="Dosis (850 mg)"
+          placeholder="Dosis y cuándo"
           value={dose}
           onChange={e => setDose(e.target.value)}
           style={{ flex: 1.2 }}
@@ -326,7 +330,7 @@ function MedsStep({
           {p.meds.map((m, i) => (
             <div className="row between card" key={i} style={{ padding: '10px 14px' }}>
               <span style={{ fontSize: 14.5 }}>
-                💊 {m.name}
+                {m.kind === 'pill' ? '💊' : '💉'} {m.name}
                 {m.dose ? ` · ${m.dose}` : ''} <span className="muted small">({KIND_LABEL[m.kind]})</span>
               </span>
               <button className="chip" onClick={() => set({ meds: p.meds.filter((_, j) => j !== i) })}>

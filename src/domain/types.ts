@@ -13,6 +13,7 @@ export interface Profile {
   measurement: Measurement
   basal: boolean
   bolus: boolean
+  /** medicación no insulínica: orales (metformina…) e inyectables tipo GLP-1 (Ozempic, Trulicity…) */
   pills: boolean
   meds: Med[]
   hypertension: boolean
@@ -97,6 +98,6 @@ export function treatmentSummary(p: Profile): string {
   const parts: string[] = []
   if (p.basal) parts.push('insulina basal')
   if (p.bolus) parts.push('insulina en comidas (bolo)')
-  if (p.pills) parts.push('medicación oral')
+  if (p.pills) parts.push('otra medicación no insulínica')
   return parts.length ? parts.join(' + ') : 'dieta y ejercicio'
 }

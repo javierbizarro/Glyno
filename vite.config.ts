@@ -5,8 +5,19 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   // en GitHub Pages la app vive en /Glyno/; en local, en la raíz
   base: process.env.DEPLOY_BASE ?? '/',
-  // sello de compilación: permite saber si el móvil está sirviendo una versión cacheada
-  define: { __BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')) },
+  // sello de compilación: permite saber si el móvil sirve una versión cacheada.
+  // Se fija a hora de Madrid porque GitHub Actions compila en UTC y desorienta.
+  define: {
+    __BUILD__: JSON.stringify(
+      new Date().toLocaleString('es-ES', {
+        timeZone: 'Europe/Madrid',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    ),
+  },
   resolve: { dedupe: ['react', 'react-dom'] },
   optimizeDeps: { include: ['dexie', 'dexie-react-hooks'] },
   plugins: [
