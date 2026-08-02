@@ -307,6 +307,17 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Verificado tras refactor: 5 pestañas OK con datos previos intactos, escritura en vivo OK,
   `tsc --noEmit` limpio, build de producción OK. Backup pre-refactor en scratchpad de la sesión.
 
+## Versiones de CI y Node (2026-08-03)
+
+- GitHub avisaba de que node20 está deprecado: las actions v4 lo usaban. Actualizadas a las últimas
+  (todas ya en node24): `checkout@v7`, `setup-node@v7` (node-version 24), `configure-pages@v6`,
+  `upload-pages-artifact@v5`, `deploy-pages@v5`.
+- Docker local subido a `node:24-alpine` para que dev y CI corran el mismo Node. Verificado:
+  v24.18.0, Vite arranca, `tsc --noEmit` limpio, build OK y las 5 pestañas funcionan.
+- Para comprobar versiones sin adivinar:
+  `curl -s https://api.github.com/repos/actions/checkout/releases/latest | grep tag_name`
+  y el runtime real en `https://raw.githubusercontent.com/<action>/<tag>/action.yml` (línea `using:`).
+
 ## Notas técnicas
 
 - `docker-compose.yml`: node:22-alpine, `npm install && npm run dev` al arrancar, volumen anónimo
