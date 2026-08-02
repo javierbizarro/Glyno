@@ -20,7 +20,7 @@ export function findGaps(p: Profile, entries: Entry[], lastWeight?: Entry): Gap[
   if (!p.birthYear || !p.heightCm)
     gaps.push({ text: 'Con tu año de nacimiento y altura (Ajustes → Sobre ti) afino el contexto y calculo tu IMC.' })
   if (!lastWeight || lastWeight.ts < daysAgo(30))
-    gaps.push({ text: 'Una pesada al mes me basta para vigilar la tendencia del peso, que en tipo 2 mueve mucho la glucosa.' })
+    gaps.push({ text: 'Una pesada al mes me basta para vigilar la tendencia del peso, que mueve mucho la glucosa.' })
   if (gl.length > 0 && gl.length < 14)
     gaps.push({ text: 'Con un par de mediciones al día los patrones salen mucho más nítidos.' })
 

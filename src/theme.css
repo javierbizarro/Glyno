@@ -368,7 +368,7 @@ input.bignum {
 .report .rep-sub { color: #555; font-size: 12px; }
 .rep-metrics {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   gap: 8px;
   margin-top: 16px;
 }

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
+import { TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
 import { seedDemo } from '../../app/demo'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
 import { download } from '../format'
@@ -64,11 +64,11 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
         </div>
         <div className="row">
           <div className="stack" style={{ flex: 1 }}>
-            <span className="label">Diabetes</span>
+            <span className="label">Situación</span>
             <select value={p.type} onChange={e => set({ type: e.target.value as DiabetesType })}>
               {(Object.keys(TYPE_LABEL) as DiabetesType[]).map(t => (
                 <option key={t} value={t}>
-                  {TYPE_LABEL[t]}
+                  {TYPE_FULL[t]}
                 </option>
               ))}
             </select>

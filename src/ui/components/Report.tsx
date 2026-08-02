@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MOMENTS, treatmentSummary, TYPE_LABEL, type Entry, type Profile } from '../../domain/types'
+import { MOMENTS, treatmentSummary, TYPE_FULL, type Entry, type Profile } from '../../domain/types'
 import { rangeOf } from '../../domain/glucose'
 import { getReportData, type ReportData } from '../../app/report'
 import { fmtDayShort } from '../format'
@@ -30,6 +30,9 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
 
   if (!data) return null
   const { stats } = data
+  const general = profile.type === 'none'
+  // el GMI está validado en diabetes con monitorización continua: fuera de ahí engaña
+  const showGmi = !general && data.gmi != null
   const age = profile.birthYear ? new Date().getFullYear() - profile.birthYear : null
   const imc =
     data.weight.last?.value && profile.heightCm
@@ -78,7 +81,8 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
           <h1>Informe de control glucémico</h1>
           <p className="rep-sub">
             {profile.name}
-            {age ? ` · ${age} años` : ''} · Diabetes {TYPE_LABEL[profile.type]} ·{' '}
+            {age ? ` · ${age} años` : ''} ·{' '}
+            {general ? 'Sin diagnóstico de diabetes' : TYPE_FULL[profile.type]} ·{' '}
             {profile.measurement === 'sensor' ? 'sensor continuo' : 'glucómetro capilar'}
             <br />
             Tratamiento: {treatmentSummary(profile)}
@@ -103,10 +107,12 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
             <b>{stats.mean != null ? Math.round(stats.mean) : '—'}</b>
             <span>media mg/dl</span>
           </div>
-          <div>
-            <b>{data.gmi != null ? data.gmi.toFixed(1).replace('.', ',') + ' %' : '—'}</b>
-            <span>HbA1c estimada*</span>
-          </div>
+          {showGmi && (
+            <div>
+              <b>{data.gmi!.toFixed(1).replace('.', ',') + ' %'}</b>
+              <span>HbA1c estimada*</span>
+            </div>
+          )}
           <div>
             <b>{Math.round(stats.tir)} %</b>
             <span>en rango</span>
@@ -244,11 +250,18 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
         )}
 
         <footer className="rep-foot">
-          * HbA1c estimada (GMI) calculada a partir de la media de glucemias del periodo; orientativa,
-          no sustituye a la analítica. Informe generado por Glyno a partir del registro personal del
-          paciente; los valores en <span className="val-low">rojo</span> están bajo el rango y en{' '}
-          <span className="val-high">ámbar</span> sobre el rango objetivo ({profile.low}–{profile.high}{' '}
-          mg/dl). Glyno no emite juicio clínico.
+          {showGmi && (
+            <>
+              * HbA1c estimada (GMI) calculada a partir de la media de glucemias del periodo;
+              orientativa, no sustituye a la analítica.{' '}
+            </>
+          )}
+          Informe generado por Glyno a partir del registro personal
+          {general ? ' de la persona' : ' del paciente'}; los valores en{' '}
+          <span className="val-low">rojo</span> están bajo el rango y en{' '}
+          <span className="val-high">ámbar</span> sobre el rango de referencia ({profile.low}–
+          {profile.high} mg/dl
+          {general ? ', valores de persona sin diabetes' : ''}). Glyno no emite juicio clínico.
         </footer>
       </div>
     </div>,

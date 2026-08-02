@@ -37,6 +37,18 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
    (eso es del endocrino), solo contexto para la IA e informe.
 6. **Líneas rojas**: nunca dosis/cambios de medicación; datos en el dispositivo; disclaimer visible.
 7. Etiquetas de contexto: Mal sueño, Estrés, Alcohol, Enfermo, Comida fuera, Regla, Olvido medicación + libres.
+8. **Modo "Sin diagnóstico" (2026-08-03)**: `DiabetesType` incluye `'none'` para quien no es
+   diabético pero quiere cuidarse. REGLA EXPLÍCITA DE JAVIER: **la app sigue siendo de diabetes y
+   NO cambia de tono ni de identidad** — es una puerta abierta, no un reposicionamiento. Por eso el
+   informe se sigue llamando "control glucémico" y Glyno sigue siendo "copiloto de diabetes"
+   (se revirtieron los cambios de tono que había hecho al principio).
+   Lo que SÍ cambia en modo 'none': rangos por defecto 70–140 (`DEFAULT_TARGETS`, referencia de
+   persona sana; prediabetes también 70–140, resto 70–180), el onboarding salta los pasos de
+   medicación y botiquín, el informe oculta la **HbA1c estimada** (el GMI solo está validado en
+   diabetes con CGM; fuera de ahí engaña) y su cabecera dice "Sin diagnóstico de diabetes", y el
+   prompt añade una nota factual para que la IA no hable de «tu diabetes».
+   Etiquetas: `TYPE_FULL` (menús/encabezados: "Diabetes tipo 2", "Prediabetes"…) vs `TYPE_LABEL`
+   (corta). Ojo: componer "Diabetes " + TYPE_LABEL daba "Diabetes prediabetes".
 
 ## Estado de fases (tareas del task system)
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { defaultProfile, TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
+import { defaultProfile, DEFAULT_TARGETS, TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
 import { Mascot3D } from './Mascot3D'
 
 const STEPS = 7
@@ -74,18 +74,21 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
 
       {step === 1 && (
         <>
-          <h2>¿Qué tipo de diabetes tienes?</h2>
+          <h2>¿Cuál es tu situación?</h2>
           <div className="stack">
             {(Object.keys(TYPE_LABEL) as DiabetesType[]).map(t => (
               <button
                 key={t}
                 className={`choice ${p.type === t ? 'on' : ''}`}
                 onClick={() => {
-                  set({ type: t })
+                  set({ type: t, ...DEFAULT_TARGETS[t] })
                   next()
                 }}
               >
-                {TYPE_LABEL[t]}
+                {TYPE_FULL[t]}
+                {t === 'none' && (
+                  <div className="muted small">Quiero llevar un control de mi glucosa, tensión o peso</div>
+                )}
               </button>
             ))}
           </div>
@@ -110,7 +113,8 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
                 className={`choice ${p.measurement === m ? 'on' : ''}`}
                 onClick={() => {
                   set({ measurement: m })
-                  next()
+                  // sin diagnóstico no hay medicación de diabetes: se salta a tensión
+                  setStep(p.type === 'none' ? 5 : 3)
                 }}
               >
                 {title}
@@ -182,7 +186,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
               No
             </button>
           </div>
-          <button className="btn ghost small" onClick={() => setStep(usesMeds ? 4 : 3)}>
+          <button className="btn ghost small" onClick={() => setStep(p.type === 'none' ? 2 : usesMeds ? 4 : 3)}>
             Atrás
           </button>
         </>
@@ -192,8 +196,11 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
         <>
           <h2>Tu rango objetivo</h2>
           <p className="muted">
-            Entre estos dos valores diremos que estás «en rango». Vienen los estándar; si tu equipo médico
-            te ha dado otros, ponlos aquí.
+            Entre estos dos valores diremos que estás «en rango».{' '}
+            {p.type === 'none'
+              ? 'Vienen los valores de referencia de una persona sin diabetes.'
+              : 'Vienen los estándar para tu situación.'}{' '}
+            Si tu equipo médico te ha dado otros, ponlos aquí.
           </p>
           <div className="row">
             <div className="stack" style={{ flex: 1 }}>

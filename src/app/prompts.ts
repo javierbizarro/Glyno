@@ -1,5 +1,5 @@
 import type { Entry, Profile } from '../domain/types'
-import { treatmentSummary, TYPE_LABEL } from '../domain/types'
+import { treatmentSummary, TYPE_FULL } from '../domain/types'
 import type { Stats } from '../domain/stats'
 
 export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWeight?: Entry): string {
@@ -7,8 +7,10 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
   const imc =
     lastWeight?.value && p.heightCm ? (lastWeight.value / Math.pow(p.heightCm / 100, 2)).toFixed(1) : null
 
+  const general = p.type === 'none'
+
   const perfil = [
-    TYPE_LABEL[p.type],
+    general ? 'sin diagnóstico de diabetes (usa la app para cuidarse)' : TYPE_FULL[p.type].toLowerCase(),
     p.measurement === 'sensor' ? 'sensor continuo' : 'glucómetro de dedo',
     `tratamiento: ${treatmentSummary(p)}`,
     p.hypertension ? 'hipertenso' : null,
@@ -46,7 +48,7 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
 
   const hipos = entries.filter(e => e.kind === 'glucose' && e.value! < p.low).length
 
-  return `Eres Glyno, copiloto de diabetes: cercano, llano, hablas de tú, español de España. REGLAS INQUEBRANTABLES: nunca sugieras dosis, cambios de medicación ni diagnósticos; si un patrón es asunto médico (hipoglucemias repetidas, ayunas altas persistentes), tu consejo es llevárselo al equipo sanitario con este resumen. No inventes causas que los datos no muestren.
+  return `Eres Glyno, copiloto de diabetes: cercano, llano, hablas de tú, español de España. REGLAS INQUEBRANTABLES: nunca sugieras dosis, cambios de medicación ni diagnósticos; si un patrón es asunto médico (hipoglucemias repetidas, ayunas altas persistentes), tu consejo es llevárselo al equipo sanitario con este resumen. No inventes causas que los datos no muestren.${general ? ' OJO: esta persona no tiene diabetes diagnosticada, usa la app para cuidarse; no hables de «tu diabetes» ni des por hecho ningún diagnóstico.' : ''}
 
 PERFIL: ${perfil}
 BOTIQUÍN (pauta fija): ${botiquin}
@@ -76,7 +78,11 @@ TAREA: responde al último mensaje de ${name} como Glyno, en máximo 120 palabra
 }
 
 export function mealPrompt(p: Profile, hasPhoto: boolean, desc: string): string {
-  return `Eres el nutricionista de bolsillo de una persona con diabetes ${TYPE_LABEL[p.type]} (tratamiento: ${treatmentSummary(p)}). Analiza esta comida${hasPhoto ? ' de la foto' : ''}${desc ? ` (el usuario dice: "${desc}")` : ''}.
+  const quien =
+    p.type === 'none'
+      ? 'una persona sin diabetes que vigila su glucosa para cuidarse'
+      : `una persona con ${TYPE_FULL[p.type].toLowerCase()} (tratamiento: ${treatmentSummary(p)})`
+  return `Eres el nutricionista de bolsillo de ${quien}. Analiza esta comida${hasPhoto ? ' de la foto' : ''}${desc ? ` (el usuario dice: "${desc}")` : ''}.
 
 Devuelve SOLO un JSON válido, sin markdown, con esta forma exacta:
 {"plato": "nombre corto del plato", "hidratos_g": número entero (estimación total de hidratos de carbono en gramos), "indice_glucemico": "bajo"|"medio"|"alto", "semaforo": "verde"|"ambar"|"rojo" (verde=amigable con su glucosa, ambar=con moderación, rojo=le va a dar un pico), "consejo": "1-2 frases prácticas y cercanas en español (orden de los alimentos, acompañamientos, ración) SIN hablar de medicación ni dosis", "mejor_evitar": ["0 a 3 elementos del plato que más le suben la glucosa"]}
