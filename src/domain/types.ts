@@ -1,5 +1,5 @@
 export type DiabetesType = 't1' | 't2' | 'pre' | 'gest' | 'none'
-export type Measurement = 'sensor' | 'meter'
+export type Measurement = 'sensor' | 'meter' | 'none'
 
 export interface Med {
   name: string

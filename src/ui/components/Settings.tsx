@@ -78,6 +78,7 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
             <select value={p.measurement} onChange={e => set({ measurement: e.target.value as Measurement })}>
               <option value="meter">Glucómetro</option>
               <option value="sensor">Sensor</option>
+              <option value="none">No la mido</option>
             </select>
           </div>
         </div>

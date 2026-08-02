@@ -82,8 +82,9 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
           <p className="rep-sub">
             {profile.name}
             {age ? ` · ${age} años` : ''} ·{' '}
-            {general ? 'Sin diagnóstico de diabetes' : TYPE_FULL[profile.type]} ·{' '}
-            {profile.measurement === 'sensor' ? 'sensor continuo' : 'glucómetro capilar'}
+            {general ? 'Sin diagnóstico de diabetes' : TYPE_FULL[profile.type]}
+            {profile.measurement !== 'none' &&
+              ` · ${profile.measurement === 'sensor' ? 'sensor continuo' : 'glucómetro capilar'}`}
             <br />
             Tratamiento: {treatmentSummary(profile)}
             {profile.meds.length > 0 && (

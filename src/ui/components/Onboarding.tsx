@@ -30,6 +30,14 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
   const next = () => setStep(s => Math.min(s + 1, STEPS - 1))
   const back = () => setStep(s => Math.max(s - 1, 0))
   const usesMeds = p.basal || p.bolus || p.pills
+  const finish = (patch: Partial<Profile> = {}) => onDone({ ...p, ...patch, name: p.name.trim(), onboarded: true })
+
+  // quien no mide glucosa no necesita rango objetivo: la tensión es su último paso
+  const chooseHypertension = (hypertension: boolean) => {
+    set({ hypertension })
+    if (p.measurement === 'none') finish({ hypertension })
+    else next()
+  }
 
   return (
     <div className="screen" style={{ paddingTop: 36, gap: 22 }}>
@@ -106,6 +114,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
               [
                 ['meter', 'Glucómetro de dedo', 'Apuntaremos cada medición en dos toques'],
                 ['sensor', 'Sensor continuo', 'FreeStyle Libre, Dexcom u otro CGM'],
+                ['none', 'No la mido', 'Uso Glyno para tensión, peso u otros registros'],
               ] as [Measurement, string, string][]
             ).map(([m, title, sub]) => (
               <button
@@ -167,22 +176,10 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
           <h2>¿Controlas también la tensión?</h2>
           <p className="muted">Si eres hipertenso, añado un módulo de tensión arterial.</p>
           <div className="stack">
-            <button
-              className={`choice ${p.hypertension ? 'on' : ''}`}
-              onClick={() => {
-                set({ hypertension: true })
-                next()
-              }}
-            >
+            <button className={`choice ${p.hypertension ? 'on' : ''}`} onClick={() => chooseHypertension(true)}>
               Sí, soy hipertenso
             </button>
-            <button
-              className={`choice ${!p.hypertension ? 'on' : ''}`}
-              onClick={() => {
-                set({ hypertension: false })
-                next()
-              }}
-            >
+            <button className={`choice ${!p.hypertension ? 'on' : ''}`} onClick={() => chooseHypertension(false)}>
               No
             </button>
           </div>
@@ -229,7 +226,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
             <button
               className="btn"
               disabled={!(p.low >= 50 && p.high > p.low && p.high <= 300)}
-              onClick={() => onDone({ ...p, name: p.name.trim(), onboarded: true })}
+              onClick={() => finish()}
             >
               ¡Listo, empezamos!
             </button>

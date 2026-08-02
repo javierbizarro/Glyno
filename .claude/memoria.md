@@ -49,6 +49,12 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
    prompt añade una nota factual para que la IA no hable de «tu diabetes».
    Etiquetas: `TYPE_FULL` (menús/encabezados: "Diabetes tipo 2", "Prediabetes"…) vs `TYPE_LABEL`
    (corta). Ojo: componer "Diabetes " + TYPE_LABEL daba "Diabetes prediabetes".
+9. **Medición de glucosa opcional (2026-08-03)**: `Measurement` incluye `'none'` ("No la mido"),
+   para quien usa Glyno solo para tensión, peso u otros registros. Efectos: el onboarding TERMINA
+   en el paso de tensión (no pregunta rango objetivo — `finish()` se llama desde
+   `chooseHypertension`), en Hoy desaparece la tarjeta "Última glucemia" si además no hay ninguna
+   glucemia registrada (el botón de Glucemia SÍ se mantiene, por si mide algún día), `findGaps` no
+   reclama ayunas ni más mediciones, y el informe/prompt omiten el método de medición.
 
 ## Estado de fases (tareas del task system)
 
@@ -102,13 +108,15 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   esa es la que se instala en el iPhone (HTTPS → service worker y offline OK). Requiere repo
   PÚBLICO (Pages gratis) . El ?reset usa import.meta.env.BASE_URL.
   RECORDATORIO: Javier debe REGENERAR su clave de Gemini (quedó pegada en el chat de la sesión).
-- **SIGUIENTE FEATURE (decidido 2026-08-02)**: vista "Historial" navegable por semanas — Javier la
-  prefirió frente al selector de rango 14/30/90. Motivo: los datos >14 días se guardan pero hoy no
-  se ven en la app (solo CSV/backup). Diseño acordado: acceso desde Tendencias ("Ver historial"),
-  navegador ‹ semana anterior · rango de fechas · semana siguiente ›, y por semana: mini-gráfica de
-  glucemias con banda de rango + TIR de esa semana + lista día a día de todos los registros
-  (reutilizar entryText/KIND_ICO de Today extrayéndolos a ui/). Datos: entries.watchSince ya sirve;
-  añadir al puerto un `between(from,to)` si hace falta. Sin IA en esta vista.
+- ✅ Historial semanal (2026-08-03): `ui/components/History.tsx`, se abre desde el botón
+  "Historial" de Tendencias (sustituye el contenido de la pestaña, sin portal, conserva la barra de
+  pestañas). Navegador ‹ · «Esta semana»/«Semana pasada»/«20–26 jul» · › (siguiente deshabilitado
+  en la semana actual, hacia atrás sin límite; semanas vacías muestran "Nada registrado").
+  Por semana: media, TIR, días con datos (n/7), gráfica de 7 días con separadores diarios y letras
+  L M X J V S D, y lista día a día con todos los registros (solo se tiñen las glucemias fuera de
+  rango). Piezas nuevas: `domain/week.ts` (weekRange, lunes-domingo y a prueba de cambios de hora),
+  `ports.watchBetween(from,to)` + su adaptador Dexie, y `ui/entryDisplay.ts` (entryText/KIND_ICO
+  extraídos de Today y compartidos). Sin IA. Verificado en 375px.
 - ✅ Informe médico (2026-08-02): botón "Informe médico" en Tendencias → vista de impresión
   (ui/components/Report.tsx en PORTAL a body + app/report.ts getReportData) con selector 14/30/90
   días. Contiene: cabecera clínica (edad, tipo, tratamiento+botiquín, periodo, rango), 6 métricas

@@ -11,7 +11,11 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
 
   const perfil = [
     general ? 'sin diagnóstico de diabetes (usa la app para cuidarse)' : TYPE_FULL[p.type].toLowerCase(),
-    p.measurement === 'sensor' ? 'sensor continuo' : 'glucómetro de dedo',
+    p.measurement === 'none'
+      ? 'no mide glucosa habitualmente'
+      : p.measurement === 'sensor'
+        ? 'sensor continuo'
+        : 'glucómetro de dedo',
     `tratamiento: ${treatmentSummary(p)}`,
     p.hypertension ? 'hipertenso' : null,
     `rango objetivo ${p.low}–${p.high} mg/dl`,

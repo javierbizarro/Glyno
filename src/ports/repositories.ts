@@ -8,6 +8,8 @@ export interface EntryRepository {
   all(): Promise<Entry[]>
   /** entradas con ts >= since, ordenadas ascendente, en vivo */
   watchSince(since: number): Watchable<Entry[]>
+  /** entradas en [from, to), ordenadas ascendente, en vivo */
+  watchBetween(from: number, to: number): Watchable<Entry[]>
   /** todas las de un tipo, ordenadas ascendente, en vivo */
   watchByKind(kind: EntryKind): Watchable<Entry[]>
   /** la más reciente de un tipo, en vivo */

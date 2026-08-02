@@ -35,6 +35,10 @@ export class DexieEntryRepository implements EntryRepository {
     return liveQuery(() => this.db.entries.where('ts').aboveOrEqual(since).sortBy('ts'))
   }
 
+  watchBetween(from: number, to: number): Watchable<Entry[]> {
+    return liveQuery(() => this.db.entries.where('ts').between(from, to, true, false).sortBy('ts'))
+  }
+
   watchByKind(kind: EntryKind): Watchable<Entry[]> {
     return liveQuery(() => this.db.entries.where('kind').equals(kind).sortBy('ts'))
   }

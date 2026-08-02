@@ -8,12 +8,15 @@ import { seedDemo } from '../../app/demo'
 import { useWatch } from '../hooks'
 import { fmtDayShort, fmtTime, RANGE_LABEL, RANGE_VAR } from '../format'
 import { Report } from './Report'
+import { History } from './History'
 
 export function Trends({ profile }: { profile: Profile }) {
   const [reportOpen, setReportOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const entries = useWatch(() => repo.watchSince(daysAgo(13)), [])
 
   if (!entries) return null
+  if (historyOpen) return <History profile={profile} onClose={() => setHistoryOpen(false)} />
   const glucose = entries.filter(e => e.kind === 'glucose' && e.value != null)
   const stats = computeStats(entries, profile)
 
@@ -39,9 +42,14 @@ export function Trends({ profile }: { profile: Profile }) {
     <>
       <div className="row between">
         <h1>Tendencias</h1>
-        <button className="btn ghost small" onClick={() => setReportOpen(true)}>
-          Informe médico
-        </button>
+        <div className="wrap">
+          <button className="btn ghost small" onClick={() => setHistoryOpen(true)}>
+            Historial
+          </button>
+          <button className="btn ghost small" onClick={() => setReportOpen(true)}>
+            Informe
+          </button>
+        </div>
       </div>
       <span className="label">Últimos 14 días</span>
       {reportOpen && <Report profile={profile} onClose={() => setReportOpen(false)} />}

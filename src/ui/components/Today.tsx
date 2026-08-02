@@ -5,35 +5,11 @@ import { daysAgo } from '../../domain/time'
 import { entries } from '../../app/container'
 import { useWatch } from '../hooks'
 import { fmtDayLong, fmtTime, greeting, RANGE_LABEL, RANGE_VAR, timeAgo } from '../format'
+import { entryText, KIND_ICO } from '../entryDisplay'
 import { Mascot3D } from './Mascot3D'
 import { InstallHint } from './InstallHint'
 
 type Sheet = 'glucose' | 'bp' | 'insulin' | 'meal' | 'exercise' | 'tag' | 'weight' | null
-
-const KIND_ICO: Record<string, string> = {
-  glucose: '🩸',
-  bp: '🫀',
-  insulin: '💉',
-  med: '💊',
-  meal: '🍽️',
-  exercise: '👟',
-  tag: '🏷️',
-  weight: '⚖️',
-}
-
-function entryText(e: Entry): string {
-  switch (e.kind) {
-    case 'glucose': return `${e.value} mg/dl${e.note ? ` · ${e.note}` : ''}`
-    case 'bp': return `${e.sys}/${e.dia} mmHg`
-    case 'insulin': return `${e.value} U ${e.label ?? ''}`
-    case 'med': return e.label ?? 'Medicación'
-    case 'meal': return `${e.label}${e.carbs ? ` · ${e.carbs} g HC` : ''}`
-    case 'exercise': return `${e.label ?? 'Ejercicio'} · ${e.value} min`
-    case 'tag': return e.label ?? ''
-    case 'weight': return `${e.value} kg`
-    default: return ''
-  }
-}
 
 export function Today({ profile }: { profile: Profile }) {
   const [sheet, setSheet] = useState<Sheet>(null)
@@ -65,31 +41,34 @@ export function Today({ profile }: { profile: Profile }) {
         <Mascot3D size={104} />
       </div>
 
-      <div className="card">
-        <div className="row between">
-          <span className="label">Última glucemia</span>
-          {lastGlucose?.value != null && (
-            <span className={`pill ${rangeOf(lastGlucose.value, profile)}`}>
-              {RANGE_LABEL[rangeOf(lastGlucose.value, profile)]}
-            </span>
+      {/* a quien no mide glucosa no se le recuerda que le falta */}
+      {(lastGlucose?.value != null || profile.measurement !== 'none') && (
+        <div className="card">
+          <div className="row between">
+            <span className="label">Última glucemia</span>
+            {lastGlucose?.value != null && (
+              <span className={`pill ${rangeOf(lastGlucose.value, profile)}`}>
+                {RANGE_LABEL[rangeOf(lastGlucose.value, profile)]}
+              </span>
+            )}
+          </div>
+          {lastGlucose?.value != null ? (
+            <div className="row" style={{ alignItems: 'baseline', gap: 8, marginTop: 6 }}>
+              <span className="bignum" style={{ color: RANGE_VAR[rangeOf(lastGlucose.value, profile)] }}>
+                {lastGlucose.value}
+              </span>
+              <span className="muted">
+                mg/dl · {timeAgo(lastGlucose.ts)}
+                {lastGlucose.note ? ` · ${lastGlucose.note}` : ''}
+              </span>
+            </div>
+          ) : (
+            <p className="muted" style={{ marginTop: 8 }}>
+              Aún no hay ninguna. Apunta la primera con el botón de abajo.
+            </p>
           )}
         </div>
-        {lastGlucose?.value != null ? (
-          <div className="row" style={{ alignItems: 'baseline', gap: 8, marginTop: 6 }}>
-            <span className="bignum" style={{ color: RANGE_VAR[rangeOf(lastGlucose.value, profile)] }}>
-              {lastGlucose.value}
-            </span>
-            <span className="muted">
-              mg/dl · {timeAgo(lastGlucose.ts)}
-              {lastGlucose.note ? ` · ${lastGlucose.note}` : ''}
-            </span>
-          </div>
-        ) : (
-          <p className="muted" style={{ marginTop: 8 }}>
-            Aún no hay ninguna. Apunta la primera con el botón de abajo.
-          </p>
-        )}
-      </div>
+      )}
 
       <div className="quick">
         {quick.filter(q => q.show).map(q => (
