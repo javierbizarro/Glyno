@@ -1,0 +1,29 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
+
+export default defineConfig({
+  resolve: { dedupe: ['react', 'react-dom'] },
+  optimizeDeps: { include: ['dexie', 'dexie-react-hooks'] },
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
+      manifest: {
+        name: 'Glyno — tu copiloto de diabetes',
+        short_name: 'Glyno',
+        description: 'Diario de glucemias con un compañero de IA. Tus datos no salen de tu dispositivo.',
+        lang: 'es',
+        theme_color: '#F7F2E9',
+        background_color: '#F7F2E9',
+        display: 'standalone',
+        icons: [
+          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: 'apple-touch-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' }
+        ]
+      }
+    })
+  ],
+  server: { port: 5173, strictPort: true }
+})
