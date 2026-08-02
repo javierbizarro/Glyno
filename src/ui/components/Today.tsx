@@ -6,6 +6,7 @@ import { entries } from '../../app/container'
 import { useWatch } from '../hooks'
 import { fmtDayLong, fmtTime, greeting, RANGE_LABEL, RANGE_VAR, timeAgo } from '../format'
 import { Mascot3D } from './Mascot3D'
+import { InstallHint } from './InstallHint'
 
 type Sheet = 'glucose' | 'bp' | 'insulin' | 'meal' | 'exercise' | 'tag' | 'weight' | null
 
@@ -115,6 +116,8 @@ export function Today({ profile }: { profile: Profile }) {
           )}
         </div>
       </div>
+
+      <InstallHint />
 
       {sheet && <QuickSheet kind={sheet} profile={profile} onClose={() => setSheet(null)} />}
     </>
