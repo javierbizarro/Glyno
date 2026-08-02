@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { Profile } from '../../domain/types'
 import { daysAgo } from '../../domain/time'
+import { mealMoment } from '../../domain/meals'
+import { needsHypoCare } from '../../domain/glucose'
 import { entries as repo } from '../../app/container'
-import { analyzeMeal, saveMeal, type MealAnalysis } from '../../app/meals'
+import { analyzeMeal, logMeal, saveMeal, suggestMeal, type MealAnalysis, type MealSuggestion } from '../../app/meals'
 import type { AiImage } from '../../ports/ai'
 import { useWatch } from '../hooks'
 import { fmtDayShort, fmtTime } from '../format'
@@ -40,6 +42,179 @@ async function shrink(file: File): Promise<Photo> {
 }
 
 export function Meals({ profile }: { profile: Profile }) {
+  const [mode, setMode] = useState<'sugerir' | 'analizar'>('sugerir')
+  const recent = useWatch(() => repo.watchSince(daysAgo(29)), [])
+  const lastGlucose = useWatch(() => repo.watchLastByKind('glucose'), [])
+  const meals = recent?.filter(e => e.kind === 'meal').reverse().slice(0, 8)
+  const hasKey = !!profile.geminiKey
+
+  return (
+    <>
+      <h1>Comida</h1>
+      <div className="wrap">
+        <button className={`chip ${mode === 'sugerir' ? 'on' : ''}`} onClick={() => setMode('sugerir')}>
+          ¿Qué como ahora?
+        </button>
+        <button className={`chip ${mode === 'analizar' ? 'on' : ''}`} onClick={() => setMode('analizar')}>
+          Analizar un plato
+        </button>
+      </div>
+
+      {!hasKey && (
+        <div className="card">
+          <p className="muted">
+            Para esto necesito la clave gratuita de Gemini — se pone una vez en{' '}
+            <b>Ajustes → Glyno IA</b>.
+          </p>
+        </div>
+      )}
+
+      {mode === 'sugerir' ? (
+        <Suggest profile={profile} recent={recent} lastGlucose={lastGlucose} hasKey={hasKey} />
+      ) : (
+        <Analyze profile={profile} hasKey={hasKey} />
+      )}
+
+      {(meals?.length ?? 0) > 0 && (
+        <div>
+          <span className="label">Últimas comidas</span>
+          <div className="card" style={{ marginTop: 8, padding: '4px 16px' }}>
+            {meals!.map(e => (
+              <div className="entry-row" key={e.id}>
+                <span className="entry-ico">🍽️</span>
+                <span style={{ flex: 1, fontSize: 14.5 }}>
+                  {e.label}
+                  {e.carbs ? ` · ${e.carbs} g HC` : ''}
+                </span>
+                <span className="muted small">
+                  {fmtDayShort(e.ts)} {fmtTime(e.ts)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function Suggest({
+  profile,
+  recent,
+  lastGlucose,
+  hasKey,
+}: {
+  profile: Profile
+  recent: Parameters<typeof suggestMeal>[1] | undefined
+  lastGlucose: Parameters<typeof suggestMeal>[2]
+  hasKey: boolean
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState<MealSuggestion | null>(null)
+  const [taken, setTaken] = useState<string | null>(null)
+
+  const moment = mealMoment(Date.now())
+  const hypo = needsHypoCare(profile, lastGlucose)
+
+  const ask = async () => {
+    if (!recent) return
+    setBusy(true)
+    setError('')
+    setResult(null)
+    setTaken(null)
+    try {
+      setResult(await suggestMeal(profile, recent, lastGlucose))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // ante una hipoglucemia reciente no se proponen comidas: es asunto de su pauta médica
+  if (hypo) {
+    return (
+      <div className="card stack" style={{ borderColor: 'var(--red)' }}>
+        <span className="label" style={{ color: 'var(--red)' }}>
+          Antes de comer
+        </span>
+        <p style={{ fontSize: 14.5, lineHeight: 1.55 }}>
+          Tu última glucemia ({lastGlucose?.value} mg/dl) está por debajo de tu rango. Atiende primero la
+          bajada como te haya indicado tu equipo sanitario, y cuando estés recuperado te propongo qué
+          tomar.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="card stack">
+        <div className="row between">
+          <span className="label">Toca {moment}</span>
+          <span className="muted small">
+            {lastGlucose?.value ? `última: ${lastGlucose.value} mg/dl` : 'sin medición reciente'}
+          </span>
+        </div>
+        {!result && (
+          <p className="muted">
+            Miro la hora, cómo vas de glucosa y lo que sueles comer, y te doy ideas con lo que ya tienes
+            en casa.
+          </p>
+        )}
+        <button className="btn" disabled={!hasKey || busy || !recent} onClick={ask}>
+          {busy ? 'Pensando…' : result ? 'Dame otras ideas' : `Pídeme ideas para ${moment}`}
+        </button>
+      </div>
+
+      {error && (
+        <div className="card" style={{ borderColor: 'var(--red)' }}>
+          <p className="small" style={{ color: 'var(--red)' }}>{error}</p>
+        </div>
+      )}
+
+      {result && (
+        <div className="stack">
+          {result.opciones.map(o => (
+            <div className="card stack" key={o.plato} style={{ gap: 8 }}>
+              <div className="row between">
+                <h3 style={{ flex: 1 }}>{o.plato}</h3>
+                <span className="pill in">{o.hidratos_g} g HC</span>
+              </div>
+              <p className="muted small" style={{ lineHeight: 1.5 }}>{o.por_que}</p>
+              <button
+                className="btn ghost small"
+                disabled={taken === o.plato}
+                onClick={async () => {
+                  await logMeal(o.plato, o.hidratos_g, 'sugerida por Glyno')
+                  setTaken(o.plato)
+                }}
+              >
+                {taken === o.plato ? 'Apuntado ✓' : 'Esto voy a comer'}
+              </button>
+            </div>
+          ))}
+
+          {result.evitar.length > 0 && (
+            <div className="card stack">
+              <span className="label">Mejor hoy no</span>
+              <div className="wrap">
+                {result.evitar.map(x => (
+                  <span key={x} className="pill high">⚠ {x}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.nota && <p className="muted small">{result.nota}</p>}
+        </div>
+      )}
+    </>
+  )
+}
+
+function Analyze({ profile, hasKey }: { profile: Profile; hasKey: boolean }) {
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [desc, setDesc] = useState('')
   const [busy, setBusy] = useState(false)
@@ -47,10 +222,6 @@ export function Meals({ profile }: { profile: Profile }) {
   const [result, setResult] = useState<MealAnalysis | null>(null)
   const [saved, setSaved] = useState(false)
 
-  const recent = useWatch(() => repo.watchSince(daysAgo(6)), [])
-  const meals = recent?.filter(e => e.kind === 'meal').reverse()
-
-  const hasKey = !!profile.geminiKey
   const canAnalyze = hasKey && !busy && (photo || desc.trim())
 
   const analyze = async () => {
@@ -67,28 +238,8 @@ export function Meals({ profile }: { profile: Profile }) {
     }
   }
 
-  const save = async () => {
-    if (!result) return
-    await saveMeal(result)
-    setSaved(true)
-  }
-
   return (
     <>
-      <h1>Comida</h1>
-      <p className="muted small">
-        Foto al plato o cuéntamelo, y te estimo los hidratos y cómo le sentará a tu glucosa.
-      </p>
-
-      {!hasKey && (
-        <div className="card">
-          <p className="muted">
-            Para analizar comidas necesito la clave gratuita de Gemini — se pone una vez en{' '}
-            <b>Ajustes → Glyno IA</b>.
-          </p>
-        </div>
-      )}
-
       <div className="card stack">
         <label className="btn ghost" style={{ textAlign: 'center', cursor: 'pointer' }}>
           {photo ? 'Cambiar foto' : '📷 Hacer foto al plato'}
@@ -156,30 +307,17 @@ export function Meals({ profile }: { profile: Profile }) {
               ))}
             </div>
           )}
-          <button className="btn" disabled={saved} onClick={save}>
+          <button
+            className="btn"
+            disabled={saved}
+            onClick={async () => {
+              await saveMeal(result)
+              setSaved(true)
+            }}
+          >
             {saved ? 'Guardado en el diario ✓' : 'Guardar en el diario'}
           </button>
           <p className="muted small">La estimación es orientativa — tu glucómetro tiene la última palabra.</p>
-        </div>
-      )}
-
-      {(meals?.length ?? 0) > 0 && (
-        <div>
-          <span className="label">Últimas comidas</span>
-          <div className="card" style={{ marginTop: 8, padding: '4px 16px' }}>
-            {meals!.map(e => (
-              <div className="entry-row" key={e.id}>
-                <span className="entry-ico">🍽️</span>
-                <span style={{ flex: 1, fontSize: 14.5 }}>
-                  {e.label}
-                  {e.carbs ? ` · ${e.carbs} g HC` : ''}
-                </span>
-                <span className="muted small">
-                  {fmtDayShort(e.ts)} {fmtTime(e.ts)}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </>

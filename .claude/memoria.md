@@ -157,6 +157,24 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   mejora el trato del navegador al almacenamiento. SQLite como fichero real solo tendría sentido
   en la app nativa Android (idea v2).
 
+## Recomendaciones de comida (2026-08-03)
+
+- Pestaña Comida con dos modos (chips): **«¿Qué como ahora?»** y «Analizar un plato».
+- **Idea clave de Javier**: NO hace falta foto de la nevera ni despensa manual — el propio diario
+  es la despensa. `domain/meals.ts` → `usualMeals(entries, moment)` agrupa los platos ya
+  registrados por frecuencia (y por momento del día vía `mealMoment`), y el prompt le pide
+  priorizarlos "porque son los que tiene en casa y le gustan". Se descartó la foto de nevera:
+  reconocer tuppers/cajones es poco fiable y decepciona.
+- Entradas del prompt: momento del día + hora, última glucemia (valor y minutos), buildContext
+  (perfil, botiquín, stats y patrones) y los platos habituales. Salida JSON:
+  {opciones[{plato,hidratos_g,por_que}], evitar[], nota}. Cada opción tiene botón «Esto voy a
+  comer» → `logMeal(...)` con note 'sugerida por Glyno'.
+- **Salvaguarda clínica**: si la última glucemia está bajo rango y es de hace <2 h
+  (`needsHypoCare` en domain/glucose.ts) NO se llama a la IA; se muestra un texto fijo remitiendo
+  a la pauta del equipo sanitario. Verificado con una glucemia de 58.
+- Probado en vivo: propuso "Tortilla y ensalada 42 g HC — tu cena habitual más ligera…" y
+  "Pollo con ensalada", evitando "pizza y postre" por la hora. Usa 30 días de historial.
+
 ## Icono e instalación (2026-08-03)
 
 - **Logo = la criaturilla**: `public/icon.svg` rehecho como ilustración con degradados radiales

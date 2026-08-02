@@ -81,6 +81,23 @@ ${history}
 TAREA: responde al último mensaje de ${name} como Glyno, en máximo 120 palabras. Si la pregunta pide consejo médico o de dosis, recuérdale con cariño que eso es de su equipo sanitario.`
 }
 
+export function suggestMealPrompt(
+  ctx: string,
+  info: { moment: string; hora: string; ultima: string; habituales: string[]; otros: string[] },
+): string {
+  return `${ctx}
+
+MOMENTO: son las ${info.hora}, toca ${info.moment}.
+ÚLTIMA GLUCEMIA: ${info.ultima}
+PLATOS QUE SUELE TOMAR A ESTA HORA (salen de su propio diario, así que los tiene a mano y le gustan): ${info.habituales.join(' · ') || '(todavía ninguno)'}
+OTROS PLATOS DE SU DIARIO: ${info.otros.join(' · ') || '(ninguno)'}
+
+TAREA: propón 2 o 3 ideas para ${info.moment}. Devuelve SOLO JSON válido, sin markdown:
+{"opciones":[{"plato":"nombre corto","hidratos_g":número entero,"por_que":"media frase con el motivo, ligada a su glucemia o a sus patrones"}],"evitar":["0 a 2 cosas que ahora mismo le conviene dejar para otro día"],"nota":"una frase de cierre, cercana"}
+
+REGLAS: prioriza platos de su diario o variaciones mínimas de ellos (ingredientes que ya tiene); si no hay historial suficiente, propón comida casera española sencilla. Ajusta la propuesta a su glucemia actual y a sus patrones. Nunca hables de medicación ni dosis.`
+}
+
 export function mealPrompt(p: Profile, hasPhoto: boolean, desc: string): string {
   const quien =
     p.type === 'none'
