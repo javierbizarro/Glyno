@@ -12,7 +12,7 @@ navigator.storage?.persist?.()
 
 // "make reset" abre /?reset: borra perfil y diario y deja la app como recién instalada
 if (new URLSearchParams(location.search).has('reset')) {
-  resetAll().finally(() => location.replace('/'))
+  resetAll().finally(() => location.replace(import.meta.env.BASE_URL))
 } else {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

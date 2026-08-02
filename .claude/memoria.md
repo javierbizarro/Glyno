@@ -83,9 +83,12 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   tras la primera visita. apple-touch-icon.png 180px (rasterizado del SVG; NO se generó el de
   512 — el manifest usa el SVG para Android) + metas apple-mobile-web-app en index.html.
   Repaso móvil 375px: Hoy, Tendencias y Glyno sin overflow horizontal, gráficas legibles.
-  PENDIENTE IMPORTANTE (próxima sesión): para instalarla en el iPhone de verdad hace falta HTTPS
-  → desplegar en Cloudflare Pages o GitHub Pages (gratis). Desde la red local (http://IP:5173) se
-  puede abrir pero sin service worker (no es contexto seguro).
+  DESPLIEGUE (2026-08-02): repo git@github.com:javierbizarro/Glyno.git (rama main; Javier hizo
+  commit inicial y registró su SSH). GitHub Pages vía workflow `.github/workflows/deploy.yml`
+  (build con env DEPLOY_BASE=/Glyno/ → vite.config lee process.env.DEPLOY_BASE, local sigue en /;
+  configure-pages con enablement:true). URL final: https://javierbizarro.github.io/Glyno/ —
+  esa es la que se instala en el iPhone (HTTPS → service worker y offline OK). Requiere repo
+  PÚBLICO (Pages gratis) . El ?reset usa import.meta.env.BASE_URL.
   RECORDATORIO: Javier debe REGENERAR su clave de Gemini (quedó pegada en el chat de la sesión).
 - Ideas v2 (no comprometidas): informe PDF endocrino, lectura sensor (LibreLinkUp/Nightscout),
   modo familiar, recordatorios de medicación.

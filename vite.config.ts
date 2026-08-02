@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // en GitHub Pages la app vive en /Glyno/; en local, en la raíz
+  base: process.env.DEPLOY_BASE ?? '/',
   resolve: { dedupe: ['react', 'react-dom'] },
   optimizeDeps: { include: ['dexie', 'dexie-react-hooks'] },
   plugins: [
