@@ -306,20 +306,14 @@ function MedsStep({
           ))}
         </div>
       )}
-      <div className="row">
+      {/* apilados: en móvil, dos campos en fila cortan el texto de ejemplo */}
+      <div className="stack">
+        <input type="text" placeholder="Metformina" value={name} onChange={e => setName(e.target.value)} />
         <input
           type="text"
-          placeholder="Nombre (Metformina…)"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          style={{ flex: 2 }}
-        />
-        <input
-          type="text"
-          placeholder="Dosis y cuándo"
+          placeholder="850 mg · desayuno y cena"
           value={dose}
           onChange={e => setDose(e.target.value)}
-          style={{ flex: 1.2 }}
         />
       </div>
       <button className="btn ghost small" disabled={!name.trim()} onClick={add}>

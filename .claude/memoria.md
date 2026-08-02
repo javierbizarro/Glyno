@@ -181,8 +181,11 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   dice "otra medicación no insulínica" en vez de "medicación oral" (salía en el informe médico y era
   falso para quien usa GLP-1). La clave interna del perfil sigue siendo `pills` a propósito: no
   merece una migración de perfiles guardados (documentado en types.ts).
-- La periodicidad se escribe en el campo de dosis, que ahora se llama «Dosis y cuándo»
-  («0,5 mg · los martes»). Icono 💊 para otra medicación y 💉 para las insulinas.
+- La periodicidad se escribe en el campo de dosis (texto libre). Javier preguntó "¿qué tengo que
+  poner?" ⇒ la etiqueta abstracta no bastaba: ahora el **placeholder es el ejemplo**
+  («Metformina» / «850 mg · desayuno y cena») y en Ajustes hay una línea de ayuda con tres ejemplos.
+  Los dos campos van **apilados**, no en fila: en 375px una fila cortaba los placeholders.
+  Icono 💊 para otra medicación y 💉 para las insulinas.
 - IDEA PENDIENTE (no implementada): los GLP-1 son **semanales**, y acordarse del pinchazo semanal es
   un dolor real → recordatorio/registro de "hoy toca Ozempic" tendría valor. Requiere estructura de
   periodicidad en `Med` y avisos (ver plan de nativo).
