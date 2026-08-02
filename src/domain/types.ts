@@ -80,7 +80,16 @@ export interface Entry {
   note?: string
 }
 
-export const MOMENTS = ['ayunas', 'antes de comer', 'después de comer', 'antes de dormir'] as const
+// perfil glucémico clásico: antes y después de cada comida, como pide el endocrino
+export const MOMENTS = [
+  'ayunas',
+  'después de desayunar',
+  'antes de comer',
+  'después de comer',
+  'antes de cenar',
+  'después de cenar',
+  'antes de dormir',
+] as const
 
 export const PRESET_TAGS = ['Mal sueño', 'Estrés', 'Alcohol', 'Enfermo', 'Comida fuera', 'Regla', 'Olvido medicación']
 

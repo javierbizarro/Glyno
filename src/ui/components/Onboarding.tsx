@@ -30,12 +30,18 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
   const set = (patch: Partial<Profile>) => setP(prev => ({ ...prev, ...patch }))
   const next = () => setStep(s => Math.min(s + 1, STEPS - 1))
   const back = () => setStep(s => Math.max(s - 1, 0))
+  // sin esto, la opción por defecto (tipo 2, glucómetro, "No" en tensión) sale resaltada
+  // como si ya la hubieras elegido, y quien pasa rápido se lleva una respuesta que no dio
+  const [answered, setAnswered] = useState<Record<number, boolean>>(initial ? { 1: true, 2: true, 5: true } : {})
+  const mark = (s: number) => setAnswered(a => ({ ...a, [s]: true }))
+
   const usesMeds = p.basal || p.bolus || p.pills
   const finish = (patch: Partial<Profile> = {}) => onDone({ ...p, ...patch, name: p.name.trim(), onboarded: true })
 
   // quien no mide glucosa no necesita rango objetivo: la tensión es su último paso
   const chooseHypertension = (hypertension: boolean) => {
     set({ hypertension })
+    mark(5)
     if (p.measurement === 'none') finish({ hypertension })
     else next()
   }
@@ -90,9 +96,10 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
             {(Object.keys(TYPE_LABEL) as DiabetesType[]).map(t => (
               <button
                 key={t}
-                className={`choice ${p.type === t ? 'on' : ''}`}
+                className={`choice ${answered[1] && p.type === t ? 'on' : ''}`}
                 onClick={() => {
                   set({ type: t, ...DEFAULT_TARGETS[t] })
+                  mark(1)
                   next()
                 }}
               >
@@ -122,9 +129,10 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
             ).map(([m, title, sub]) => (
               <button
                 key={m}
-                className={`choice ${p.measurement === m ? 'on' : ''}`}
+                className={`choice ${answered[2] && p.measurement === m ? 'on' : ''}`}
                 onClick={() => {
                   set({ measurement: m })
+                  mark(2)
                   // sin diagnóstico no hay medicación de diabetes: se salta a tensión
                   setStep(p.type === 'none' ? 5 : 3)
                 }}
@@ -179,10 +187,16 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
           <h2>¿Controlas también la tensión?</h2>
           <p className="muted">Si eres hipertenso, añado un módulo de tensión arterial.</p>
           <div className="stack">
-            <button className={`choice ${p.hypertension ? 'on' : ''}`} onClick={() => chooseHypertension(true)}>
+            <button
+              className={`choice ${answered[5] && p.hypertension ? 'on' : ''}`}
+              onClick={() => chooseHypertension(true)}
+            >
               Sí, soy hipertenso
             </button>
-            <button className={`choice ${!p.hypertension ? 'on' : ''}`} onClick={() => chooseHypertension(false)}>
+            <button
+              className={`choice ${answered[5] && !p.hypertension ? 'on' : ''}`}
+              onClick={() => chooseHypertension(false)}
+            >
               No
             </button>
           </div>

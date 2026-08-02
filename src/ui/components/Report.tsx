@@ -4,6 +4,7 @@ import { MOMENTS, treatmentSummary, TYPE_FULL, type Entry, type Profile } from '
 import { rangeOf } from '../../domain/glucose'
 import { getReportData, type ReportData } from '../../app/report'
 import { fmtDayShort } from '../format'
+import { MOMENT_SHORT } from '../entryDisplay'
 
 const fmtDate = (ts: number) => new Date(ts).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 
@@ -139,7 +140,7 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
             <thead>
               <tr>
                 {data.momentMeans.map(m => (
-                  <th key={m.label}>{m.label}</th>
+                  <th key={m.label}>{MOMENT_SHORT[m.label] ?? m.label}</th>
                 ))}
               </tr>
             </thead>
@@ -169,7 +170,7 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
               <tr>
                 <th>Día</th>
                 {cols.map(c => (
-                  <th key={c}>{c}</th>
+                  <th key={c}>{MOMENT_SHORT[c] ?? c}</th>
                 ))}
               </tr>
             </thead>

@@ -10,6 +10,18 @@ import { resetAll } from './app/container'
 // almacenamiento persistente: el navegador no purgará IndexedDB por presión de espacio
 navigator.storage?.persist?.()
 
+// alto del teclado en pantalla: las hojas de registro van ancladas abajo y el teclado las tapa
+const vv = window.visualViewport
+if (vv) {
+  const trackKeyboard = () => {
+    const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+    document.documentElement.style.setProperty('--kb', `${Math.round(kb)}px`)
+  }
+  vv.addEventListener('resize', trackKeyboard)
+  vv.addEventListener('scroll', trackKeyboard)
+  trackKeyboard()
+}
+
 // beforeinstallprompt se dispara antes de que React monte: hay que guardarlo aquí o se pierde
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault()

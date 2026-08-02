@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MOMENTS, PRESET_TAGS, type Entry, type Profile } from '../../domain/types'
 import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
+import { mealMoment, suggestMoment, usualDoses, usualExercises, usualMeals } from '../../domain/meals'
 import { entries } from '../../app/container'
 import { useWatch } from '../hooks'
 import { fmtDayLong, fmtTime, greeting, RANGE_LABEL, RANGE_VAR, timeAgo } from '../format'
@@ -14,9 +15,10 @@ type Sheet = 'glucose' | 'bp' | 'insulin' | 'meal' | 'exercise' | 'tag' | 'weigh
 export function Today({ profile }: { profile: Profile }) {
   const [sheet, setSheet] = useState<Sheet>(null)
 
-  const todayAsc = useWatch(() => entries.watchSince(daysAgo(0)), [])
+  // 30 días: hacen falta para saber qué apunta habitualmente y ofrecerlo de un toque
+  const recent = useWatch(() => entries.watchSince(daysAgo(29)), [])
   // el diario se lee de más reciente a más antiguo
-  const todayEntries = todayAsc ? [...todayAsc].reverse() : undefined
+  const todayEntries = recent ? recent.filter(e => e.ts >= daysAgo(0)).reverse() : undefined
   const lastGlucose = useWatch(() => entries.watchLastByKind('glucose'), [])
 
   const quick: { key: Sheet; ico: string; label: string; show: boolean }[] = [
@@ -100,14 +102,34 @@ export function Today({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      {sheet && <QuickSheet kind={sheet} profile={profile} onClose={() => setSheet(null)} />}
+      {sheet && (
+        <QuickSheet kind={sheet} profile={profile} recent={recent ?? []} onClose={() => setSheet(null)} />
+      )}
     </>
   )
 }
 
-function QuickSheet({ kind, profile, onClose }: { kind: Exclude<Sheet, null>; profile: Profile; onClose: () => void }) {
-  const [value, setValue] = useState('')
-  const [extra, setExtra] = useState('')   // nota/momento · dia · tipo insulina · hidratos · minutos
+function QuickSheet({
+  kind,
+  profile,
+  recent,
+  onClose,
+}: {
+  kind: Exclude<Sheet, null>
+  profile: Profile
+  recent: Entry[]
+  onClose: () => void
+}) {
+  const moment = mealMoment(Date.now())
+  const lastWeight = [...recent].reverse().find(e => e.kind === 'weight')
+  const usualForMoment = usualMeals(recent, moment, 4)
+  const habitualMeals = usualForMoment.length ? usualForMoment : usualMeals(recent, undefined, 4)
+
+  const [value, setValue] = useState(
+    // el peso apenas cambia entre pesadas: se parte del último y se ajusta
+    kind === 'weight' && lastWeight?.value ? String(lastWeight.value) : '',
+  )
+  const [extra, setExtra] = useState(kind === 'glucose' ? suggestMoment(recent) : '')
   const [label, setLabel] = useState('')
 
   const add = async (e: Entry) => {
@@ -184,6 +206,19 @@ function QuickSheet({ kind, profile, onClose }: { kind: Exclude<Sheet, null>; pr
             <p className="muted small">
               La basal y las pastillas son tu pauta fija — no hace falta apuntarlas cada día.
             </p>
+            {usualDoses(recent, moment).length > 0 && (
+              <div className="wrap">
+                {usualDoses(recent, moment).map(d => (
+                  <button
+                    key={d.value}
+                    className="chip"
+                    onClick={() => add({ ts: Date.now(), kind: 'insulin', value: d.value, label: 'bolo' })}
+                  >
+                    {d.value} U
+                  </button>
+                ))}
+              </div>
+            )}
             <input
               className="bignum"
               type="number"
@@ -199,7 +234,26 @@ function QuickSheet({ kind, profile, onClose }: { kind: Exclude<Sheet, null>; pr
         {kind === 'meal' && (
           <>
             <h3>Comida</h3>
-            <input type="text" placeholder="¿Qué has comido?" autoFocus value={label} onChange={e => setLabel(e.target.value)} />
+            {habitualMeals.length > 0 && (
+              <>
+                <span className="label">Lo que sueles tomar</span>
+                <div className="wrap">
+                  {habitualMeals.map(m => (
+                    <button
+                      key={m.label}
+                      className="chip"
+                      onClick={() =>
+                        add({ ts: Date.now(), kind: 'meal', label: m.label, carbs: m.carbs ?? undefined })
+                      }
+                    >
+                      {m.label}
+                      {m.carbs ? ` · ${m.carbs} g` : ''}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            <input type="text" placeholder="¿Qué has comido?" value={label} onChange={e => setLabel(e.target.value)} />
             <div className="stack">
               <span className="label">Hidratos (g) — opcional</span>
               <input type="number" inputMode="numeric" placeholder="45" value={value} onChange={e => setValue(e.target.value)} />
@@ -211,7 +265,22 @@ function QuickSheet({ kind, profile, onClose }: { kind: Exclude<Sheet, null>; pr
         {kind === 'exercise' && (
           <>
             <h3>Ejercicio</h3>
-            <input type="text" placeholder="Caminar, bici, pesas…" autoFocus value={label} onChange={e => setLabel(e.target.value)} />
+            {usualExercises(recent).length > 0 && (
+              <div className="wrap">
+                {usualExercises(recent).map(x => (
+                  <button
+                    key={x.label}
+                    className="chip"
+                    onClick={() =>
+                      add({ ts: Date.now(), kind: 'exercise', value: x.minutes, label: x.label })
+                    }
+                  >
+                    {x.label} · {x.minutes} min
+                  </button>
+                ))}
+              </div>
+            )}
+            <input type="text" placeholder="Caminar, bici, pesas…" value={label} onChange={e => setLabel(e.target.value)} />
             <div className="stack">
               <span className="label">Minutos</span>
               <input type="number" inputMode="numeric" placeholder="30" value={value} onChange={e => setValue(e.target.value)} />

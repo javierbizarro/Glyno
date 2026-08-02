@@ -266,6 +266,11 @@ input.bignum {
   flex-direction: column;
   gap: 14px;
   animation: rise .22s ease-out;
+  /* --kb lo actualiza main.tsx: sube la hoja por encima del teclado */
+  margin-bottom: var(--kb, 0px);
+  max-height: calc(100dvh - var(--kb, 0px) - 20px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 @keyframes rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 
@@ -328,6 +333,17 @@ input.bignum {
 .onb-progress { display: flex; gap: 6px; }
 .onb-progress span { width: 26px; height: 3.5px; border-radius: 2px; background: var(--line); }
 .onb-progress span.on { background: var(--green); }
+
+/* móvil en horizontal: no se bloquea (sería un problema de accesibilidad), pero se compacta
+   para que siga viéndose intencionado y no roto */
+@media (orientation: landscape) and (max-height: 520px) {
+  .screen { padding: 12px 20px 82px; gap: 12px; }
+  h1 { font-size: 21px; }
+  .bignum { font-size: 42px; }
+  .tabbar { padding: 2px 0 max(6px, env(safe-area-inset-bottom)); }
+  .tab { font-size: 10px; padding: 5px 0 3px; }
+  .tab svg { width: 18px; height: 18px; }
+}
 
 /* ---- informe imprimible ---- */
 .report-overlay {

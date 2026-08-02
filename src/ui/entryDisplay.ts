@@ -11,6 +11,17 @@ export const KIND_ICO: Record<string, string> = {
   weight: '⚖️',
 }
 
+/** cabeceras cortas para las tablas del informe, donde "después de desayunar" no cabe */
+export const MOMENT_SHORT: Record<string, string> = {
+  ayunas: 'Ayunas',
+  'después de desayunar': 'Post desayuno',
+  'antes de comer': 'Pre comida',
+  'después de comer': 'Post comida',
+  'antes de cenar': 'Pre cena',
+  'después de cenar': 'Post cena',
+  'antes de dormir': 'Al dormir',
+}
+
 export function entryText(e: Entry): string {
   switch (e.kind) {
     case 'glucose': return `${e.value} mg/dl${e.note ? ` · ${e.note}` : ''}`

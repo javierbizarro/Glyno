@@ -171,6 +171,49 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   mejora el trato del navegador al almacenamiento. SQLite como fichero real solo tendría sentido
   en la app nativa Android (idea v2).
 
+## Momentos del día, teclado y orientación (2026-08-03)
+
+- **MOMENTS pasa al perfil glucémico clásico de 7 puntos** (ayunas, después de desayunar, antes de
+  comer, después de comer, antes de cenar, después de cenar, antes de dormir). Antes eran 4 y eran
+  ambiguos: "antes/después de comer" no decía de qué comida. Es lo que espera un endocrino y lo que
+  hace útil la tabla del informe. Los datos antiguos siguen siendo válidos (subconjunto).
+  Etiquetas cortas para el informe en `ui/entryDisplay.ts` → `MOMENT_SHORT` ("Post desayuno"…),
+  porque "después de desayunar" no cabe como cabecera. Demo actualizado para generar los 7.
+- `suggestMoment` premarca el momento correcto: posprandial si hay comida de hace 45 min-3,5 h
+  (distinguiendo desayuno/comida/cena), y por hora si no. **OJO con el orden de los ifs**: la
+  madrugada va PRIMERO, porque a la 1:00 `h < 11` daba "ayunas" (bug corregido). Verificados los
+  7 casos horarios.
+- **Teclado en móvil**: las hojas de registro van ancladas abajo y el teclado las tapaba. Solución:
+  `main.tsx` escucha `visualViewport` y publica `--kb` (alto del teclado); `.sheet` usa
+  `margin-bottom: var(--kb)` + `max-height` + scroll, y el viewport lleva
+  `interactive-widget=resizes-content`. NO se pudo verificar con teclado real (el panel de preview
+  no lo tiene): comprobar en el iPhone.
+- **Orientación**: `orientation: 'portrait'` en el manifest (lo respeta Android instalado; iOS lo
+  ignora). NO se bloquea el horizontal con un overlay a propósito: sería un problema de
+  accesibilidad (quien rota para ver más grande, o para leer el informe). En su lugar, media query
+  `(orientation: landscape) and (max-height: 520px)` que compacta paddings, títulos y barra de
+  pestañas para que el horizontal se vea intencionado. Verificado a 812×375.
+
+## Registro en un toque (2026-08-03)
+
+- El diario se alimenta de sí mismo: `domain/meals.ts` añade `usualDoses` (dosis de rápida más
+  repetidas a esa hora), `usualExercises` (actividad + minutos redondeados a 5) y `suggestMoment`
+  (ayunas / después de comer / antes de dormir según la hora y si ya ha comido hoy).
+- En las hojas de registro de Hoy: chips de comidas habituales («Lo que sueles tomar», con sus
+  hidratos medios), chips de dosis, chips de ejercicio — un toque guarda y cierra —, momento de la
+  glucemia ya premarcado y peso precargado con la última pesada. `Today` observa 30 días para tener
+  historial suficiente (antes solo el día).
+
+## Onboarding: defaults engañosos (bug 2026-08-03)
+
+- Javier reportó que la hipertensión no quedaba marcada en Ajustes. El guardado y el pintado eran
+  CORRECTOS (verificado de punta a punta). La causa era de diseño: en los pasos de tipo, medición y
+  tensión, la opción por defecto (`t2`, `meter`, `hypertension:false`) salía **resaltada como si ya
+  la hubieras elegido**, así que pasando rápido te llevabas una respuesta que no diste.
+- Solución: estado local `answered` por paso; nada se resalta hasta que el usuario toca. Si
+  `initial` existe (re-editar perfil) se considera ya contestado. Verificado con onboarding virgen:
+  ninguna opción preseleccionada y el caso "sin medicación + hipertenso" guarda y pinta bien.
+
 ## Recomendaciones de comida (2026-08-03)
 
 - Pestaña Comida con dos modos (chips): **«¿Qué como ahora?»** y «Analizar un plato».

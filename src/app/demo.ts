@@ -33,6 +33,8 @@ export async function seedDemo(p: Profile) {
 
     list.push({ ts: at(9), kind: 'meal', label: 'Tostada con tomate y café', carbs: r(rnd(28, 40)) })
     if (p.bolus) list.push({ ts: at(9, 2), kind: 'insulin', value: r(rnd(3, 5)), label: 'bolo' })
+    if (Math.random() < 0.5)
+      list.push({ ts: at(11), kind: 'glucose', value: r(rnd(118, 175)), note: 'después de desayunar' })
 
     list.push({ ts: at(14), kind: 'meal', label: ['Lentejas con arroz', 'Pollo con ensalada', 'Pasta con verduras', 'Cocido'][d % 4], carbs: r(rnd(45, 75)) })
     if (p.bolus) list.push({ ts: at(14, 2), kind: 'insulin', value: r(rnd(5, 8)), label: 'bolo' })
@@ -42,7 +44,7 @@ export async function seedDemo(p: Profile) {
       list.push({ ts: at(18, 30), kind: 'exercise', value: r(rnd(30, 50)), label: 'Caminar' })
       // alguna hipo post-ejercicio
       if (Math.random() < 0.35)
-        list.push({ ts: at(19, 45), kind: 'glucose', value: r(rnd(58, 69)), note: 'antes de comer' })
+        list.push({ ts: at(19, 45), kind: 'glucose', value: r(rnd(58, 69)), note: 'antes de cenar' })
     }
 
     if (bigDinner) list.push({ ts: at(21, 15), kind: 'tag', label: 'Cena copiosa' })
@@ -53,7 +55,7 @@ export async function seedDemo(p: Profile) {
       ts: at(23, 15),
       kind: 'glucose',
       value: r(rnd(105, 158) + (bigDinner ? 62 : 0) - (exercise ? 24 : 0)),
-      note: 'antes de dormir',
+      note: d % 3 === 0 ? 'antes de dormir' : 'después de cenar',
     })
   }
 
