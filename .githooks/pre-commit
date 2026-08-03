@@ -1,0 +1,20 @@
+#!/bin/sh
+# Type-check + tests inside Docker before every commit (nothing runs on the host).
+# Emergency skip: git commit --no-verify
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+# use the running dev container if it's up; otherwise spin a one-off container
+if [ -n "$(docker compose ps -q --status running web 2>/dev/null)" ]; then
+  run() { docker compose exec -T web "$@"; }
+else
+  run() { docker compose run --rm --no-deps -T web "$@"; }
+fi
+
+echo "pre-commit · type-checking…"
+run npx tsc --noEmit
+
+echo "pre-commit · tests…"
+run npx vitest run --silent
+
+echo "pre-commit · OK"

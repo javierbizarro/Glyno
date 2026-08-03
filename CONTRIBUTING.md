@@ -30,9 +30,12 @@ subas una clave al repositorio.**
 Antes de abrir un PR:
 
 ```bash
-docker compose exec web npx tsc --noEmit   # no type errors
-make prod                                   # builds cleanly
+make test    # type-check + test suite
+make prod    # builds cleanly
 ```
+
+El hook de pre-commit (se activa solo con `make up`, o a mano con `make hooks`) ejecuta los
+tests dentro de Docker en cada commit; el CI los repite en cada PR y antes de cada despliegue.
 
 ## Convenciones
 
@@ -40,6 +43,9 @@ make prod                                   # builds cleanly
   paternalista, y nunca riñe al usuario.
 - **Código en inglés, app en español**: identificadores, comentarios y mensajes de commit van en
   inglés; todo lo que ve el usuario (interfaz, prompts de IA, datos del diario) sigue en español.
+- **La lógica nace con test**: lo nuevo en `domain/` y `app/` llega con sus tests de Vitest
+  (`src/**/*.test.ts`, en inglés). La respuesta real de Gemini no se testea (no es determinista);
+  sus prompts y el parseo, sí.
 - **Arquitectura hexagonal** (ver el README). La regla dura: `src/ui/` **nunca** importa de
   `src/adapters/`. La lógica pura va a `domain/`; si orquesta puertos, a `app/`.
 - **Comentarios mínimos**: solo para explicar lo que el código no puede decir por sí mismo

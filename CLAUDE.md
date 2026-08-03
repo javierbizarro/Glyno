@@ -15,6 +15,12 @@ mascota 3D (Glyno) y valoraciones con IA (Gemini free tier). Objetivo: coste 0 r
   demo y los valores que se guardan en el diario ('ayunas', 'Mal sueño', 'sugerida por Glyno'…).
 - Metodología pactada con Javier: **fase a fase, comprobando cada una en el navegador antes de seguir**.
   Hay tareas creadas con el estado de cada fase.
+- **TDD en `domain/` y `app/`**: la lógica nueva nace con su test (Vitest, `src/**/*.test.ts`,
+  en inglés). La UI no lleva TDD estricto. Nunca testear la respuesta real de Gemini (no
+  determinista): se testean los prompts (líneas rojas incluidas) y el parseo. `make test` para
+  correr la batería; el pre-commit (`.githooks/`, activado por `make up`) y el CI la ejecutan
+  siempre. Si un test estorba, se arregla el test o el código — jamás se commitea con `--no-verify`
+  salvo emergencia pactada.
 - Javier quiere que se le **lleve la contraria** cuando su idea tenga pegas: consejo honesto, no complacencia.
 
 ## Diseño (que no parezca hecho por IA)

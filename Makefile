@@ -1,14 +1,21 @@
 PORT := 5173
 URL  := http://localhost:$(PORT)
 
-.PHONY: help up down restart logs status reset clean
+.PHONY: help up down restart logs status reset clean test hooks
 
 help: ## List the available commands
 	@grep -E "^[a-z]+:.*##" $(MAKEFILE_LIST) | awk -F ":.*## " "{printf \"  make %-10s %s\\n\", \$$1, \$$2}"
 
-up: ## Start the app at http://localhost:5173
+up: hooks ## Start the app at http://localhost:5173
 	docker compose up -d
 	@echo "Glyno running at $(URL)"
+
+test: ## Run type-check + test suite (inside Docker)
+	docker compose exec -T web npx tsc --noEmit
+	docker compose exec -T web npx vitest run
+
+hooks: ## Point git at the versioned hooks (pre-commit runs the tests)
+	@git config core.hooksPath .githooks
 
 down: ## Stop the app (browser data is not touched)
 	docker compose down

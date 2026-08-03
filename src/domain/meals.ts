@@ -97,7 +97,7 @@ export function usualExercises(entries: Entry[], limit = 3): UsualExercise[] {
     .map(x => ({
       label: x.label,
       times: x.count,
-      // rounded down to steps of 5: nobody walks exactly 37 minutes
+      // rounded to the nearest step of 5: nobody walks exactly 37 minutes
       minutes: Math.max(5, Math.round(x.mins.reduce((a, b) => a + b, 0) / x.mins.length / 5) * 5),
     }))
 }

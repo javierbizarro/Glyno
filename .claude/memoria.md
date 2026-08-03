@@ -330,6 +330,37 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Al probar se machacó el historial de chat (`glyno.chat`) con una conversación de prueba; se dejó
   limpio. Eran pruebas de fases anteriores, nada del usuario real.
 
+## TDD, tests en pre-commit y en la pipeline (2026-08-03)
+
+- Pedido por Javier. Acordado con matices: **TDD estricto solo en `domain/` y `app/`** (funciones
+  puras); la UI no lleva TDD (caro y frágil en componentes React). Lo existente se cubrió con
+  **tests de caracterización** (fijan el comportamiento actual); lo nuevo nace test-first.
+- **Nunca testear la respuesta real de Gemini** (no determinista). Se testean los prompts —
+  incluidas las líneas rojas (nunca dosis, bloque de hipo, cláusula de sal) — y el parseo
+  (`extractJson` con fences/prosa/basura). Las reglas de producto viven ahora en tests.
+- Infra: Vitest 4 con `vitest.config.ts` propio (sin plugins de Vite: los tests de dominio son TS
+  puro, entorno node). Tests colocados junto al código (`src/**/*.test.ts`), en inglés.
+- **Pre-commit sin husky**: husky exige `npm install` en el host y aquí no se instala nada fuera
+  de Docker. En su lugar: `.githooks/pre-commit` versionado + `git config core.hooksPath .githooks`
+  (lo deja hecho `make up`, target `hooks`). El hook corre `tsc` + `vitest` DENTRO del contenedor;
+  si el contenedor está parado usa `docker compose run --rm --no-deps`. Escape: `--no-verify`.
+- CI: job `test` en deploy.yml del que depende `deploy`, y `test.yml` aparte para PRs.
+- `make test` = tsc + vitest en Docker.
+- Batería inicial: 142 tests en 9 ficheros (~220 ms). Primer red→green del repo: el de-dupe de
+  `suggestMeal` usaba `startsWith` contra el texto formateado y se tragaba platos de otras
+  franjas cuyo nombre fuera prefijo de uno habitual; ahora compara etiquetas crudas.
+- Hallazgos de los tests de caracterización, **pinneados tal cual y pendientes de decidir**:
+  - `suggestMoment` filtra las comidas de hoy con `daysAgo(0)` (reloj real), ignora su parámetro
+    `now`; solo muerde si algún día se llama con un `now` que no sea el actual.
+  - `computeStats.tagEffects`: la media global incluye las lecturas post-etiqueta (con pocos
+    datos se diluye el efecto), y el mínimo `n>=2` cuenta lecturas, no ocurrencias de la etiqueta.
+  - El ejercicio agrupa por día de calendario, no por causalidad (una glucemia de las 8:00 cuenta
+    como «día con ejercicio» aunque el ejercicio fuera a las 23:00).
+  - `logMeal` descarta `carbs: 0` («sin hidratos» indistinguible de «no sé los hidratos»).
+  - Con diario vacío el contexto de IA dice «NaN% en rango» (solo afecta a usuarios recién
+    llegados que usen la IA sin datos).
+  - El paseo post-comida ignora comidas de antes de medianoche (ventana por calendario).
+
 ## Idiomas: app en castellano, código y commits en inglés (2026-08-03)
 
 - Pedido por Javier. La frontera importa y ya está pensada, no rediscutir:

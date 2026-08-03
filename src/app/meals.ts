@@ -63,9 +63,11 @@ export async function suggestMeal(
   const fmt = (m: { label: string; times: number; carbs: number | null }) =>
     `${m.label}${m.carbs ? ` (~${m.carbs} g HC)` : ''}${m.times > 1 ? ` ×${m.times}` : ''}`
 
-  const usual = usualMeals(recent, bucket).map(fmt)
+  const usualForMoment = usualMeals(recent, bucket)
+  const usual = usualForMoment.map(fmt)
+  const usualLabels = new Set(usualForMoment.map(m => m.label.toLowerCase()))
   const others = usualMeals(recent)
-    .filter(m => !usual.some(u => u.startsWith(m.label)))
+    .filter(m => !usualLabels.has(m.label.toLowerCase()))
     .map(fmt)
 
   const lastReading = lastGlucoseText(lastGlucose)
