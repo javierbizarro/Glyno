@@ -257,9 +257,18 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Verificado en vivo la inversión que justifica el diseño: ensalada con nueces, aguacate y aceite →
   **480 kcal, semáforo VERDE** (6 g HC, 6 g fibra, casero); pan blanco con mermelada y zumo →
   **300 kcal, semáforo ROJO** (70 g HC, 2 g fibra, ultraprocesado).
-- PENDIENTE si se quiere (aprobado conceptualmente, no implementado): sugerencia de movimiento
-  ligada a la glucemia y a los patrones («los días que caminas bajas 13»), el paseo de 10-15 min
-  tras las comidas, y "días activos: 4 de 7" como dato sin culpa (nunca rachas).
+- ✅ Implementado el enfoque alternativo: **tarjeta «Movimiento» en Hoy** (`domain/movement.ts`,
+  `movementState`, lógica pura y sin IA → funciona offline). Muestra «X de 7 días» como dato neutro
+  y una sugerencia contextual, en este orden de prioridad:
+  1. hipo reciente (`needsHypoCare`) → **ninguna sugerencia** (moverse es lo contrario de lo que hace falta),
+  2. ya se movió hoy → reconocimiento («Ya te has movido hoy, 45 min») y desaparece el botón,
+  3. comió hace 15-90 min → paseo de 10-15 min (lo que más recorta el pico posprandial),
+  4. glucemia sobre rango en las últimas 3 h → paseo tranquilo,
+  5. entre las 9 y las 22 sin moverse → invitación suave.
+  Si hay patrón propio se añade «los días que te mueves tu media baja N mg/dl» (solo si la mejora
+  supera 3 mg/dl y hay ≥2 días). Botón de un toque «Apuntar 15 min de paseo».
+  Nada de calorías, nada de compensar, nada de rachas. Verificados los 6 casos con datos sintéticos
+  y el registro en un toque en la app (la tarjeta pasó a «4 de 7 días» y ocultó el botón).
 
 ## Recomendaciones de comida (2026-08-03)
 

@@ -3,6 +3,7 @@ import { MOMENTS, PRESET_TAGS, type Entry, type Profile } from '../../domain/typ
 import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
 import { mealMoment, suggestMoment, usualDoses, usualExercises, usualMeals } from '../../domain/meals'
+import { movementState } from '../../domain/movement'
 import { entries } from '../../app/container'
 import { useWatch } from '../hooks'
 import { fmtDayLong, fmtTime, greeting, RANGE_LABEL, RANGE_VAR, timeAgo } from '../format'
@@ -81,6 +82,8 @@ export function Today({ profile }: { profile: Profile }) {
         ))}
       </div>
 
+      {recent && <MovementCard profile={profile} recent={recent} />}
+
       <InstallHint />
 
       <div>
@@ -106,6 +109,30 @@ export function Today({ profile }: { profile: Profile }) {
         <QuickSheet kind={sheet} profile={profile} recent={recent ?? []} onClose={() => setSheet(null)} />
       )}
     </>
+  )
+}
+
+function MovementCard({ profile, recent }: { profile: Profile; recent: Entry[] }) {
+  const state = movementState(profile, recent)
+  if (!state.nudge && state.activeDays === 0) return null
+
+  const usual = usualExercises(recent)[0]
+  const logWalk = () =>
+    entries.add({ ts: Date.now(), kind: 'exercise', value: 15, label: usual?.label ?? 'Caminar' })
+
+  return (
+    <div className="card stack">
+      <div className="row between">
+        <span className="label">Movimiento</span>
+        <span className="muted small">{state.activeDays} de 7 días</span>
+      </div>
+      {state.nudge && <p className="small" style={{ lineHeight: 1.55 }}>{state.nudge}</p>}
+      {state.minutesToday === 0 && (
+        <button className="btn ghost small" onClick={logWalk}>
+          👟 Apuntar 15 min de paseo
+        </button>
+      )}
+    </div>
   )
 }
 
