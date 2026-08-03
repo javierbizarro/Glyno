@@ -4,6 +4,7 @@ import type { Watchable } from './watchable'
 export interface EntryRepository {
   add(entry: Entry): Promise<void>
   bulkAdd(entries: Entry[]): Promise<void>
+  remove(id: number): Promise<void>
   clear(): Promise<void>
   all(): Promise<Entry[]>
   /** entradas con ts >= since, ordenadas ascendente, en vivo */

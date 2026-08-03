@@ -7,6 +7,7 @@ import { entries as repo } from '../../app/container'
 import { useWatch } from '../hooks'
 import { fmtDayLong, fmtTime, RANGE_VAR } from '../format'
 import { entryText, KIND_ICO } from '../entryDisplay'
+import { DeleteEntrySheet } from './DeleteEntrySheet'
 
 const DAY_INITIAL = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
@@ -23,6 +24,7 @@ function weekLabel(from: number, to: number, offset: number): string {
 
 export function History({ profile, onClose }: { profile: Profile; onClose: () => void }) {
   const [offset, setOffset] = useState(0)
+  const [toDelete, setToDelete] = useState<Entry | null>(null)
   const { from, to } = weekRange(offset)
   const week = useWatch(() => repo.watchBetween(from, to), [from])
 
@@ -96,6 +98,8 @@ export function History({ profile, onClose }: { profile: Profile; onClose: () =>
             </div>
           )}
 
+          {toDelete && <DeleteEntrySheet entry={toDelete} onClose={() => setToDelete(null)} />}
+
           {days.map(d => (
             <div key={d.key}>
               <span className="label">{d.label}</span>
@@ -104,7 +108,7 @@ export function History({ profile, onClose }: { profile: Profile; onClose: () =>
                   // solo se tiñe lo que se sale del rango: lo normal no debe llamar la atención
                   const out = e.kind === 'glucose' && rangeOf(e.value!, profile) !== 'in'
                   return (
-                    <div className="entry-row" key={e.id}>
+                    <button className="entry-row" key={e.id} onClick={() => setToDelete(e)} title="Tocar para borrar">
                       <span className="entry-ico">{KIND_ICO[e.kind]}</span>
                       <span
                         style={{
@@ -117,7 +121,7 @@ export function History({ profile, onClose }: { profile: Profile; onClose: () =>
                         {entryText(e)}
                       </span>
                       <span className="muted small">{fmtTime(e.ts)}</span>
-                    </div>
+                    </button>
                   )
                 })}
               </div>

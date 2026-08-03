@@ -10,11 +10,13 @@ import { fmtDayLong, fmtTime, greeting, RANGE_LABEL, RANGE_VAR, timeAgo } from '
 import { entryText, KIND_ICO } from '../entryDisplay'
 import { Mascot3D } from './Mascot3D'
 import { InstallHint } from './InstallHint'
+import { DeleteEntrySheet } from './DeleteEntrySheet'
 
 type Sheet = 'glucose' | 'bp' | 'insulin' | 'meal' | 'exercise' | 'tag' | 'weight' | null
 
 export function Today({ profile }: { profile: Profile }) {
   const [sheet, setSheet] = useState<Sheet>(null)
+  const [toDelete, setToDelete] = useState<Entry | null>(null)
 
   // 30 días: hacen falta para saber qué apunta habitualmente y ofrecerlo de un toque
   const recent = useWatch(() => entries.watchSince(daysAgo(29)), [])
@@ -91,11 +93,11 @@ export function Today({ profile }: { profile: Profile }) {
         <div className="card" style={{ marginTop: 8, padding: '4px 16px' }}>
           {todayEntries?.length ? (
             todayEntries.map(e => (
-              <div className="entry-row" key={e.id}>
+              <button className="entry-row" key={e.id} onClick={() => setToDelete(e)} title="Tocar para borrar">
                 <span className="entry-ico">{KIND_ICO[e.kind]}</span>
                 <span style={{ flex: 1, fontSize: 14.5 }}>{entryText(e)}</span>
                 <span className="muted small">{fmtTime(e.ts)}</span>
-              </div>
+              </button>
             ))
           ) : (
             <p className="muted" style={{ padding: '14px 0' }}>
@@ -108,6 +110,7 @@ export function Today({ profile }: { profile: Profile }) {
       {sheet && (
         <QuickSheet kind={sheet} profile={profile} recent={recent ?? []} onClose={() => setSheet(null)} />
       )}
+      {toDelete && <DeleteEntrySheet entry={toDelete} onClose={() => setToDelete(null)} />}
     </>
   )
 }

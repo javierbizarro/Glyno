@@ -20,14 +20,16 @@ export function Trends({ profile }: { profile: Profile }) {
   const glucose = entries.filter(e => e.kind === 'glucose' && e.value != null)
   const stats = computeStats(entries, profile)
 
-  if (glucose.length < 3) {
+  // solo se queda vacío si no hay NADA: con un único registro ya se empieza a dibujar,
+  // y quien no mide glucosa igual sí apunta tensión o peso
+  if (entries.length === 0) {
     return (
       <>
         <h1>Tendencias</h1>
         <div className="card stack">
           <p className="muted">
             Aquí aparecerán tus últimos 14 días: la curva de glucemia con tu rango objetivo, el tiempo
-            en rango y los patrones. Necesito al menos unos días de registros.
+            en rango y los patrones. Empieza a apuntar y esto se va llenando.
           </p>
           <button className="btn ghost" onClick={() => seedDemo(profile)}>
             Cargar 14 días de ejemplo
@@ -54,53 +56,64 @@ export function Trends({ profile }: { profile: Profile }) {
       <span className="label">Últimos 14 días</span>
       {reportOpen && <Report profile={profile} onClose={() => setReportOpen(false)} />}
 
-      <div className="stat-tiles">
-        <div className="card">
-          <span className="serif" style={{ color: stats.mean != null && rangeOf(stats.mean, profile) !== 'in' ? RANGE_VAR[rangeOf(stats.mean!, profile)] : 'var(--ink)' }}>
-            {Math.round(stats.mean ?? 0)}
-          </span>
-          <div className="label">Media</div>
-        </div>
-        <div className="card">
-          <span className="serif" style={{ color: 'var(--green)' }}>{Math.round(stats.tir)}%</span>
-          <div className="label">En rango</div>
-        </div>
-        <div className="card">
-          <span className="serif">{stats.n}</span>
-          <div className="label">Registros</div>
-        </div>
-      </div>
+      {glucose.length > 0 && (
+        <>
+          <div className="stat-tiles">
+            <div className="card">
+              <span className="serif" style={{ color: stats.mean != null && rangeOf(stats.mean, profile) !== 'in' ? RANGE_VAR[rangeOf(stats.mean!, profile)] : 'var(--ink)' }}>
+                {Math.round(stats.mean ?? 0)}
+              </span>
+              <div className="label">Media</div>
+            </div>
+            <div className="card">
+              <span className="serif" style={{ color: 'var(--green)' }}>{Math.round(stats.tir)}%</span>
+              <div className="label">En rango</div>
+            </div>
+            <div className="card">
+              <span className="serif">{stats.n}</span>
+              <div className="label">Registros</div>
+            </div>
+          </div>
 
-      <div className="card">
-        <div className="row between" style={{ marginBottom: 8 }}>
-          <span className="label">Glucemia</span>
-          <span className="muted small">rango {profile.low}–{profile.high}</span>
-        </div>
-        <GlucoseChart points={glucose} profile={profile} />
-        <details className="table-view">
-          <summary>Ver como tabla</summary>
-          <table className="data">
-            <thead>
-              <tr><th>Día</th><th>Hora</th><th>mg/dl</th><th>Momento</th></tr>
-            </thead>
-            <tbody>
-              {[...glucose].reverse().slice(0, 20).map(e => (
-                <tr key={e.id}>
-                  <td>{fmtDayShort(e.ts)}</td>
-                  <td>{fmtTime(e.ts)}</td>
-                  <td style={{ color: RANGE_VAR[rangeOf(e.value!, profile)], fontWeight: 600 }}>{e.value}</td>
-                  <td className="muted">{e.note ?? ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </details>
-      </div>
+          {stats.n < 10 && (
+            <p className="muted small">
+              Con {stats.n} {stats.n === 1 ? 'medición' : 'mediciones'} los porcentajes bailan mucho:
+              esto se vuelve fiable a partir de unos días de registros.
+            </p>
+          )}
 
-      <div className="card stack">
-        <span className="label">Tiempo en rango</span>
-        <TirBar pctLow={stats.pctLow} tir={stats.tir} pctHigh={stats.pctHigh} />
-      </div>
+          <div className="card">
+            <div className="row between" style={{ marginBottom: 8 }}>
+              <span className="label">Glucemia</span>
+              <span className="muted small">rango {profile.low}–{profile.high}</span>
+            </div>
+            <GlucoseChart points={glucose} profile={profile} />
+            <details className="table-view">
+              <summary>Ver como tabla</summary>
+              <table className="data">
+                <thead>
+                  <tr><th>Día</th><th>Hora</th><th>mg/dl</th><th>Momento</th></tr>
+                </thead>
+                <tbody>
+                  {[...glucose].reverse().slice(0, 20).map(e => (
+                    <tr key={e.id}>
+                      <td>{fmtDayShort(e.ts)}</td>
+                      <td>{fmtTime(e.ts)}</td>
+                      <td style={{ color: RANGE_VAR[rangeOf(e.value!, profile)], fontWeight: 600 }}>{e.value}</td>
+                      <td className="muted">{e.note ?? ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </details>
+          </div>
+
+          <div className="card stack">
+            <span className="label">Tiempo en rango</span>
+            <TirBar pctLow={stats.pctLow} tir={stats.tir} pctHigh={stats.pctHigh} />
+          </div>
+        </>
+      )}
 
       {(stats.tagEffects.length > 0 || stats.exerciseDelta != null) && (
         <div className="card stack">

@@ -23,6 +23,10 @@ export class DexieEntryRepository implements EntryRepository {
     await this.db.entries.bulkAdd(entries)
   }
 
+  async remove(id: number) {
+    await this.db.entries.delete(id)
+  }
+
   async clear() {
     await this.db.entries.clear()
   }

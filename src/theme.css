@@ -283,6 +283,19 @@ input.bignum {
   border-bottom: 1px solid var(--line);
 }
 .entry-row:last-child { border-bottom: none; }
+/* las filas del diario son pulsables para poder borrarlas */
+button.entry-row {
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.entry-row:last-child { border-bottom: none; }
+button.entry-row:active { opacity: .6; }
 .entry-ico {
   width: 34px; height: 34px;
   border-radius: 10px;

@@ -306,6 +306,28 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Hace falta un **hueco final** en el contenido (58 px) o el último elemento queda debajo de la
   caja; la primera versión lo puso en medio y tapaba el aviso legal.
 
+## Borrar un registro (2026-08-03)
+
+- Javier: «eliminar un registro por si te has equivocado». Las filas del diario (en Hoy y en
+  Historial) son ahora `<button className="entry-row">` que abren `DeleteEntrySheet`.
+- Con **confirmación obligatoria**: la hoja repite el registro (icono + texto + día y hora) para que
+  se vea que no te has equivocado de fila, y avisa «Solo desaparece de tu diario. Esto no se puede
+  deshacer». Descartada la papelera por fila (ensucia el diario, y en móvil se pulsa sin querer).
+- No hay deshacer ni borrado lógico a propósito: el diario es del usuario y un registro fantasma
+  falsearía las medias. Nuevo método `remove(id)` en el puerto `EntryRepository` (`.delete` de Dexie).
+- Consciente: **borrar cambia las medias y el informe del endocrino**. Es lo que se quiere (un dedo
+  gordo metiendo 999 mg/dl estropea más), pero por eso la confirmación no se puede saltar.
+
+## Tendencias con pocos datos (2026-08-03)
+
+- Javier: «cuando hay datos, aunque sean pocos, ir cargando la tendencia». Antes el estado vacío
+  tapaba la pantalla hasta tener unas cuantas glucemias; ahora solo aparece si **no hay ningún
+  registro** (`entries.length === 0`), lo que además arregla a quien solo apunta tensión o peso.
+- Cada bloque de glucemia se pinta solo si `glucose.length > 0`; con 1 y con 2 mediciones la gráfica
+  y el tiempo en rango ya salen bien (comprobado; la escala aguanta un único punto).
+- Contrapartida honesta: con `stats.n < 10` se avisa de que «los porcentajes bailan mucho». Sin ese
+  texto un 50% en rango con 2 lecturas parece un dato real y no lo es.
+
 ## Compartir la app (2026-08-03)
 
 - Tarjeta «Comparte Glyno» en Ajustes con `navigator.share` (hoja nativa del sistema en el móvil) y
