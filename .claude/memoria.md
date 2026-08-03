@@ -298,11 +298,45 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   hoja nativa → portapapeles con aviso → aviso + **el enlace siempre visible en la tarjeta** para
   copiarlo a mano. Cancelar la hoja nativa no muestra nada, que es lo correcto.
 
-## Icono e instalación (2026-08-03)
+## Rediseño del personaje: el corazón con corona (2026-08-03)
 
-- **Logo = la criaturilla**: `public/icon.svg` rehecho como ilustración con degradados radiales
-  (cuerpo de pera sombreado, brazos, pies, barriga, ojos con brillo, mofletes y brote con dos
-  hojas) a juego con el Glyno 3D. `Mascot.tsx` (barra de pestañas) usa la misma silueta plana.
+- **La hija de Javier dibujó a Glyno en papel** y ese diseño SUSTITUYE a la pera verde. Elementos que
+  hay que respetar: corazón por capas (contorno azul oscuro, aro lila, centro rosa), ojos grandes con
+  dos brillos, sonrisa pequeña, **corona** dorada arriba (al principio la interpreté como fuego:
+  es una corona), dos antenas onduladas con un corazoncito en la punta y una colita ondulada.
+- Los dos corazoncitos NO son antenas: son **GLOBOS** que sujeta con **bracitos** mediante cuerdas
+  (en el dibujo se ve la X del nudo en la mano). Corregido el 2026-08-03 a petición de Javier.
+- 3D (`Mascot3D.tsx`): corazón con `THREE.Shape` + `ExtrudeGeometry` biselado en tres capas
+  concéntricas. Piezas y por qué están donde están (medidas reales del cuerpo: cara frontal en
+  z≈0.61, lóbulos hasta y≈1.31, media anchura máx. ≈1.36):
+  - **Corona**: banda cilíndrica + aro + 5 conos con bolita, APOYADA sobre los lóbulos
+    (y = 1.135·1.2 − 0.06, z = 0.28). Es la única colocación en la que se ve: dentro de la muesca
+    queda enterrada entre los lóbulos y detrás solo asoman las puntas (se probaron ambas).
+  - **Brazos**: hombro bajo y abierto (±0.95, −0.45, 0.2) con rotación z = ∓1.05 y mano a 0.62 del
+    hombro ⇒ la mano cae en |x|≈1.48, FUERA de la silueta. Con z pequeño quedaban embebidos.
+  - **Globos**: un grupo por lado anclado EN la mano; dentro, cuerda `TubeGeometry` desde el origen
+    y el corazón colgado por su punta (`HEART_HALF · escala` por encima del final de la cuerda).
+    Al animar se rota el grupo ⇒ la cuerda nunca se despega de la mano.
+  - **OJO**: la posición de la mano se calcula con trigonometría a mano, NO con `localToWorld`:
+    justo tras `add()` las matrices de mundo aún no están actualizadas y salía descolocada.
+  - **Los globos se recortaban al oscilar**: en un lienzo CUADRADO lo que limita es el ANCHO, no el
+    alto. Con la cuerda abierta hacia fuera el borde del globo llegaba a 2,12 y el semiancho visible
+    era 2,0. Arreglado subiendo los globos casi en vertical (desplazamiento x de la cuerda 0,35 →
+    0,1), vaivén 0,13 → 0,11 y cámara 5,5 → 5,75: queda ~14% de margen. Para recalcularlo:
+    semiancho visible = tan(fov/2) · distancia; borde del globo = mano + offset + vaivén + 1,135·escala.
+  Animación: **latido lub-dub** (un corazón no "respira"), parpadeo, balanceo del cuerpo, globos
+  oscilando desfasados y colita.
+- Paleta: rosa #DE7A90, lila #B792C0, contorno #2F3757 (índigo oscuro: honra el azul del dibujo sin
+  salirse del tono sobrio de la app), oro #D99A3C/#F0C24E. El rosa se distingue del rojo de alerta
+  (#992817) para no confundir con "glucemia baja".
+- Iconos: `public/icon.svg` rehecho con el mismo personaje (degradados) y `apple-touch-icon.png`
+  regenerado (180px, vía descarga del canvas). `Mascot.tsx` (barra de pestañas) usa la versión plana
+  sin antenas, que a 22px serían ruido.
+- **Anécdota de depuración**: parecía que el 3D no renderizaba (solo un trazo fino). La escena estaba
+  bien (26 mallas, 2,93 × 2,82) — la **página estaba desplazada** y solo se veía el borde inferior
+  del canvas. Antes de dudar del código: `window.scrollTo(0, 0)`.
+
+## Instalación (2026-08-03)
   `apple-touch-icon.png` (180px) se generó rasterizando el SVG en el navegador y **descargándolo**
   (`a.download` → ~/Downloads → mv a public/): evita pegar 22 KB de base64 a mano, que corrompe.
 - **Botón de instalar que no aparecía**: dos causas. (1) `beforeinstallprompt` se dispara antes de

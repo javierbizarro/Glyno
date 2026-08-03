@@ -245,6 +245,9 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
           (salvo lo que tú envíes a la IA con tu clave). Glyno no da consejo médico ni pautas de
           medicación: para eso, siempre tu equipo sanitario.
         </p>
+        <p className="muted small">
+          El personaje de Glyno lo dibujó una niña de 8 años. 💛
+        </p>
         <button
           className="btn ghost small"
           onClick={async () => {

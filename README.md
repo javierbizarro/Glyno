@@ -15,6 +15,10 @@
   <a href="LICENSE">Condiciones de uso</a>
 </p>
 
+<p align="center">
+  <sub>El personaje de Glyno lo dibujó una niña de 8 años. 💛</sub>
+</p>
+
 ---
 
 ## ⚠️ Lo primero

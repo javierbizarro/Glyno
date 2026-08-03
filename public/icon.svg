@@ -1,37 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <radialGradient id="cuerpo" cx="34%" cy="26%" r="82%">
-      <stop offset="0" stop-color="#5D9A73"/>
-      <stop offset="55%" stop-color="#3D6B4F"/>
-      <stop offset="1" stop-color="#264936"/>
+    <path id="glyno-heart" d="M50 76 C36 64 26 55 26 45 C26 37 32 32 39 32 C44 32 48 35 50 39 C52 35 56 32 61 32 C68 32 74 37 74 45 C74 55 64 64 50 76 Z"/>
+    <radialGradient id="glyno-rose" cx="38%" cy="28%" r="80%">
+      <stop offset="0" stop-color="#EE9AAD"/>
+      <stop offset="60%" stop-color="#DE7A90"/>
+      <stop offset="1" stop-color="#BC5470"/>
     </radialGradient>
-    <radialGradient id="barriga" cx="50%" cy="30%" r="75%">
-      <stop offset="0" stop-color="#CBDFC1"/>
-      <stop offset="1" stop-color="#9EBB95"/>
-    </radialGradient>
+    <linearGradient id="glyno-lilac" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#C9A6D1"/>
+      <stop offset="1" stop-color="#A87FB4"/>
+    </linearGradient>
+    <linearGradient id="glyno-gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5D77E"/>
+      <stop offset="1" stop-color="#D99A3C"/>
+    </linearGradient>
   </defs>
 
   <rect width="100" height="100" rx="22" fill="#F7F2E9"/>
 
-  <path d="M50 30 C50 23 52 17 57 14" stroke="#2F5540" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <ellipse cx="65" cy="12" rx="8" ry="3.4" fill="#3D6B4F" transform="rotate(-16 65 12)"/>
-  <ellipse cx="48" cy="11" rx="7" ry="3.1" fill="#2F5540" transform="rotate(18 48 11)"/>
+  <!-- globos: cuerda desde la mano y corazón en la punta -->
+  <path d="M24 58 C18 50 15 43 14.5 35" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M76 58 C82 50 85 43 85.5 35" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <use href="#glyno-heart" transform="translate(14.5 27) scale(0.2) translate(-50 -52)" fill="#DE7A90" stroke="#2F3757" stroke-width="8"/>
+  <use href="#glyno-heart" transform="translate(85.5 27) scale(0.2) translate(-50 -52)" fill="#DE7A90" stroke="#2F3757" stroke-width="8"/>
 
-  <ellipse cx="38" cy="88" rx="9" ry="4.6" fill="#274935"/>
-  <ellipse cx="62" cy="88" rx="9" ry="4.6" fill="#274935"/>
-  <ellipse cx="21" cy="62" rx="5.6" ry="9.5" fill="#335C43" transform="rotate(18 21 62)"/>
-  <ellipse cx="79" cy="62" rx="5.6" ry="9.5" fill="#335C43" transform="rotate(-18 79 62)"/>
+  <!-- bracitos con su mano -->
+  <path d="M34 65 L25 58.5" stroke="#9B76A8" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M66 65 L75 58.5" stroke="#9B76A8" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="24" cy="58" r="3.4" fill="#9B76A8"/>
+  <circle cx="76" cy="58" r="3.4" fill="#9B76A8"/>
 
-  <path d="M50 26 C64 26 73 39 74 54 C75 71 65 88 50 88 C35 88 25 71 26 54 C27 39 36 26 50 26 Z" fill="url(#cuerpo)"/>
-  <ellipse cx="50" cy="78" rx="14" ry="9" fill="url(#barriga)"/>
+  <!-- corona apoyada sobre los lóbulos -->
+  <g stroke="#2F3757" stroke-width="1.5" stroke-linejoin="round" fill="url(#glyno-gold)">
+    <path d="M38.5 29.5 L43 20.5 L47.5 29.5 Z"/>
+    <path d="M45.5 29.5 L50 17.5 L54.5 29.5 Z"/>
+    <path d="M52.5 29.5 L57 20.5 L61.5 29.5 Z"/>
+    <rect x="37.5" y="28.5" width="25" height="5" rx="1.6"/>
+  </g>
+  <circle cx="43" cy="19" r="1.7" fill="#F5D77E"/>
+  <circle cx="50" cy="16" r="1.9" fill="#F5D77E"/>
+  <circle cx="57" cy="19" r="1.7" fill="#F5D77E"/>
 
-  <ellipse cx="33" cy="60" rx="5.5" ry="3.2" fill="#C97B5A" opacity=".45"/>
-  <ellipse cx="67" cy="60" rx="5.5" ry="3.2" fill="#C97B5A" opacity=".45"/>
+  <!-- cuerda de abajo -->
+  <path d="M50 77 C54 82 46 86 50 92" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
 
-  <circle cx="41" cy="53" r="4.6" fill="#23271F"/>
-  <circle cx="59" cy="53" r="4.6" fill="#23271F"/>
-  <circle cx="42.7" cy="51.2" r="1.6" fill="#F7F2E9"/>
-  <circle cx="60.7" cy="51.2" r="1.6" fill="#F7F2E9"/>
+  <!-- cuerpo: contorno, aro lila y centro rosa -->
+  <use href="#glyno-heart" fill="url(#glyno-lilac)" stroke="#2F3757" stroke-width="5" stroke-linejoin="round"/>
+  <use href="#glyno-heart" transform="translate(50 52) scale(0.74) translate(-50 -52)" fill="url(#glyno-rose)"/>
 
-  <path d="M44 61 Q50 66 56 61" stroke="#23271F" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- cara -->
+  <ellipse cx="43" cy="49" rx="3.4" ry="4" fill="#232743"/>
+  <ellipse cx="57" cy="49" rx="3.4" ry="4" fill="#232743"/>
+  <circle cx="44.3" cy="47.6" r="1.3" fill="#fff"/>
+  <circle cx="58.3" cy="47.6" r="1.3" fill="#fff"/>
+  <circle cx="41.9" cy="50.6" r="0.7" fill="#fff"/>
+  <circle cx="55.9" cy="50.6" r="0.7" fill="#fff"/>
+  <path d="M46.5 56.5 Q50 60 53.5 56.5" stroke="#232743" stroke-width="1.9" fill="none" stroke-linecap="round"/>
 </svg>
