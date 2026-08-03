@@ -75,7 +75,7 @@ export function Today({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      <div className="quick">
+      <div className="quick" data-tour="quick">
         {quick.filter(q => q.show).map(q => (
           <button key={q.key} onClick={() => setSheet(q.key)}>
             <span className="ico">{q.ico}</span>

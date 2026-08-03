@@ -8,8 +8,10 @@ import { Meals } from './ui/components/Meals'
 import { Coach } from './ui/components/Coach'
 import { Settings } from './ui/components/Settings'
 import { Mascot } from './ui/components/Mascot'
+import { Tour } from './ui/components/Tour'
+import { markTourSeen, shouldAutoStartTour } from './ui/tour'
 
-type Tab = 'today' | 'trends' | 'meals' | 'glyno' | 'settings'
+export type Tab = 'today' | 'trends' | 'meals' | 'glyno' | 'settings'
 
 const ICONS: Record<Tab, JSX.Element> = {
   today: (
@@ -60,7 +62,19 @@ const TAB_LABEL: Record<Tab, string> = {
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => profiles.load())
   const [tab, setTab] = useState<Tab>('today')
+  const [touring, setTouring] = useState(false)
   const tabbar = useRef<HTMLElement>(null)
+
+  // the tour welcomes each user exactly once, right after onboarding;
+  // afterwards it only opens manually from Ajustes
+  useEffect(() => {
+    if (shouldAutoStartTour(profile)) setTouring(true)
+  }, [profile?.onboarded])
+
+  const endTour = () => {
+    markTourSeen()
+    setTouring(false)
+  }
 
   // the bar's real height changes with the phone's safe area: whatever sits
   // on top of it (the chat box) needs to know it
@@ -89,8 +103,10 @@ export default function App() {
         {tab === 'trends' && <Trends profile={profile} />}
         {tab === 'meals' && <Meals profile={profile} />}
         {tab === 'glyno' && <Coach profile={profile} />}
-        {tab === 'settings' && <Settings profile={profile} onSave={save} />}
+        {tab === 'settings' && <Settings profile={profile} onSave={save} onReplayTour={() => setTouring(true)} />}
       </div>
+
+      {touring && <Tour go={setTab} onClose={endTour} />}
 
       <nav className="tabbar" ref={tabbar}>
         <div className="inner">

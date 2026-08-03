@@ -13,7 +13,15 @@ const KIND_LABEL: Record<Med['kind'], string> = {
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Profile) => void }) {
+export function Settings({
+  profile,
+  onSave,
+  onReplayTour,
+}: {
+  profile: Profile
+  onSave: (p: Profile) => void
+  onReplayTour: () => void
+}) {
   const p = profile
   const set = (patch: Partial<Profile>) => onSave({ ...p, ...patch })
   const fileRef = useRef<HTMLInputElement>(null)
@@ -218,6 +226,14 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
       </div>
 
       <InstallHint />
+
+      <div className="card stack" data-tour="guide">
+        <span className="label">Primeros pasos</span>
+        <p className="muted small">La guía con la que te recibió Glyno, por si quieres repasarla.</p>
+        <button className="btn ghost" onClick={onReplayTour}>
+          Ver la guía otra vez
+        </button>
+      </div>
 
       <div className="card stack">
         <span className="label">Comparte Glyno</span>

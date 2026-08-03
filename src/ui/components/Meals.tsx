@@ -62,7 +62,7 @@ export function Meals({ profile }: { profile: Profile }) {
   return (
     <>
       <h1>Comida</h1>
-      <div className="wrap">
+      <div className="wrap" data-tour="meals">
         <button className={`chip ${mode === 'suggest' ? 'on' : ''}`} onClick={() => setMode('suggest')}>
           ¿Qué como ahora?
         </button>

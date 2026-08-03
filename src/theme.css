@@ -385,6 +385,33 @@ button.entry-row:active { opacity: .6; }
   gap: 10px;
 }
 
+/* ---- guided tour ---- */
+.tour { position: fixed; inset: 0; z-index: 70; } /* blocks the app while touring */
+.tour-hole {
+  position: fixed;
+  border-radius: 16px;
+  /* one giant shadow dims everything except the spotlighted element */
+  box-shadow: 0 0 0 200vmax rgba(35, 39, 31, 0.5);
+  transition: top .28s ease, left .28s ease, width .28s ease, height .28s ease;
+  pointer-events: none;
+}
+.tour-bubble {
+  position: fixed;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 12px 30px rgba(35, 39, 31, 0.18);
+  animation: rise .22s ease-out;
+}
+.tour-bubble p { font-size: 14.5px; line-height: 1.55; }
+.tour-dots { display: flex; gap: 5px; align-items: center; }
+.tour-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+.tour-dots span.on { background: var(--green); }
+
 .onb-progress { display: flex; gap: 6px; }
 .onb-progress span { width: 26px; height: 3.5px; border-radius: 2px; background: var(--line); }
 .onb-progress span.on { background: var(--green); }

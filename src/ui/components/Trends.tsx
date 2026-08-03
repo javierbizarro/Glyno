@@ -26,7 +26,7 @@ export function Trends({ profile }: { profile: Profile }) {
     return (
       <>
         <h1>Tendencias</h1>
-        <div className="card stack">
+        <div className="card stack" data-tour="trends">
           <p className="muted">
             Aquí aparecerán tus últimos 14 días: la curva de glucemia con tu rango objetivo, el tiempo
             en rango y los patrones. Empieza a apuntar y esto se va llenando.
@@ -58,7 +58,7 @@ export function Trends({ profile }: { profile: Profile }) {
 
       {glucose.length > 0 && (
         <>
-          <div className="stat-tiles">
+          <div className="stat-tiles" data-tour="trends">
             <div className="card">
               <span className="serif" style={{ color: stats.mean != null && rangeOf(stats.mean, profile) !== 'in' ? RANGE_VAR[rangeOf(stats.mean!, profile)] : 'var(--ink)' }}>
                 {Math.round(stats.mean ?? 0)}

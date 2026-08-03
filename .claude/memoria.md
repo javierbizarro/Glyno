@@ -330,6 +330,21 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Al probar se machacó el historial de chat (`glyno.chat`) con una conversación de prueba; se dejó
   limpio. Eran pruebas de fases anteriores, nada del usuario real.
 
+## Guía tour para nuevos usuarios (2026-08-03)
+
+- Pedido por Javier: tour de bienvenida re-lanzable desde Ajustes. Diseño: **6 pasos, saltable
+  siempre** (viene justo tras el onboarding, que ya es largo), Glyno de guía con foco recortado
+  (`.tour-hole` con box-shadow gigante) sobre el elemento real de cada pantalla; la guía cambia de
+  pestaña sola. Anclajes por `data-tour` (quick / trends ×2 / meals / coach / guide).
+- Se auto-muestra **una vez** (`glyno.tourSeen` en localStorage, `src/ui/tour.ts`, con test
+  TDD-first). Replay manual: tarjeta «Primeros pasos» en Ajustes. Escape también cierra (cuenta
+  como vista). Los usuarios existentes la ven una vez tras actualizar (no hay flag previo) —
+  decisión consciente: anuncia la función y se salta en un toque.
+- Trampa evitada y regla nueva: **nada de requestAnimationFrame para medir tras scrollIntoView**
+  — no dispara con la página oculta (misma familia que el scroll suave del chat) y es innecesario:
+  tras un scroll instantáneo la medida síncrona ya vale. El objetivo de cada paso se busca con
+  reintentos (las pantallas montan async por Dexie) y cae a bocadillo centrado si no aparece.
+
 ## TDD, tests en pre-commit y en la pipeline (2026-08-03)
 
 - Pedido por Javier. Acordado con matices: **TDD estricto solo en `domain/` y `app/`** (funciones

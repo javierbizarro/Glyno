@@ -153,7 +153,7 @@ export function Coach({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      <div className="card stack">
+      <div className="card stack" data-tour="coach">
         <div className="row between">
           <span className="label">Valoración quincenal</span>
           {review && (
