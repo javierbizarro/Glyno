@@ -12,6 +12,10 @@ export interface MealAnalysis {
   semaforo: 'verde' | 'ambar' | 'rojo'
   consejo: string
   mejor_evitar: string[]
+  // orientativos y secundarios: el semáforo NO se decide por las calorías
+  fibra_g?: number
+  calorias_kcal?: number
+  procesado?: 'casero' | 'procesado' | 'ultraprocesado'
 }
 
 function extractJson<T>(s: string): T {

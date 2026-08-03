@@ -240,6 +240,27 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   `initial` existe (re-editar perfil) se considera ya contestado. Verificado con onboarding virgen:
   ninguna opción preseleccionada y el caso "sin medicación + hipertenso" guarda y pinta bien.
 
+## Calorías: sí, pero secundarias (2026-08-03)
+
+- Javier propuso primero **contar calorías y compensarlas con ejercicio** (pasos). Se DESCARTÓ la
+  compensación con tres argumentos: (1) la métrica que mueve la glucosa son los hidratos, no las
+  kcal; (2) "compensar comida con ejercicio" puede inducir hipoglucemias tardías si hay insulina y
+  refuerza conductas alimentarias desordenadas, frecuentes en diabetes; (3) restar dos estimaciones
+  malas (kcal comidas y gastadas) da una cifra peor y falsamente precisa.
+- Luego preguntó por **calorías orientativas para saber si un plato es sano**. Se implementó así:
+  el análisis de comida devuelve además `fibra_g`, `calorias_kcal` y `procesado`
+  (casero/procesado/ultraprocesado), mostrados como **línea secundaria** bajo los hidratos, y el
+  prompt lleva instrucción EXPLÍCITA de que el semáforo valora glucosa y calidad, **nunca calorías**
+  (con ejemplos: aceite de oliva y frutos secos son calóricos y sanos).
+- Las kcal **no se guardan** en el diario a propósito: sin acumulado diario no hay dinámica de app
+  de dieta. Añadirlo luego sería trivial si se decide.
+- Verificado en vivo la inversión que justifica el diseño: ensalada con nueces, aguacate y aceite →
+  **480 kcal, semáforo VERDE** (6 g HC, 6 g fibra, casero); pan blanco con mermelada y zumo →
+  **300 kcal, semáforo ROJO** (70 g HC, 2 g fibra, ultraprocesado).
+- PENDIENTE si se quiere (aprobado conceptualmente, no implementado): sugerencia de movimiento
+  ligada a la glucemia y a los patrones («los días que caminas bajas 13»), el paseo de 10-15 min
+  tras las comidas, y "días activos: 4 de 7" como dato sin culpa (nunca rachas).
+
 ## Recomendaciones de comida (2026-08-03)
 
 - Pestaña Comida con dos modos (chips): **«¿Qué como ahora?»** y «Analizar un plato».

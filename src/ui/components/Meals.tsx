@@ -299,6 +299,21 @@ function Analyze({ profile, hasKey }: { profile: Profile; hasKey: boolean }) {
             <span className="bignum" style={{ fontSize: 44 }}>{result.hidratos_g}</span>
             <span className="muted">g de hidratos · índice glucémico {result.indice_glucemico}</span>
           </div>
+          {/* secundarios a propósito: informan, pero no deciden si el plato es buena idea */}
+          <p className="muted small">
+            {result.fibra_g != null && <>{result.fibra_g} g de fibra · </>}
+            {result.calorias_kcal != null && <>~{result.calorias_kcal} kcal · </>}
+            {result.procesado && (
+              <span
+                style={{
+                  color: result.procesado === 'ultraprocesado' ? 'var(--amber)' : undefined,
+                  fontWeight: result.procesado === 'ultraprocesado' ? 650 : undefined,
+                }}
+              >
+                {result.procesado}
+              </span>
+            )}
+          </p>
           <p style={{ fontSize: 14.5, lineHeight: 1.55 }}>{result.consejo}</p>
           {result.mejor_evitar.length > 0 && (
             <div className="wrap">

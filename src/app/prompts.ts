@@ -106,7 +106,9 @@ export function mealPrompt(p: Profile, hasPhoto: boolean, desc: string): string 
   return `Eres el nutricionista de bolsillo de ${quien}. Analiza esta comida${hasPhoto ? ' de la foto' : ''}${desc ? ` (el usuario dice: "${desc}")` : ''}.
 
 Devuelve SOLO un JSON válido, sin markdown, con esta forma exacta:
-{"plato": "nombre corto del plato", "hidratos_g": número entero (estimación total de hidratos de carbono en gramos), "indice_glucemico": "bajo"|"medio"|"alto", "semaforo": "verde"|"ambar"|"rojo" (verde=amigable con su glucosa, ambar=con moderación, rojo=le va a dar un pico), "consejo": "1-2 frases prácticas y cercanas en español (orden de los alimentos, acompañamientos, ración) SIN hablar de medicación ni dosis", "mejor_evitar": ["0 a 3 elementos del plato que más le suben la glucosa"]}
+{"plato": "nombre corto del plato", "hidratos_g": número entero (estimación total de hidratos de carbono en gramos), "fibra_g": número entero (fibra estimada), "calorias_kcal": número entero (estimación orientativa), "procesado": "casero"|"procesado"|"ultraprocesado", "indice_glucemico": "bajo"|"medio"|"alto", "semaforo": "verde"|"ambar"|"rojo" (verde=amigable con su glucosa, ambar=con moderación, rojo=le va a dar un pico), "consejo": "1-2 frases prácticas y cercanas en español (orden de los alimentos, acompañamientos, ración) SIN hablar de medicación ni dosis", "mejor_evitar": ["0 a 3 elementos del plato que más le suben la glucosa"]}
 
-Si la imagen no parece comida, devuelve {"plato": "no es comida", "hidratos_g": 0, "indice_glucemico": "bajo", "semaforo": "verde", "consejo": "No he reconocido comida ahí.", "mejor_evitar": []}`
+IMPORTANTE: el semáforo valora el impacto en su glucosa y la calidad del alimento, NUNCA las calorías. El aceite de oliva, los frutos secos, el aguacate o el pescado azul son calóricos y saludables; el pan blanco o un zumo tienen menos calorías y son peores para su glucemia.
+
+Si la imagen no parece comida, devuelve {"plato": "no es comida", "hidratos_g": 0, "fibra_g": 0, "calorias_kcal": 0, "procesado": "casero", "indice_glucemico": "bajo", "semaforo": "verde", "consejo": "No he reconocido comida ahí.", "mejor_evitar": []}`
 }
