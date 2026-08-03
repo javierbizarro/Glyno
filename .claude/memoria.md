@@ -307,6 +307,23 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Verificado tras refactor: 5 pestañas OK con datos previos intactos, escritura en vivo OK,
   `tsc --noEmit` limpio, build de producción OK. Backup pre-refactor en scratchpad de la sesión.
 
+## Documentación pública y licencia (2026-08-03)
+
+- Se añadieron `README.md`, `CONTRIBUTING.md` y `LICENSE`.
+- **Decisión de Javier: «colaborativa pero no open source»** ⇒ source-available con TODOS LOS
+  DERECHOS RESERVADOS. El LICENSE permite usar la app, leer/clonar el código, ejecutar copia propia
+  para uso personal y enviar PRs; exige permiso escrito para redistribuir, publicar en tiendas, uso
+  comercial o reutilizar partes. Incluye cesión de aportaciones (inbound = mismas condiciones, con
+  posibilidad de relicenciar) y descargo de garantía + "no es producto sanitario".
+  Está en lenguaje llano y así se dice: no es asesoramiento jurídico.
+- El repo debe seguir PÚBLICO para que GitHub Pages sea gratis; público ≠ open source, que es
+  exactamente lo que se buscaba.
+- CONTRIBUTING recoge las convenciones (español de España, hexagonal con `ui` sin tocar `adapters`,
+  comentarios mínimos, sin dependencias nuevas ni CDNs, móvil primero, paleta validada) y una lista
+  explícita de **lo que no se acepta**: calculadoras de dosis, predicción de hipos, telemetría o
+  enviar datos de salud a servidores, y gamificación con rachas.
+- Verificado: sin claves en ficheros ni en el historial de git antes de dar visibilidad al repo.
+
 ## Versiones de CI y Node (2026-08-03)
 
 - GitHub avisaba de que node20 está deprecado: las actions v4 lo usaban. Actualizadas a las últimas

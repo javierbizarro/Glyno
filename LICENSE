@@ -1,0 +1,62 @@
+Condiciones de uso de Glyno
+===========================
+
+Copyright (c) 2026 Javier Romero. Todos los derechos reservados.
+
+Este repositorio es de código visible («source-available»), NO es software libre ni de código
+abierto. Que puedas leer el código no implica que puedas reutilizarlo.
+
+
+Lo que sí puedes hacer
+----------------------
+
+1. Usar la aplicación publicada libremente y sin coste, para ti o para las personas a tu cargo.
+2. Leer, estudiar y clonar el código para aprender, revisarlo o probarlo en tu propia máquina.
+3. Proponer cambios mediante issues y pull requests (ver CONTRIBUTING.md).
+4. Ejecutar tu propia copia modificada para uso estrictamente personal o familiar.
+
+
+Lo que necesita permiso por escrito del autor
+---------------------------------------------
+
+1. Redistribuir el código o la aplicación, con o sin modificaciones.
+2. Publicarla en tiendas de aplicaciones o alojarla como servicio para terceros.
+3. Cualquier uso comercial, incluidos servicios de pago que la incorporen.
+4. Reutilizar partes del código en otros proyectos.
+
+Para pedir permiso, abre un issue en el repositorio.
+
+
+Aportaciones
+------------
+
+Quien envía un pull request acepta que su aportación se integre bajo estas mismas condiciones y que
+el autor pueda distribuirla o relicenciar el proyecto en el futuro. La autoría queda registrada en el
+historial de git.
+
+
+Sin garantía y sin finalidad médica
+-----------------------------------
+
+Glyno se ofrece «tal cual», sin garantía de ningún tipo, expresa o implícita, incluidas las de
+comerciabilidad, idoneidad para un propósito concreto y ausencia de errores. El autor no responde de
+ningún daño derivado de su uso.
+
+Glyno NO es un producto sanitario, no proporciona consejo médico y no debe emplearse para tomar
+decisiones de tratamiento. No calcula ni sugiere dosis de medicación. Las estimaciones que ofrece
+(hidratos de carbono, HbA1c estimada, patrones) son orientativas y pueden equivocarse: la referencia
+válida son tus mediciones y las indicaciones de tu equipo sanitario.
+
+
+Nota
+----
+
+Este texto está redactado en lenguaje llano y no es asesoramiento jurídico. El autor se reserva el
+derecho de publicar el proyecto bajo una licencia de código abierto en el futuro.
+
+
+---
+
+English summary (non-binding): source-available, all rights reserved. You may use the published app,
+read the code and submit contributions; redistribution, commercial use and reuse of the code require
+written permission. No warranty. Glyno is not a medical device and gives no medical advice.
