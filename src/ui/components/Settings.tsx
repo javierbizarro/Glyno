@@ -24,6 +24,28 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
     setTimeout(() => setMsg(''), 3500)
   }
 
+  // sin URL fija: comparte la dirección desde la que se está usando la app
+  const appUrl = location.origin + import.meta.env.BASE_URL
+  const share = async () => {
+    const text =
+      'Glyno, un copiloto para el día a día con diabetes: apunta tus glucemias, te busca patrones y prepara el informe para el médico. Gratis y sin cuentas.'
+    if (navigator.share) {
+      // si el usuario cancela la hoja del sistema, no hay nada que decirle
+      try {
+        await navigator.share({ title: 'Glyno', text, url: appUrl })
+      } catch {
+        /* cancelado */
+      }
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(`${text}\n${appUrl}`)
+      flash('Enlace copiado al portapapeles.')
+    } catch {
+      flash('Copia el enlace de abajo y pásaselo a quien quieras.')
+    }
+  }
+
   const exportCsv = async () => {
     const { csv, count } = await buildCsv(p)
     download(`glyno-diario-${today()}.csv`, new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }))
@@ -196,6 +218,25 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
       </div>
 
       <InstallHint />
+
+      <div className="card stack">
+        <span className="label">Comparte Glyno</span>
+        <p className="muted small">
+          Si te está sirviendo, pásasela a quien creas que le puede venir bien. Es gratis, no pide
+          cuenta y los datos se quedan en el móvil de cada uno.
+        </p>
+        <button className="btn ghost" onClick={share}>
+          Compartir la app
+        </button>
+        {/* el enlace siempre visible: si fallan la hoja de compartir y el portapapeles, queda esto */}
+        <a
+          href={appUrl}
+          className="muted small"
+          style={{ wordBreak: 'break-all', color: 'var(--ink-2)' }}
+        >
+          {appUrl}
+        </a>
+      </div>
 
       <div className="card stack">
         <span className="label">Acerca de Glyno</span>

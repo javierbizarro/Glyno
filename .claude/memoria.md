@@ -288,6 +288,16 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Probado en vivo: propuso "Tortilla y ensalada 42 g HC — tu cena habitual más ligera…" y
   "Pollo con ensalada", evitando "pizza y postre" por la hora. Usa 30 días de historial.
 
+## Compartir la app (2026-08-03)
+
+- Tarjeta «Comparte Glyno» en Ajustes con `navigator.share` (hoja nativa del sistema en el móvil) y
+  **portapapeles como respaldo**. La URL NO está fija: se compone con
+  `location.origin + import.meta.env.BASE_URL`, así funciona igual en Pages, en local o en un fork.
+- Aprendido: `navigator.clipboard.writeText` puede fallar sin permiso/activación y el `catch` dejaba
+  al usuario **sin ningún aviso** (fallo silencioso detectado al probarlo). Ahora hay tres niveles:
+  hoja nativa → portapapeles con aviso → aviso + **el enlace siempre visible en la tarjeta** para
+  copiarlo a mano. Cancelar la hoja nativa no muestra nada, que es lo correcto.
+
 ## Icono e instalación (2026-08-03)
 
 - **Logo = la criaturilla**: `public/icon.svg` rehecho como ilustración con degradados radiales
