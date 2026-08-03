@@ -32,11 +32,48 @@ export function Coach({ profile }: { profile: Profile }) {
   const [question, setQuestion] = useState('')
   const [busy, setBusy] = useState<'review' | 'chat' | null>(null)
   const [error, setError] = useState('')
-  const chatEnd = useRef<HTMLDivElement>(null)
+
+  // like a real chat: pinned to the bottom unless the user scrolled up to read,
+  // in which case a new reply must not drag them back down
+  const stick = useRef(true)
+  const mounted = useRef(false)
+  // while a programmatic scroll runs, its intermediate events are not the user's:
+  // without this window, smooth scrolling sets stick to false and the reply arrives without scrolling down
+  const autoUntil = useRef(0)
+  const settle = useRef(0)
+  const scrollToEnd = (behavior: ScrollBehavior) => {
+    if (behavior === 'smooth') {
+      autoUntil.current = performance.now() + 900
+      // with the page in the background, smooth scrolling doesn't run (it uses rAF): if the
+      // reply arrives while you're looking at another app, this hard finish completes the scroll
+      window.clearTimeout(settle.current)
+      settle.current = window.setTimeout(() => {
+        if (stick.current) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' })
+      }, 950)
+    }
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior })
+  }
+  useEffect(() => () => window.clearTimeout(settle.current), [])
 
   useEffect(() => {
-    chatEnd.current?.scrollIntoView({ block: 'nearest' })
-  }, [msgs.length, busy])
+    const onScroll = () => {
+      if (performance.now() < autoUntil.current) return
+      stick.current =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 160
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // ready matters: until Dexie delivers the entries the component renders null and the
+  // page is only as tall as the viewport — scrolling down there is a no-op and nobody retries it
+  const thinking = busy === 'chat'
+  const ready = !!entries
+  useEffect(() => {
+    if (!ready) return
+    if ((msgs.length || thinking) && stick.current) scrollToEnd(mounted.current ? 'smooth' : 'auto')
+    mounted.current = true
+  }, [ready, msgs.length, thinking])
 
   if (!entries) return null
   const stats = computeStats(entries, profile)
@@ -61,6 +98,7 @@ export function Coach({ profile }: { profile: Profile }) {
   const ask = async () => {
     const q = question.trim()
     if (!q) return
+    stick.current = true // your own message always scrolls the conversation down
     const withMine = [...msgs, { role: 'me' as const, text: q }]
     setMsgs(withMine)
     setQuestion('')
@@ -135,17 +173,24 @@ export function Coach({ profile }: { profile: Profile }) {
         {stats.n < 5 && <p className="muted small">Necesito al menos unos días de glucemias.</p>}
       </div>
 
-      <div className="card stack">
-        <span className="label">Pregúntame</span>
-        {msgs.length > 0 && (
-          <div className="stack" style={{ maxHeight: 340, overflowY: 'auto', overscrollBehavior: 'contain' }}>
-            {msgs.map((m, i) => (
-              <div key={i} className={`bubble ${m.role}`}>
-                {m.text}
-              </div>
-            ))}
-            {busy === 'chat' && <div className="bubble glyno muted">Pensando…</div>}
-            <div ref={chatEnd} />
+      {/* the conversation hangs from the bottom of the screen, stuck to the input box;
+          everything else (review, notices) stays above, like in any chat */}
+      <div className="chat-thread">
+        <p className="chat-notice">
+          Glyno no da consejo médico ni pautas de medicación. Ante cualquier duda de tratamiento,
+          tu equipo sanitario.
+        </p>
+        {msgs.map((m, i) => (
+          <div key={i} className={`bubble ${m.role}`}>
+            {m.text}
+          </div>
+        ))}
+        {busy === 'chat' && <div className="bubble glyno muted">Pensando…</div>}
+        {error && (
+          <div className="card" style={{ borderColor: 'var(--red)' }}>
+            <p className="small" style={{ color: 'var(--red)' }}>
+              {error}
+            </p>
           </div>
         )}
       </div>
@@ -158,6 +203,7 @@ export function Coach({ profile }: { profile: Profile }) {
             value={question}
             onChange={e => setQuestion(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !busy && ask()}
+            onFocus={() => setTimeout(() => stick.current && scrollToEnd('auto'), 350)}
           />
           <button className="btn small" disabled={!hasKey || busy !== null || !question.trim()} onClick={ask}>
             Enviar
@@ -165,21 +211,8 @@ export function Coach({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      {error && (
-        <div className="card" style={{ borderColor: 'var(--red)' }}>
-          <p className="small" style={{ color: 'var(--red)' }}>
-            {error}
-          </p>
-        </div>
-      )}
-
-      <p className="muted small">
-        Glyno no da consejo médico ni pautas de medicación. Ante cualquier duda de tratamiento, tu
-        equipo sanitario.
-      </p>
-
-      {/* hueco final: sin él, el último contenido queda debajo de la caja fija de escribir */}
-      <div style={{ height: 58, flex: 'none' }} />
+      {/* trailing gap: without it, the last bubble ends up under the fixed input box */}
+      <div style={{ height: 32, flex: 'none' }} />
     </>
   )
 }

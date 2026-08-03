@@ -5,15 +5,15 @@
   --ink-2: #5C6153;
   --ink-3: #8A8E7F;
   --line: #E5DECC;
-  /* estado glucemia — paleta validada (dataviz: CVD + contraste sobre papel) */
+  /* glycemia status — validated palette (dataviz: CVD + contrast on paper) */
   --green: #2F7A50;
   --green-soft: #E7EFE7;
   --amber: #B8860B;
   --amber-soft: #F3E9CE;
   --red: #992817;
   --red-soft: #F4E2DC;
-  --display: 'Lora Variable', Georgia, serif;      /* titulares: J convencional */
-  --serif: 'Fraunces Variable', Georgia, serif;    /* numerales grandes */
+  --display: 'Lora Variable', Georgia, serif;      /* headings: conventional J */
+  --serif: 'Fraunces Variable', Georgia, serif;    /* large numerals */
   --sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
   --radius-card: 16px;
   --shadow-card: none;
@@ -215,7 +215,7 @@ input.bignum {
 .pill.high { background: var(--amber-soft); color: var(--amber); }
 .pill.low  { background: var(--red-soft);   color: var(--red); }
 
-/* ---- barra de pestañas ---- */
+/* ---- tab bar ---- */
 .tabbar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
@@ -266,7 +266,7 @@ input.bignum {
   flex-direction: column;
   gap: 14px;
   animation: rise .22s ease-out;
-  /* --kb lo actualiza main.tsx: sube la hoja por encima del teclado */
+  /* --kb is updated by main.tsx: lifts the sheet above the keyboard */
   margin-bottom: var(--kb, 0px);
   max-height: calc(100dvh - var(--kb, 0px) - 20px);
   overflow-y: auto;
@@ -274,7 +274,7 @@ input.bignum {
 }
 @keyframes rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-/* ---- entradas del diario ---- */
+/* ---- diary entries ---- */
 .entry-row {
   display: flex;
   align-items: center;
@@ -283,7 +283,7 @@ input.bignum {
   border-bottom: 1px solid var(--line);
 }
 .entry-row:last-child { border-bottom: none; }
-/* las filas del diario son pulsables para poder borrarlas */
+/* diary rows are tappable so they can be deleted */
 button.entry-row {
   width: 100%;
   background: none;
@@ -306,7 +306,7 @@ button.entry-row:active { opacity: .6; }
   font-size: 15px;
 }
 
-/* ---- gráficas ---- */
+/* ---- charts ---- */
 .chart-tip {
   position: absolute;
   pointer-events: none;
@@ -331,7 +331,7 @@ button.entry-row:active { opacity: .6; }
 .stat-tiles .card { padding: 14px; text-align: center; }
 .stat-tiles .serif { font-size: 30px; font-weight: 540; }
 
-/* ---- chat Glyno ---- */
+/* ---- Glyno chat ---- */
 .bubble {
   border-radius: 16px;
   padding: 13px 15px;
@@ -343,9 +343,27 @@ button.entry-row:active { opacity: .6; }
 .bubble.glyno { background: var(--card); border: 1px solid var(--line); align-self: flex-start; border-bottom-left-radius: 6px; }
 .bubble.me    { background: var(--green); color: #F4F7F2; align-self: flex-end; border-bottom-right-radius: 6px; }
 
-/* caja de escribir fija justo encima de la barra de pestañas: escribir no debe obligar
-   a hacer scroll. --tabbar lo publica App (cambia con el área segura del iPhone) y --kb
-   es el alto del teclado en los navegadores que no reajustan el viewport */
+/* the conversation sticks to the bottom of the screen (margin-top auto), right above the
+   compose box: this is what makes it feel like a chat and not just another card */
+.chat-thread {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chat-notice {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-3);
+  text-align: center;
+  max-width: 36ch;
+  align-self: center;
+  margin: 4px 0;
+}
+
+/* compose box fixed right above the tab bar: typing must not force scrolling. --tabbar
+   is published by App (changes with the iPhone safe area) and --kb is the keyboard
+   height on browsers that don't resize the viewport */
 .chat-dock {
   position: fixed;
   left: 0;
@@ -371,8 +389,8 @@ button.entry-row:active { opacity: .6; }
 .onb-progress span { width: 26px; height: 3.5px; border-radius: 2px; background: var(--line); }
 .onb-progress span.on { background: var(--green); }
 
-/* móvil en horizontal: no se bloquea (sería un problema de accesibilidad), pero se compacta
-   para que siga viéndose intencionado y no roto */
+/* phone in landscape: not blocked (that would be an accessibility problem), but compacted
+   so it still looks intentional and not broken */
 @media (orientation: landscape) and (max-height: 520px) {
   .screen { padding: 12px 20px 82px; gap: 12px; }
   h1 { font-size: 21px; }
@@ -382,7 +400,7 @@ button.entry-row:active { opacity: .6; }
   .tab svg { width: 18px; height: 18px; }
 }
 
-/* ---- informe imprimible ---- */
+/* ---- printable report ---- */
 .report-overlay {
   position: fixed;
   inset: 0;
@@ -460,15 +478,15 @@ button.entry-row:active { opacity: .6; }
     height: auto;
     min-height: 0;
   }
-  /* #root ocupa 100dvh: si no se oculta, la primera hoja sale en blanco */
+  /* #root takes 100dvh: if it isn't hidden, the first page comes out blank */
   #root, .no-print { display: none !important; }
   .report-overlay {
     position: static;
     overflow: visible;
     background: #fff;
   }
-  /* el relleno lateral se aplica en TODAS las hojas y no depende de @page,
-     que Safari ignora y el diálogo de Chrome puede anular con «Márgenes: ninguno» */
+  /* side padding applies to ALL pages and doesn't depend on @page,
+     which Safari ignores and Chrome's print dialog can override with "Margins: none" */
   .report { padding: 8mm 10mm; max-width: none; font-size: 11.5px; }
   .report h1 { font-size: 19px; }
   .report section { break-inside: avoid; }

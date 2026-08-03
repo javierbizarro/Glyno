@@ -9,37 +9,38 @@ import { Coach } from './ui/components/Coach'
 import { Settings } from './ui/components/Settings'
 import { Mascot } from './ui/components/Mascot'
 
-type Tab = 'hoy' | 'tendencias' | 'comida' | 'glyno' | 'ajustes'
+type Tab = 'today' | 'trends' | 'meals' | 'glyno' | 'settings'
 
 const ICONS: Record<Tab, JSX.Element> = {
-  hoy: (
+  today: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <circle cx="12" cy="12" r="4" />
       <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
     </svg>
   ),
-  tendencias: (
+  trends: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 17l5-6 4 3 6-8" />
       <path d="M21 3v18H3" opacity=".35" />
     </svg>
   ),
-  comida: (
+  meals: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <path d="M4 11a8 8 0 0 1 16 0" />
       <path d="M2 11h20M6 15h12a6 6 0 0 1-12 0z" />
     </svg>
   ),
+  // the current character's crowned heart, drawn in line stroke like the rest of the bar
   glyno: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-      <circle cx="12" cy="13" r="7" />
-      <path d="M13 6q0-3 3-3.5" />
-      <circle cx="9.5" cy="12" r=".6" fill="currentColor" />
-      <circle cx="14.5" cy="12" r=".6" fill="currentColor" />
-      <path d="M10 15.5q2 1.6 4 0" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20.5 C7.2 16.6 4.5 13.6 4.5 10.6 C4.5 8.4 6.1 6.8 8.2 6.8 C9.8 6.8 11.3 7.8 12 9.2 C12.7 7.8 14.2 6.8 15.8 6.8 C17.9 6.8 19.5 8.4 19.5 10.6 C19.5 13.6 16.8 16.6 12 20.5 Z" />
+      <path d="M9 6.5 L9 3 L10.5 4.5 L12 2.5 L13.5 4.5 L15 3 L15 6.5" />
+      <circle cx="9.9" cy="11.2" r=".6" fill="currentColor" stroke="none" />
+      <circle cx="14.1" cy="11.2" r=".6" fill="currentColor" stroke="none" />
+      <path d="M10.4 13.6q1.6 1.3 3.2 0" strokeWidth="1.5" />
     </svg>
   ),
-  ajustes: (
+  settings: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <path d="M4 8h10M18 8h2M4 16h2M10 16h10" />
       <circle cx="16" cy="8" r="2" />
@@ -49,20 +50,20 @@ const ICONS: Record<Tab, JSX.Element> = {
 }
 
 const TAB_LABEL: Record<Tab, string> = {
-  hoy: 'Hoy',
-  tendencias: 'Tendencias',
-  comida: 'Comida',
+  today: 'Hoy',
+  trends: 'Tendencias',
+  meals: 'Comida',
   glyno: 'Glyno',
-  ajustes: 'Ajustes',
+  settings: 'Ajustes',
 }
 
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => profiles.load())
-  const [tab, setTab] = useState<Tab>('hoy')
+  const [tab, setTab] = useState<Tab>('today')
   const tabbar = useRef<HTMLElement>(null)
 
-  // el alto real de la barra cambia con el área segura del móvil: quien se coloque
-  // encima (la caja del chat) necesita saberlo
+  // the bar's real height changes with the phone's safe area: whatever sits
+  // on top of it (the chat box) needs to know it
   useEffect(() => {
     const el = tabbar.current
     if (!el) return
@@ -84,11 +85,11 @@ export default function App() {
   return (
     <>
       <div className="screen">
-        {tab === 'hoy' && <Today profile={profile} />}
-        {tab === 'tendencias' && <Trends profile={profile} />}
-        {tab === 'comida' && <Meals profile={profile} />}
+        {tab === 'today' && <Today profile={profile} />}
+        {tab === 'trends' && <Trends profile={profile} />}
+        {tab === 'meals' && <Meals profile={profile} />}
         {tab === 'glyno' && <Coach profile={profile} />}
-        {tab === 'ajustes' && <Settings profile={profile} onSave={save} />}
+        {tab === 'settings' && <Settings profile={profile} onSave={save} />}
       </div>
 
       <nav className="tabbar" ref={tabbar}>
