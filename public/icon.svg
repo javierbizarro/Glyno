@@ -18,19 +18,19 @@
 
   <rect width="100" height="100" rx="22" fill="#F7F2E9"/>
 
-  <!-- globos: cuerda desde la mano y corazón en la punta -->
+  <!-- balloons: string from the hand, heart at the tip -->
   <path d="M24 58 C18 50 15 43 14.5 35" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
   <path d="M76 58 C82 50 85 43 85.5 35" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
   <use href="#glyno-heart" transform="translate(14.5 27) scale(0.2) translate(-50 -52)" fill="#DE7A90" stroke="#2F3757" stroke-width="8"/>
   <use href="#glyno-heart" transform="translate(85.5 27) scale(0.2) translate(-50 -52)" fill="#DE7A90" stroke="#2F3757" stroke-width="8"/>
 
-  <!-- bracitos con su mano -->
+  <!-- little arms with their hand -->
   <path d="M34 65 L25 58.5" stroke="#9B76A8" stroke-width="5" fill="none" stroke-linecap="round"/>
   <path d="M66 65 L75 58.5" stroke="#9B76A8" stroke-width="5" fill="none" stroke-linecap="round"/>
   <circle cx="24" cy="58" r="3.4" fill="#9B76A8"/>
   <circle cx="76" cy="58" r="3.4" fill="#9B76A8"/>
 
-  <!-- corona apoyada sobre los lóbulos -->
+  <!-- crown resting on the lobes -->
   <g stroke="#2F3757" stroke-width="1.5" stroke-linejoin="round" fill="url(#glyno-gold)">
     <path d="M38.5 29.5 L43 20.5 L47.5 29.5 Z"/>
     <path d="M45.5 29.5 L50 17.5 L54.5 29.5 Z"/>
@@ -41,14 +41,14 @@
   <circle cx="50" cy="16" r="1.9" fill="#F5D77E"/>
   <circle cx="57" cy="19" r="1.7" fill="#F5D77E"/>
 
-  <!-- cuerda de abajo -->
+  <!-- bottom string -->
   <path d="M50 77 C54 82 46 86 50 92" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
 
-  <!-- cuerpo: contorno, aro lila y centro rosa -->
+  <!-- body: outline, lilac ring and pink center -->
   <use href="#glyno-heart" fill="url(#glyno-lilac)" stroke="#2F3757" stroke-width="5" stroke-linejoin="round"/>
   <use href="#glyno-heart" transform="translate(50 52) scale(0.74) translate(-50 -52)" fill="url(#glyno-rose)"/>
 
-  <!-- cara -->
+  <!-- face -->
   <ellipse cx="43" cy="49" rx="3.4" ry="4" fill="#232743"/>
   <ellipse cx="57" cy="49" rx="3.4" ry="4" fill="#232743"/>
   <circle cx="44.3" cy="47.6" r="1.3" fill="#fff"/>

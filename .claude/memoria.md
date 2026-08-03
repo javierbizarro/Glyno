@@ -303,8 +303,48 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Solución: `.chat-dock` **fijo** sobre la barra de pestañas, con `bottom: calc(var(--kb) +
   var(--tabbar))`. `--tabbar` lo publica `App` midiendo la barra con un `ResizeObserver` (su alto
   cambia con el área segura del iPhone) y `--kb` cubre los navegadores que no reajustan el viewport.
-- Hace falta un **hueco final** en el contenido (58 px) o el último elemento queda debajo de la
+- Hace falta un **hueco final** en el contenido (32 px) o el último elemento queda debajo de la
   caja; la primera versión lo puso en medio y tapaba el aviso legal.
+
+## Chat de verdad, segunda vuelta (2026-08-03)
+
+- Javier: «no se ancla abajo como un chat de verdad». El problema era la tarjeta con su propio
+  scroll interno (`maxHeight: 340`): doble scroll y la conversación a media página mientras la caja
+  de escribir estaba abajo. Fuera la tarjeta: `.chat-thread` con `margin-top: auto` cuelga la
+  conversación del fondo del `.screen` y el scroll es el de la página, como en cualquier chat.
+- El aviso legal pasó de párrafo suelto al pie a **nota de cabecera de la conversación** (patrón
+  del aviso de cifrado de WhatsApp): visible con el chat vacío y se aleja con el historial.
+- Auto-scroll con regla `stick`: pegado al final salvo que el usuario suba a leer (umbral 160 px);
+  tu propio mensaje siempre baja. TRES trampas que ya nos comimos, no rehacer:
+  1. `Coach` pinta `null` hasta que Dexie entrega las entradas → en el montaje la página mide lo
+     que el viewport y bajar es un no-op. El efecto espera a `ready` (`!!entries`).
+  2. El scroll suave dispara eventos intermedios «lejos del final» que ponían `stick` a false y la
+     respuesta llegaba sin bajar → ventana `autoUntil` de 900 ms en la que el listener no toca `stick`.
+  3. Con la página en segundo plano el scroll suave NO corre (va con rAF): si la respuesta de
+     Gemini llega mientras miras otra app, la animación muere → remate `settle` a los 950 ms con
+     scroll seco si `stick` sigue activo. Descubierto porque el panel del navegador oculto
+     reproduce exactamente ese estado.
+- El icono **inactivo** de la pestaña Glyno seguía siendo la pera con antena del personaje viejo;
+  ahora es el corazón con corona en trazo de línea (con ojos y sonrisa para que no parezca un
+  «favoritos»), a juego con el resto de la barra. El activo sigue siendo el `Mascot` a color.
+- Al probar se machacó el historial de chat (`glyno.chat`) con una conversación de prueba; se dejó
+  limpio. Eran pruebas de fases anteriores, nada del usuario real.
+
+## Idiomas: app en castellano, código y commits en inglés (2026-08-03)
+
+- Pedido por Javier. La frontera importa y ya está pensada, no rediscutir:
+  - **Inglés**: comentarios, identificadores, mensajes de commit y las claves del contrato JSON
+    con Gemini (`dish`, `carbs_g`, `traffic_light: green|amber|red`, `glycemic_index`,
+    `processing`, `advice`, `better_avoid`, `options`, `avoid`, `note`, `why`). Los valores de
+    `MealMoment` también (`breakfast`, `between-meals`, `lunch`, `afternoon-snack`, `dinner`) —
+    son internos, no se persisten.
+  - **Castellano (NO traducir jamás)**: textos de UI, cuerpos de los prompts (Glyno habla
+    español), datos de demo, y sobre todo los **valores persistidos en el diario**: momentos
+    ('ayunas', 'después de cenar'…), etiquetas ('Mal sueño'…), notas ('sugerida por Glyno',
+    'analizada por Glyno'). Traducirlos corrompería los diarios existentes.
+- Los valores ingleses que llegan a la UI llevan mapa de etiqueta (`LIGHT_LABEL`, `GI_LABEL`,
+  `PROCESSING_LABEL` en Meals.tsx): `glycemic_index`/`processing` se pintaban tal cual.
+- Historia git anterior en español: se queda. Reescribir historia publicada no compensa.
 
 ## Qué contexto ve la IA en cada pantalla (auditado 2026-08-03)
 

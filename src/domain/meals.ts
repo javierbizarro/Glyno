@@ -1,25 +1,25 @@
 import type { Entry } from './types'
 import { daysAgo } from './time'
 
-export type MealMoment = 'desayuno' | 'entre horas' | 'comida' | 'merienda' | 'cena'
+export type MealMoment = 'breakfast' | 'between-meals' | 'lunch' | 'afternoon-snack' | 'dinner'
 
-/** franjas pensadas para horarios españoles; «entre horas» recoge el picoteo */
+/** time slots follow Spanish meal schedules; 'between-meals' covers grazing */
 export function mealMoment(ts: number): MealMoment {
   const h = new Date(ts).getHours()
-  if (h >= 5 && h < 11) return 'desayuno'
-  if (h >= 11 && h < 13) return 'entre horas'
-  if (h >= 13 && h < 16) return 'comida'
-  if (h >= 16 && h < 20) return 'merienda'
-  if (h >= 20 && h < 23) return 'cena'
-  return 'entre horas'
+  if (h >= 5 && h < 11) return 'breakfast'
+  if (h >= 11 && h < 13) return 'between-meals'
+  if (h >= 13 && h < 16) return 'lunch'
+  if (h >= 16 && h < 20) return 'afternoon-snack'
+  if (h >= 20 && h < 23) return 'dinner'
+  return 'between-meals'
 }
 
 export const MEAL_MOMENT_LABEL: Record<MealMoment, string> = {
-  desayuno: 'el desayuno',
-  'entre horas': 'un tentempié',
-  comida: 'la comida',
-  merienda: 'la merienda',
-  cena: 'la cena',
+  breakfast: 'el desayuno',
+  'between-meals': 'un tentempié',
+  lunch: 'la comida',
+  'afternoon-snack': 'la merienda',
+  dinner: 'la cena',
 }
 
 export interface UsualMeal {
@@ -29,8 +29,8 @@ export interface UsualMeal {
 }
 
 /**
- * Platos que ya ha registrado, agrupados por frecuencia. Sirven de despensa implícita:
- * si los ha comido, es que los tiene a mano y le gustan.
+ * Dishes already logged, grouped by frequency. They act as an implicit pantry:
+ * if the user has eaten them, they have them at hand and like them.
  */
 export function usualMeals(entries: Entry[], moment?: MealMoment, limit = 8): UsualMeal[] {
   const meals = entries.filter(e => e.kind === 'meal' && e.label?.trim())
@@ -60,7 +60,7 @@ export interface UsualDose {
   times: number
 }
 
-/** dosis de rápida que más repite a esta hora, para ofrecerlas de un toque */
+/** most repeated bolus doses at this time of day, offered as one-tap logging */
 export function usualDoses(entries: Entry[], moment?: MealMoment, limit = 3): UsualDose[] {
   const all = entries.filter(e => e.kind === 'insulin' && e.value)
   const relevant = moment ? all.filter(e => mealMoment(e.ts) === moment) : all
@@ -97,19 +97,16 @@ export function usualExercises(entries: Entry[], limit = 3): UsualExercise[] {
     .map(x => ({
       label: x.label,
       times: x.count,
-      // a la baja de 5 en 5: nadie sale a andar exactamente 37 minutos
+      // rounded down to steps of 5: nobody walks exactly 37 minutes
       minutes: Math.max(5, Math.round(x.mins.reduce((a, b) => a + b, 0) / x.mins.length / 5) * 5),
     }))
 }
 
 /**
- * Momento del día que probablemente corresponde a la glucemia que va a apuntar,
- * para traerlo ya marcado: en ayunas si aún no ha comido, tras una comida reciente, etc.
- */
-/**
- * MANDA LA HORA DEL DÍA. Haber apuntado una comida solo sirve para pasar de «antes» a
- * «después» dentro de la misma franja: a quien solo se mide antes de comer no se le puede
- * proponer «después» únicamente porque haya registrado el plato.
+ * Likely moment for the glucose reading about to be logged, so it comes pre-selected.
+ * TIME OF DAY RULES. A logged meal only flips "before" to "after" within the same slot:
+ * someone who only measures before meals must not get "after" suggested merely because
+ * they logged the dish. Return values are diary data and stay in Spanish.
  */
 export function suggestMoment(entries: Entry[], now = Date.now()): string {
   const meals = entries.filter(e => e.kind === 'meal' && e.ts >= daysAgo(0))
@@ -118,10 +115,10 @@ export function suggestMoment(entries: Entry[], now = Date.now()): string {
   const h = d.getHours() + d.getMinutes() / 60
 
   if (h >= 23 || h < 4.5) return 'antes de dormir'
-  if (h < 11) return ate('desayuno') ? 'después de desayunar' : 'ayunas'
-  if (h < 13) return ate('desayuno') ? 'después de desayunar' : ''
-  if (h < 15.5) return ate('comida') ? 'después de comer' : 'antes de comer'
+  if (h < 11) return ate('breakfast') ? 'después de desayunar' : 'ayunas'
+  if (h < 13) return ate('breakfast') ? 'después de desayunar' : ''
+  if (h < 15.5) return ate('lunch') ? 'después de comer' : 'antes de comer'
   if (h < 19) return 'después de comer'
-  if (h < 21.5) return ate('cena') ? 'después de cenar' : 'antes de cenar'
-  return ate('cena') ? 'después de cenar' : 'antes de dormir'
+  if (h < 21.5) return ate('dinner') ? 'después de cenar' : 'antes de cenar'
+  return ate('dinner') ? 'después de cenar' : 'antes de dormir'
 }

@@ -7,13 +7,13 @@ export interface EntryRepository {
   remove(id: number): Promise<void>
   clear(): Promise<void>
   all(): Promise<Entry[]>
-  /** entradas con ts >= since, ordenadas ascendente, en vivo */
+  /** entries with ts >= since, ascending order, live */
   watchSince(since: number): Watchable<Entry[]>
-  /** entradas en [from, to), ordenadas ascendente, en vivo */
+  /** entries in [from, to), ascending order, live */
   watchBetween(from: number, to: number): Watchable<Entry[]>
-  /** todas las de un tipo, ordenadas ascendente, en vivo */
+  /** all entries of one kind, ascending order, live */
   watchByKind(kind: EntryKind): Watchable<Entry[]>
-  /** la más reciente de un tipo, en vivo */
+  /** most recent entry of one kind, live */
   watchLastByKind(kind: EntryKind): Watchable<Entry | undefined>
 }
 

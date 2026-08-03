@@ -30,14 +30,16 @@ subas una clave al repositorio.**
 Antes de abrir un PR:
 
 ```bash
-docker compose exec web npx tsc --noEmit   # sin errores de tipos
-make prod                                   # compila bien
+docker compose exec web npx tsc --noEmit   # no type errors
+make prod                                   # builds cleanly
 ```
 
 ## Convenciones
 
 - **Interfaz en español de España**, con el tú y sin jerga médica innecesaria. Glyno es cercano, no
   paternalista, y nunca riñe al usuario.
+- **Código en inglés, app en español**: identificadores, comentarios y mensajes de commit van en
+  inglés; todo lo que ve el usuario (interfaz, prompts de IA, datos del diario) sigue en español.
 - **Arquitectura hexagonal** (ver el README). La regla dura: `src/ui/` **nunca** importa de
   `src/adapters/`. La lógica pura va a `domain/`; si orquesta puertos, a `app/`.
 - **Comentarios mínimos**: solo para explicar lo que el código no puede decir por sí mismo

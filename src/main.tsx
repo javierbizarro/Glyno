@@ -7,10 +7,10 @@ import './theme.css'
 import App from './App'
 import { resetAll } from './app/container'
 
-// almacenamiento persistente: el navegador no purgará IndexedDB por presión de espacio
+// persistent storage: the browser won't purge IndexedDB under storage pressure
 navigator.storage?.persist?.()
 
-// alto del teclado en pantalla: las hojas de registro van ancladas abajo y el teclado las tapa
+// on-screen keyboard height: the logging sheets are anchored at the bottom and the keyboard covers them
 const vv = window.visualViewport
 if (vv) {
   const trackKeyboard = () => {
@@ -22,14 +22,14 @@ if (vv) {
   trackKeyboard()
 }
 
-// beforeinstallprompt se dispara antes de que React monte: hay que guardarlo aquí o se pierde
+// beforeinstallprompt fires before React mounts: it must be captured here or it is lost
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault()
   window.glynoInstallPrompt = e as BeforeInstallPromptEvent
   window.dispatchEvent(new Event('glyno:installable'))
 })
 
-// "make reset" abre /?reset: borra perfil y diario y deja la app como recién instalada
+// "make reset" opens /?reset: wipes profile and diary, leaving the app as freshly installed
 if (new URLSearchParams(location.search).has('reset')) {
   resetAll().finally(() => location.replace(import.meta.env.BASE_URL))
 } else {

@@ -24,17 +24,17 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
     setTimeout(() => setMsg(''), 3500)
   }
 
-  // sin URL fija: comparte la dirección desde la que se está usando la app
+  // no fixed URL: share the address the app is being used from
   const appUrl = location.origin + import.meta.env.BASE_URL
   const share = async () => {
     const text =
       'Glyno, un copiloto para el día a día con diabetes: apunta tus glucemias, te busca patrones y prepara el informe para el médico. Gratis y sin cuentas.'
     if (navigator.share) {
-      // si el usuario cancela la hoja del sistema, no hay nada que decirle
+      // if the user cancels the system sheet, there's nothing to tell them
       try {
         await navigator.share({ title: 'Glyno', text, url: appUrl })
       } catch {
-        /* cancelado */
+        /* cancelled */
       }
       return
     }
@@ -209,7 +209,7 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
           style={{ color: 'var(--red)', borderColor: 'var(--red)' }}
           onClick={() => {
             if (confirm('Se borrará TODO: perfil y diario. ¿Seguro? (Haz antes una copia si dudas)'))
-              // BASE_URL: en GitHub Pages la app vive en /Glyno/, no en la raíz
+              // BASE_URL: on GitHub Pages the app lives under /Glyno/, not at the root
               location.href = `${import.meta.env.BASE_URL}?reset`
           }}
         >
@@ -228,7 +228,7 @@ export function Settings({ profile, onSave }: { profile: Profile; onSave: (p: Pr
         <button className="btn ghost" onClick={share}>
           Compartir la app
         </button>
-        {/* el enlace siempre visible: si fallan la hoja de compartir y el portapapeles, queda esto */}
+        {/* keep the link always visible: if both the share sheet and the clipboard fail, this remains */}
         <a
           href={appUrl}
           className="muted small"

@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-// Glyno procedural, sin modelos externos: funciona offline.
-// Diseño original en papel: corazón por capas con corona, bracitos que sujetan dos
-// globos-corazón con cuerdas, y una cuerda colgando por abajo.
+// Procedural Glyno, no external models: works offline.
+// Original design on paper: layered heart with a crown, little arms holding two
+// heart balloons on strings, and a string hanging from below.
 
 function heartShape(): THREE.Shape {
   const s = new THREE.Shape()
@@ -15,7 +15,7 @@ function heartShape(): THREE.Shape {
   return s
 }
 
-/** el corazón centrado mide ~2.27 de alto; su punta queda a -1.135 * escala del centro */
+/** the centered heart is ~2.27 tall; its tip sits at -1.135 * scale from the center */
 const HEART_HALF = 1.135
 
 function heartMesh(scale: number, depth: number, material: THREE.Material): THREE.Mesh {
@@ -71,7 +71,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     glyno.scale.setScalar(0.82)
     scene.add(glyno)
 
-    // cuerpo: tres capas concéntricas, como en el dibujo
+    // body: three concentric layers, as in the drawing
     const body = new THREE.Group()
     body.add(heartMesh(1.2, 0.5, outline))
     const mid = heartMesh(1.08, 0.56, lilac)
@@ -82,8 +82,8 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     body.add(front)
     glyno.add(body)
 
-    // corona APOYADA sobre los lóbulos (llegan a y≈1.31): por encima no hay nada que la tape,
-    // que era el motivo de que antes quedase escondida entre ellos
+    // crown RESTING on the lobes (they reach y≈1.31): nothing above can cover it,
+    // which was why it used to end up hidden between them
     const crown = new THREE.Group()
     crown.position.set(0, HEART_HALF * 1.2 - 0.06, 0.28)
     crown.rotation.x = -0.16
@@ -102,7 +102,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     }
     glyno.add(crown)
 
-    // ojos grandes con dos brillos, como los dibujó
+    // big eyes with two highlights, as originally drawn
     const eyes: THREE.Group[] = []
     for (const x of [-0.3, 0.3]) {
       const eye = new THREE.Group()
@@ -123,9 +123,9 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     smile.rotation.set(-0.1, 0, Math.PI * 1.08)
     glyno.add(smile)
 
-    // bracitos con su mano, y de cada mano sale la cuerda de un globo.
-    // El hombro va bajo y el brazo muy abierto para que la mano caiga FUERA de la
-    // silueta del corazón (media anchura máx. ≈ 1.36): dentro no se vería.
+    // little arms with a hand each, and a balloon string comes out of each hand.
+    // The shoulder sits low and the arm opens wide so the hand lands OUTSIDE the
+    // heart's silhouette (max half-width ≈ 1.36): inside it wouldn't be visible.
     const HAND_LEN = 0.62
     const balloons: THREE.Group[] = []
     for (const side of [-1, 1]) {
@@ -140,20 +140,20 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
       arm.add(upper, hand)
       glyno.add(arm)
 
-      // posición de la mano calculada a mano: localToWorld necesitaría matrices ya
-      // actualizadas y aquí todavía no lo están (por eso antes las cuerdas no encajaban)
+      // hand position computed by hand: localToWorld would need matrices already
+      // updated and at this point they aren't yet (which is why the strings didn't line up before)
       const handAt = new THREE.Vector3(
         arm.position.x - Math.sin(angle) * HAND_LEN,
         arm.position.y + Math.cos(angle) * HAND_LEN,
         arm.position.z,
       )
 
-      // el grupo del globo se ancla EN la mano: así la cuerda nunca se despega al balancearse
+      // the balloon group is anchored AT the hand: that way the string never detaches while swinging
       const balloon = new THREE.Group()
       balloon.position.copy(handAt)
 
-      // la cuerda sube casi vertical: si el globo se aleja hacia fuera, al oscilar
-      // se sale del lienzo cuadrado (el ancho visible es lo que limita, no el alto)
+      // the string rises almost vertically: if the balloon drifts outward, it leaves
+      // the square canvas while swinging (visible width is the limit, not height)
       const string = new THREE.CubicBezierCurve3(
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(side * 0.16, 0.5, 0.05),
@@ -165,7 +165,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
       const end = string.getPoint(1)
       const knot = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), outline)
       knot.position.copy(end)
-      // el corazón se cuelga por su punta, que es donde se ata la cuerda
+      // the heart hangs by its tip, which is where the string is tied
       const heart = heartMesh(0.3, 0.16, rose)
       heart.position.set(end.x, end.y + HEART_HALF * 0.3, end.z)
       balloon.add(knot, heart)
@@ -174,7 +174,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
       glyno.add(balloon)
     }
 
-    // cuerda colgando por abajo
+    // string hanging from below
     const tailCurve = new THREE.CubicBezierCurve3(
       new THREE.Vector3(0.03, -HEART_HALF * 1.2 + 0.05, 0),
       new THREE.Vector3(0.3, -1.62, 0),
@@ -189,7 +189,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     const tick = () => {
       const t = (performance.now() - t0) / 1000
 
-      // latido de corazón: lub-dub, no una respiración cualquiera
+      // heartbeat: lub-dub, not just any breathing motion
       const p = (t % 1.7) / 1.7
       const lub = Math.exp(-Math.pow((p - 0.06) / 0.05, 2))
       const dub = Math.exp(-Math.pow((p - 0.23) / 0.07, 2)) * 0.55
@@ -199,7 +199,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
       glyno.rotation.y = Math.sin(t * 0.45) * 0.12
       glyno.rotation.z = Math.sin(t * 0.7) * 0.022
 
-      // los globos se balancean desde la mano, con desfase entre ellos
+      // the balloons swing from the hand, out of phase with each other
       balloons.forEach((b, i) => {
         b.rotation.z = Math.sin(t * 1.25 + i * 2.1) * 0.11
       })

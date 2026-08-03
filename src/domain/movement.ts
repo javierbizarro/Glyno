@@ -6,13 +6,13 @@ import { computeStats } from './stats'
 export interface MovementState {
   activeDays: number
   minutesToday: number
-  /** sugerencia para ahora mismo; null si no toca sugerir nada */
+  /** suggestion for right now; null when nothing should be suggested */
   nudge: string | null
 }
 
 /**
- * Movimiento como palanca sobre la glucosa, nunca como compensación de lo comido:
- * ni cuenta calorías ni habla de "quemar". Sin rachas ni reproches.
+ * Movement as a lever on glucose, never as compensation for what was eaten:
+ * no calorie counting, no talk of "burning". No streaks, no reproaches.
  */
 export function movementState(p: Profile, entries: Entry[], now = Date.now()): MovementState {
   const dayKey = (ts: number) => new Date(ts).toDateString()
@@ -29,7 +29,7 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
   const glucose = entries.filter(e => e.kind === 'glucose' && e.value != null)
   const last = glucose[glucose.length - 1]
 
-  // ante una bajada reciente, moverse es lo contrario de lo que hace falta
+  // after a recent low, moving is the opposite of what's needed
   if (needsHypoCare(p, last, now)) return { ...base, nudge: null }
 
   const stats = computeStats(entries.filter(e => e.ts >= daysAgo(13)), p)
@@ -41,7 +41,7 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
 
   if (minutesToday > 0) return { ...base, nudge: `Ya te has movido hoy, ${minutesToday} min.${pattern}` }
 
-  // el paseo corto tras comer es lo que más recorta el pico posprandial
+  // a short walk after eating is what trims the postprandial spike the most
   const meals = today.filter(e => e.kind === 'meal')
   const lastMeal = meals[meals.length - 1]
   if (lastMeal && now - lastMeal.ts > 15 * 60e3 && now - lastMeal.ts < 90 * 60e3)
@@ -50,7 +50,7 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
   if (last?.value != null && last.value > p.high && now - last.ts < 3 * 3600e3)
     return { ...base, nudge: `Vas por ${last.value} mg/dl. Un paseo tranquilo ayuda a que baje.${pattern}` }
 
-  // ni al levantarse ni de noche: entre media mañana y la cena
+  // not right after waking nor at night: between mid-morning and dinner
   const h = new Date(now).getHours()
   if (h >= 9 && h < 22) return { ...base, nudge: `Hoy aún no te has movido; con 20-30 minutos vale.${pattern}` }
 

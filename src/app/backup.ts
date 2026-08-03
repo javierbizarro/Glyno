@@ -38,8 +38,8 @@ export async function buildCsv(p: Profile): Promise<{ csv: string; count: number
   const rows = await entries.all()
   const esc = (s: unknown) => (s == null ? '' : `"${String(s).replace(/"/g, '""')}"`)
   const time = (ts: number) => new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  // estado: fuera de rango en glucemias (según el rango del perfil) y tensión ≥140/90
-  const estado = (e: Entry): string => {
+  // status: out-of-range glucose readings (per the profile range) and blood pressure ≥140/90
+  const status = (e: Entry): string => {
     if (e.kind === 'glucose' && e.value != null)
       return e.value < p.low ? 'BAJA' : e.value > p.high ? 'ALTA' : 'en rango'
     if (e.kind === 'bp' && e.sys && e.dia) return e.sys >= 140 || e.dia >= 90 ? 'ALTA' : 'normal'
@@ -53,7 +53,7 @@ export async function buildCsv(p: Profile): Promise<{ csv: string; count: number
         time(e.ts),
         e.kind,
         e.value ?? '',
-        estado(e),
+        status(e),
         e.sys ?? '',
         e.dia ?? '',
         esc(e.label),

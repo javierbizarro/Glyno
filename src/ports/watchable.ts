@@ -1,4 +1,4 @@
-// suscripción mínima para datos reactivos, sin atar la UI a ninguna librería
+// minimal subscription for reactive data, without tying the UI to any library
 export interface Subscription {
   unsubscribe(): void
 }

@@ -18,9 +18,9 @@ export function Today({ profile }: { profile: Profile }) {
   const [sheet, setSheet] = useState<Sheet>(null)
   const [toDelete, setToDelete] = useState<Entry | null>(null)
 
-  // 30 días: hacen falta para saber qué apunta habitualmente y ofrecerlo de un toque
+  // 30 days: needed to learn what the user usually logs and offer it in one tap
   const recent = useWatch(() => entries.watchSince(daysAgo(29)), [])
-  // el diario se lee de más reciente a más antiguo
+  // the diary is read from newest to oldest
   const todayEntries = recent ? recent.filter(e => e.ts >= daysAgo(0)).reverse() : undefined
   const lastGlucose = useWatch(() => entries.watchLastByKind('glucose'), [])
 
@@ -46,7 +46,7 @@ export function Today({ profile }: { profile: Profile }) {
         <Mascot3D size={104} />
       </div>
 
-      {/* a quien no mide glucosa no se le recuerda que le falta */}
+      {/* someone who doesn't measure glucose shouldn't be reminded it's missing */}
       {(lastGlucose?.value != null || profile.measurement !== 'none') && (
         <div className="card">
           <div className="row between">
@@ -153,10 +153,10 @@ function QuickSheet({
   const moment = mealMoment(Date.now())
   const lastWeight = [...recent].reverse().find(e => e.kind === 'weight')
   const usualForMoment = usualMeals(recent, moment, 4)
-  const habitualMeals = usualForMoment.length ? usualForMoment : usualMeals(recent, undefined, 4)
+  const frequentMeals = usualForMoment.length ? usualForMoment : usualMeals(recent, undefined, 4)
 
   const [value, setValue] = useState(
-    // el peso apenas cambia entre pesadas: se parte del último y se ajusta
+    // weight barely changes between weigh-ins: start from the last one and adjust
     kind === 'weight' && lastWeight?.value ? String(lastWeight.value) : '',
   )
   const [extra, setExtra] = useState(kind === 'glucose' ? suggestMoment(recent) : '')
@@ -264,11 +264,11 @@ function QuickSheet({
         {kind === 'meal' && (
           <>
             <h3>Comida</h3>
-            {habitualMeals.length > 0 && (
+            {frequentMeals.length > 0 && (
               <>
                 <span className="label">Lo que sueles tomar</span>
                 <div className="wrap">
-                  {habitualMeals.map(m => (
+                  {frequentMeals.map(m => (
                     <button
                       key={m.label}
                       className="chip"

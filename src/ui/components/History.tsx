@@ -105,7 +105,7 @@ export function History({ profile, onClose }: { profile: Profile; onClose: () =>
               <span className="label">{d.label}</span>
               <div className="card" style={{ marginTop: 6, padding: '4px 16px' }}>
                 {d.entries.map(e => {
-                  // solo se tiñe lo que se sale del rango: lo normal no debe llamar la atención
+                  // only out-of-range values get colored: normal ones must not draw attention
                   const out = e.kind === 'glucose' && rangeOf(e.value!, profile) !== 'in'
                   return (
                     <button className="entry-row" key={e.id} onClick={() => setToDelete(e)} title="Tocar para borrar">

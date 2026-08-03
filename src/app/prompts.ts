@@ -2,14 +2,17 @@ import type { Entry, Profile } from '../domain/types'
 import { treatmentSummary, TYPE_FULL } from '../domain/types'
 import type { Stats } from '../domain/stats'
 
+// Prompt bodies are product copy: they stay in Spanish because Glyno speaks Spanish.
+// JSON keys requested from the model are English — they are code, parsed by app/meals.ts.
+
 export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWeight?: Entry): string {
   const age = p.birthYear ? new Date().getFullYear() - p.birthYear : null
-  const imc =
+  const bmi =
     lastWeight?.value && p.heightCm ? (lastWeight.value / Math.pow(p.heightCm / 100, 2)).toFixed(1) : null
 
   const general = p.type === 'none'
 
-  const perfil = [
+  const profileLine = [
     general ? 'sin diagnóstico de diabetes (usa la app para cuidarse)' : TYPE_FULL[p.type].toLowerCase(),
     p.measurement === 'none'
       ? 'no mide glucosa habitualmente'
@@ -20,16 +23,16 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
     p.hypertension ? 'hipertenso' : null,
     `rango objetivo ${p.low}–${p.high} mg/dl`,
     age ? `${age} años` : null,
-    imc ? `IMC ${imc}` : null,
+    bmi ? `IMC ${bmi}` : null,
   ]
     .filter(Boolean)
     .join(' · ')
 
-  const botiquin = p.meds.length
+  const medCabinet = p.meds.length
     ? p.meds.map(m => `${m.name}${m.dose ? ` ${m.dose}` : ''}`).join('; ')
     : 'sin medicación registrada'
 
-  const nums = [
+  const numbers = [
     `${stats.n} mediciones`,
     stats.mean != null ? `media ${Math.round(stats.mean)}` : null,
     `${Math.round(stats.tir)}% en rango`,
@@ -41,7 +44,7 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
     .filter(Boolean)
     .join(' · ')
 
-  const patrones = [
+  const patterns = [
     stats.exerciseDelta != null && stats.exerciseDays >= 2
       ? `- días con ejercicio: ${Math.round(stats.exerciseDelta)} mg/dl (${stats.exerciseDays} días)`
       : null,
@@ -50,15 +53,15 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
     .filter(Boolean)
     .join('\n')
 
-  const hipos = entries.filter(e => e.kind === 'glucose' && e.value! < p.low).length
+  const hypoCount = entries.filter(e => e.kind === 'glucose' && e.value! < p.low).length
 
   return `Eres Glyno, copiloto de diabetes: cercano, llano, hablas de tú, español de España. REGLAS INQUEBRANTABLES: nunca sugieras dosis, cambios de medicación ni diagnósticos; si un patrón es asunto médico (hipoglucemias repetidas, ayunas altas persistentes), tu consejo es llevárselo al equipo sanitario con este resumen. No inventes causas que los datos no muestren.${general ? ' OJO: esta persona no tiene diabetes diagnosticada, usa la app para cuidarse; no hables de «tu diabetes» ni des por hecho ningún diagnóstico.' : ''}
 
-PERFIL: ${perfil}
-BOTIQUÍN (pauta fija): ${botiquin}
-ÚLTIMOS 14 DÍAS: ${nums} · ${hipos} hipoglucemias
+PERFIL: ${profileLine}
+BOTIQUÍN (pauta fija): ${medCabinet}
+ÚLTIMOS 14 DÍAS: ${numbers} · ${hypoCount} hipoglucemias
 PATRONES CALCULADOS CON SUS DATOS (medias frente a su media general; interpreta SOLO estos):
-${patrones || '- (aún no hay patrones con datos suficientes)'}`
+${patterns || '- (aún no hay patrones con datos suficientes)'}`
 }
 
 export function reviewPrompt(ctx: string, name: string): string {
@@ -83,17 +86,17 @@ TAREA: responde al último mensaje de ${name} como Glyno, en máximo 120 palabra
 
 export function suggestMealPrompt(
   ctx: string,
-  info: { moment: string; hora: string; ultima: string; habituales: string[]; otros: string[] },
+  info: { moment: string; time: string; lastReading: string; usual: string[]; others: string[] },
 ): string {
   return `${ctx}
 
-MOMENTO: son las ${info.hora}, toca ${info.moment}.
-ÚLTIMA GLUCEMIA: ${info.ultima}
-PLATOS QUE SUELE TOMAR A ESTA HORA (salen de su propio diario, así que los tiene a mano y le gustan): ${info.habituales.join(' · ') || '(todavía ninguno)'}
-OTROS PLATOS DE SU DIARIO: ${info.otros.join(' · ') || '(ninguno)'}
+MOMENTO: son las ${info.time}, toca ${info.moment}.
+ÚLTIMA GLUCEMIA: ${info.lastReading}
+PLATOS QUE SUELE TOMAR A ESTA HORA (salen de su propio diario, así que los tiene a mano y le gustan): ${info.usual.join(' · ') || '(todavía ninguno)'}
+OTROS PLATOS DE SU DIARIO: ${info.others.join(' · ') || '(ninguno)'}
 
-TAREA: propón 2 o 3 ideas para ${info.moment}. Devuelve SOLO JSON válido, sin markdown:
-{"opciones":[{"plato":"nombre corto","hidratos_g":número entero,"por_que":"media frase con el motivo, ligada a su glucemia o a sus patrones"}],"evitar":["0 a 2 cosas que ahora mismo le conviene dejar para otro día"],"nota":"una frase de cierre, cercana"}
+TAREA: propón 2 o 3 ideas para ${info.moment}. Devuelve SOLO JSON válido, sin markdown, con las claves EXACTAMENTE así (en inglés) y todos los textos en español:
+{"options":[{"dish":"nombre corto","carbs_g":número entero,"why":"media frase con el motivo, ligada a su glucemia o a sus patrones"}],"avoid":["0 a 2 cosas que ahora mismo le conviene dejar para otro día"],"note":"una frase de cierre, cercana"}
 
 REGLAS: prioriza platos de su diario o variaciones mínimas de ellos (ingredientes que ya tiene); si no hay historial suficiente, propón comida casera española sencilla. Ajusta la propuesta a su glucemia actual y a sus patrones. Nunca hables de medicación ni dosis.`
 }
@@ -102,32 +105,33 @@ export function mealPrompt(
   p: Profile,
   hasPhoto: boolean,
   desc: string,
-  info: { ultima: string; hipo: boolean },
+  info: { lastReading: string; hypo: boolean },
 ): string {
-  const quien =
+  const who =
     p.type === 'none'
       ? 'una persona sin diabetes que vigila su glucosa para cuidarse'
       : `una persona con ${TYPE_FULL[p.type].toLowerCase()} (tratamiento: ${treatmentSummary(p)})`
-  // el botiquín se queda fuera a propósito: para juzgar un plato no aporta nada que el
-  // tratamiento no diga ya, y tener los nombres y dosis delante acerca al modelo a la línea roja
-  const contexto = [
+  // the med cabinet is left out on purpose: it adds nothing the treatment line doesn't
+  // already say, and having drug names and doses in front of the model pulls it toward
+  // the red line of dosing advice
+  const context = [
     `rango objetivo ${p.low}–${p.high} mg/dl`,
-    `última glucemia: ${info.ultima}`,
+    `última glucemia: ${info.lastReading}`,
     p.hypertension ? 'tiene además hipertensión' : null,
   ]
     .filter(Boolean)
     .join(' · ')
 
-  return `Eres el nutricionista de bolsillo de ${quien}. Analiza esta comida${hasPhoto ? ' de la foto' : ''}${desc ? ` (el usuario dice: "${desc}")` : ''}.
+  return `Eres el nutricionista de bolsillo de ${who}. Analiza esta comida${hasPhoto ? ' de la foto' : ''}${desc ? ` (el usuario dice: "${desc}")` : ''}.
 
-CONTEXTO: ${contexto}
+CONTEXTO: ${context}
 
-Devuelve SOLO un JSON válido, sin markdown, con esta forma exacta:
-{"plato": "nombre corto del plato", "hidratos_g": número entero (estimación total de hidratos de carbono en gramos), "fibra_g": número entero (fibra estimada), "calorias_kcal": número entero (estimación orientativa), "procesado": "casero"|"procesado"|"ultraprocesado", "indice_glucemico": "bajo"|"medio"|"alto", "semaforo": "verde"|"ambar"|"rojo" (verde=amigable con su glucosa, ambar=con moderación, rojo=le va a dar un pico), "consejo": "1-2 frases prácticas y cercanas en español (orden de los alimentos, acompañamientos, ración) SIN hablar de medicación ni dosis", "mejor_evitar": ["0 a 3 elementos del plato que más le suben la glucosa"]}
+Devuelve SOLO un JSON válido, sin markdown, con las claves EXACTAMENTE así (en inglés) y todos los textos en español:
+{"dish": "nombre corto del plato", "carbs_g": número entero (estimación total de hidratos de carbono en gramos), "fiber_g": número entero (fibra estimada), "calories_kcal": número entero (estimación orientativa), "processing": "homemade"|"processed"|"ultraprocessed", "glycemic_index": "low"|"medium"|"high", "traffic_light": "green"|"amber"|"red" (green=amigable con su glucosa, amber=con moderación, red=le va a dar un pico), "advice": "1-2 frases prácticas y cercanas en español (orden de los alimentos, acompañamientos, ración) SIN hablar de medicación ni dosis", "better_avoid": ["0 a 3 elementos del plato que más le suben la glucosa"]}
 
-IMPORTANTE: el semáforo valora el impacto en su glucosa y la calidad del alimento, NUNCA las calorías. El aceite de oliva, los frutos secos, el aguacate o el pescado azul son calóricos y saludables; el pan blanco o un zumo tienen menos calorías y son peores para su glucemia.
+IMPORTANTE: el semáforo (traffic_light) valora el impacto en su glucosa y la calidad del alimento, NUNCA las calorías. El aceite de oliva, los frutos secos, el aguacate o el pescado azul son calóricos y saludables; el pan blanco o un zumo tienen menos calorías y son peores para su glucemia.
 
 AJUSTA A SU MOMENTO: si viene de una glucemia alta, sé más exigente con el semáforo y con el consejo; si viene en rango, no alarmes. Si la última medición es de hace horas, no la trates como si fuera de ahora.${p.hypertension ? ' Tiene hipertensión: si el plato lleva bastante sal (embutido, conservas, salsas, queso curado, precocinados, encurtidos), dilo en el consejo aunque su glucemia vaya bien.' : ''} Nunca hables de medicación ni dosis, tampoco si su glucemia está fuera de rango.
-${info.hipo ? '\nATENCIÓN — su última glucemia está POR DEBAJO de su rango y es reciente: lo primero es resolver la hipoglucemia. No le digas que evite hidratos, no pongas el semáforo en rojo por los azúcares y deja "mejor_evitar" vacío; si el plato le sirve para remontar, dilo con claridad en el consejo.\n' : ''}
-Si la imagen no parece comida, devuelve {"plato": "no es comida", "hidratos_g": 0, "fibra_g": 0, "calorias_kcal": 0, "procesado": "casero", "indice_glucemico": "bajo", "semaforo": "verde", "consejo": "No he reconocido comida ahí.", "mejor_evitar": []}`
+${info.hypo ? '\nATENCIÓN — su última glucemia está POR DEBAJO de su rango y es reciente: lo primero es resolver la hipoglucemia. No le digas que evite hidratos, no pongas traffic_light en red por los azúcares y deja "better_avoid" vacío; si el plato le sirve para remontar, dilo con claridad en el consejo.\n' : ''}
+Si la imagen no parece comida, devuelve {"dish": "no es comida", "carbs_g": 0, "fiber_g": 0, "calories_kcal": 0, "processing": "homemade", "glycemic_index": "low", "traffic_light": "green", "advice": "No he reconocido comida ahí.", "better_avoid": []}`
 }

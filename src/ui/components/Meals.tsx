@@ -9,20 +9,30 @@ import type { AiImage } from '../../ports/ai'
 import { useWatch } from '../hooks'
 import { fmtDayShort, fmtTime } from '../format'
 
-const SEM_COLOR: Record<MealAnalysis['semaforo'], string> = {
-  verde: 'var(--green)',
-  ambar: 'var(--amber)',
-  rojo: 'var(--red)',
+const LIGHT_COLOR: Record<MealAnalysis['traffic_light'], string> = {
+  green: 'var(--green)',
+  amber: 'var(--amber)',
+  red: 'var(--red)',
 }
-const SEM_LABEL: Record<MealAnalysis['semaforo'], string> = {
-  verde: 'Buena elección',
-  ambar: 'Con moderación',
-  rojo: 'Mejor otro día',
+const LIGHT_LABEL: Record<MealAnalysis['traffic_light'], string> = {
+  green: 'Buena elección',
+  amber: 'Con moderación',
+  red: 'Mejor otro día',
+}
+const GI_LABEL: Record<MealAnalysis['glycemic_index'], string> = {
+  low: 'bajo',
+  medium: 'medio',
+  high: 'alto',
+}
+const PROCESSING_LABEL: Record<NonNullable<MealAnalysis['processing']>, string> = {
+  homemade: 'casero',
+  processed: 'procesado',
+  ultraprocessed: 'ultraprocesado',
 }
 
 type Photo = AiImage & { preview: string }
 
-// reduce la foto a ≤1024px para gastar menos cuota y subir más rápido
+// shrink the photo to ≤1024px: less quota spent, faster upload
 async function shrink(file: File): Promise<Photo> {
   const url = URL.createObjectURL(file)
   const img = await new Promise<HTMLImageElement>((ok, ko) => {
@@ -42,7 +52,7 @@ async function shrink(file: File): Promise<Photo> {
 }
 
 export function Meals({ profile }: { profile: Profile }) {
-  const [mode, setMode] = useState<'sugerir' | 'analizar'>('sugerir')
+  const [mode, setMode] = useState<'suggest' | 'analyze'>('suggest')
   const recent = useWatch(() => repo.watchSince(daysAgo(29)), [])
   const lastGlucose = useWatch(() => repo.watchLastByKind('glucose'), [])
   const lastWeight = useWatch(() => repo.watchLastByKind('weight'), [])
@@ -53,10 +63,10 @@ export function Meals({ profile }: { profile: Profile }) {
     <>
       <h1>Comida</h1>
       <div className="wrap">
-        <button className={`chip ${mode === 'sugerir' ? 'on' : ''}`} onClick={() => setMode('sugerir')}>
+        <button className={`chip ${mode === 'suggest' ? 'on' : ''}`} onClick={() => setMode('suggest')}>
           ¿Qué como ahora?
         </button>
-        <button className={`chip ${mode === 'analizar' ? 'on' : ''}`} onClick={() => setMode('analizar')}>
+        <button className={`chip ${mode === 'analyze' ? 'on' : ''}`} onClick={() => setMode('analyze')}>
           Analizar un plato
         </button>
       </div>
@@ -70,7 +80,7 @@ export function Meals({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      {mode === 'sugerir' ? (
+      {mode === 'suggest' ? (
         <Suggest
           profile={profile}
           recent={recent}
@@ -141,7 +151,7 @@ function Suggest({
     }
   }
 
-  // ante una hipoglucemia reciente no se proponen comidas: es asunto de su pauta médica
+  // no meal ideas right after a hypo: treating it belongs to the user's medical plan
   if (hypo) {
     return (
       <div className="card stack" style={{ borderColor: 'var(--red)' }}>
@@ -185,38 +195,38 @@ function Suggest({
 
       {result && (
         <div className="stack">
-          {result.opciones.map(o => (
-            <div className="card stack" key={o.plato} style={{ gap: 8 }}>
+          {result.options.map(o => (
+            <div className="card stack" key={o.dish} style={{ gap: 8 }}>
               <div className="row between">
-                <h3 style={{ flex: 1 }}>{o.plato}</h3>
-                <span className="pill in">{o.hidratos_g} g HC</span>
+                <h3 style={{ flex: 1 }}>{o.dish}</h3>
+                <span className="pill in">{o.carbs_g} g HC</span>
               </div>
-              <p className="muted small" style={{ lineHeight: 1.5 }}>{o.por_que}</p>
+              <p className="muted small" style={{ lineHeight: 1.5 }}>{o.why}</p>
               <button
                 className="btn ghost small"
-                disabled={taken === o.plato}
+                disabled={taken === o.dish}
                 onClick={async () => {
-                  await logMeal(o.plato, o.hidratos_g, 'sugerida por Glyno')
-                  setTaken(o.plato)
+                  await logMeal(o.dish, o.carbs_g, 'sugerida por Glyno')
+                  setTaken(o.dish)
                 }}
               >
-                {taken === o.plato ? 'Apuntado ✓' : 'Esto voy a comer'}
+                {taken === o.dish ? 'Apuntado ✓' : 'Esto voy a comer'}
               </button>
             </div>
           ))}
 
-          {result.evitar.length > 0 && (
+          {result.avoid.length > 0 && (
             <div className="card stack">
               <span className="label">Mejor hoy no</span>
               <div className="wrap">
-                {result.evitar.map(x => (
+                {result.avoid.map(x => (
                   <span key={x} className="pill high">⚠ {x}</span>
                 ))}
               </div>
             </div>
           )}
 
-          {result.nota && <p className="muted small">{result.nota}</p>}
+          {result.note && <p className="muted small">{result.note}</p>}
         </div>
       )}
     </>
@@ -304,37 +314,37 @@ function Analyze({
       {result && (
         <div className="card stack">
           <div className="row between">
-            <h3>{result.plato}</h3>
+            <h3>{result.dish}</h3>
             <span
               className="pill"
-              style={{ background: 'transparent', border: `1.5px solid ${SEM_COLOR[result.semaforo]}`, color: SEM_COLOR[result.semaforo] }}
+              style={{ background: 'transparent', border: `1.5px solid ${LIGHT_COLOR[result.traffic_light]}`, color: LIGHT_COLOR[result.traffic_light] }}
             >
-              ● {SEM_LABEL[result.semaforo]}
+              ● {LIGHT_LABEL[result.traffic_light]}
             </span>
           </div>
           <div className="row" style={{ alignItems: 'baseline', gap: 8 }}>
-            <span className="bignum" style={{ fontSize: 44 }}>{result.hidratos_g}</span>
-            <span className="muted">g de hidratos · índice glucémico {result.indice_glucemico}</span>
+            <span className="bignum" style={{ fontSize: 44 }}>{result.carbs_g}</span>
+            <span className="muted">g de hidratos · índice glucémico {GI_LABEL[result.glycemic_index]}</span>
           </div>
-          {/* secundarios a propósito: informan, pero no deciden si el plato es buena idea */}
+          {/* deliberately secondary: they inform, but never decide if the dish is a good idea */}
           <p className="muted small">
-            {result.fibra_g != null && <>{result.fibra_g} g de fibra · </>}
-            {result.calorias_kcal != null && <>~{result.calorias_kcal} kcal · </>}
-            {result.procesado && (
+            {result.fiber_g != null && <>{result.fiber_g} g de fibra · </>}
+            {result.calories_kcal != null && <>~{result.calories_kcal} kcal · </>}
+            {result.processing && (
               <span
                 style={{
-                  color: result.procesado === 'ultraprocesado' ? 'var(--amber)' : undefined,
-                  fontWeight: result.procesado === 'ultraprocesado' ? 650 : undefined,
+                  color: result.processing === 'ultraprocessed' ? 'var(--amber)' : undefined,
+                  fontWeight: result.processing === 'ultraprocessed' ? 650 : undefined,
                 }}
               >
-                {result.procesado}
+                {PROCESSING_LABEL[result.processing]}
               </span>
             )}
           </p>
-          <p style={{ fontSize: 14.5, lineHeight: 1.55 }}>{result.consejo}</p>
-          {result.mejor_evitar.length > 0 && (
+          <p style={{ fontSize: 14.5, lineHeight: 1.55 }}>{result.advice}</p>
+          {result.better_avoid.length > 0 && (
             <div className="wrap">
-              {result.mejor_evitar.map(x => (
+              {result.better_avoid.map(x => (
                 <span key={x} className="pill high">⚠ {x}</span>
               ))}
             </div>

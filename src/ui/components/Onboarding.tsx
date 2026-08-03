@@ -30,15 +30,15 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
   const set = (patch: Partial<Profile>) => setP(prev => ({ ...prev, ...patch }))
   const next = () => setStep(s => Math.min(s + 1, STEPS - 1))
   const back = () => setStep(s => Math.max(s - 1, 0))
-  // sin esto, la opción por defecto (tipo 2, glucómetro, "No" en tensión) sale resaltada
-  // como si ya la hubieras elegido, y quien pasa rápido se lleva una respuesta que no dio
+  // without this, the default option (type 2, meter, "No" for blood pressure) shows highlighted
+  // as if already chosen, and anyone rushing through walks away with an answer they never gave
   const [answered, setAnswered] = useState<Record<number, boolean>>(initial ? { 1: true, 2: true, 5: true } : {})
   const mark = (s: number) => setAnswered(a => ({ ...a, [s]: true }))
 
   const usesMeds = p.basal || p.bolus || p.pills
   const finish = (patch: Partial<Profile> = {}) => onDone({ ...p, ...patch, name: p.name.trim(), onboarded: true })
 
-  // quien no mide glucosa no necesita rango objetivo: la tensión es su último paso
+  // users who don't measure glucose need no target range: blood pressure is their last step
   const chooseHypertension = (hypertension: boolean) => {
     set({ hypertension })
     mark(5)
@@ -84,7 +84,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
           <p className="muted small">
             Glyno no da consejo médico ni pautas de medicación. Para eso, siempre tu equipo sanitario.
           </p>
-          {/* mejor instalarla antes de rellenar nada: en iOS la app instalada guarda sus datos aparte */}
+          {/* better to install before filling anything in: on iOS the installed app keeps its data separately */}
           <InstallHint />
         </>
       )}
@@ -133,7 +133,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
                 onClick={() => {
                   set({ measurement: m })
                   mark(2)
-                  // sin diagnóstico no hay medicación de diabetes: se salta a tensión
+                  // no diagnosis means no diabetes medication: skip straight to blood pressure
                   setStep(p.type === 'none' ? 5 : 3)
                 }}
               >
@@ -306,7 +306,7 @@ function MedsStep({
           ))}
         </div>
       )}
-      {/* apilados: en móvil, dos campos en fila cortan el texto de ejemplo */}
+      {/* stacked: on mobile, two fields in a row clip the example text */}
       <div className="stack">
         <input type="text" placeholder="Metformina" value={name} onChange={e => setName(e.target.value)} />
         <input

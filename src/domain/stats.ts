@@ -32,7 +32,7 @@ export function computeStats(entries: Entry[], p: Profile): Stats {
   const tagEffects = [...new Set(tags.map(t => t.label!))]
     .map(label => {
       const marks = tags.filter(t => t.label === label)
-      // glucemias en las 14 h posteriores a la etiqueta
+      // glucose readings within 14 h after the tag
       const after = gl.filter(g => marks.some(t => g.ts > t.ts && g.ts - t.ts < 14 * 3600e3))
       return { label, delta: after.length && mean != null ? avg(after.map(e => e.value!))! - mean : 0, n: after.length }
     })

@@ -3,7 +3,7 @@ export interface Week {
   to: number
 }
 
-/** semana de lunes a domingo; offset 0 = la actual, -1 = la anterior */
+/** Monday-to-Sunday week; offset 0 = current week, -1 = previous */
 export function weekRange(offset: number): Week {
   const start = new Date()
   start.setHours(0, 0, 0, 0)

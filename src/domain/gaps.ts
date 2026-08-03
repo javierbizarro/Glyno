@@ -5,7 +5,7 @@ export interface Gap {
   text: string
 }
 
-// máx. 2 avisos, cada uno explica qué gana el usuario — nunca regañar
+// max 2 notices, each explains what the user gains — never scold
 export function findGaps(p: Profile, entries: Entry[], lastWeight?: Entry): Gap[] {
   const gaps: Gap[] = []
   const gl = entries.filter(e => e.kind === 'glucose')

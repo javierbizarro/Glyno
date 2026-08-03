@@ -6,8 +6,8 @@ const isStandalone = () =>
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 
-// Tarjeta de instalación: botón nativo donde el navegador lo permite (Android/Chrome),
-// guía manual en iOS. Se oculta si ya está instalada o si el usuario la descarta.
+// Install card: native button where the browser allows it (Android/Chrome),
+// manual guide on iOS. Hidden if already installed or if the user dismisses it.
 export function InstallHint() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(
     () => window.glynoInstallPrompt ?? null,
@@ -61,7 +61,7 @@ export function InstallHint() {
           </p>
         </>
       ) : (
-        // Safari de escritorio no ofrece API de instalación: solo queda explicarlo
+        // Desktop Safari offers no install API: explaining it is the only option
         <>
           <p className="muted small">
             Glyno se instala como una app. Desde el móvil es un momento; en este ordenador:

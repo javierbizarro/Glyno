@@ -3,7 +3,7 @@ import { entries } from '../../app/container'
 import { fmtDayShort, fmtTime } from '../format'
 import { entryText, KIND_ICO } from '../entryDisplay'
 
-/** confirmación antes de borrar: un toque suelto no debería llevarse un registro por delante */
+/** confirmation before deleting: a stray tap shouldn't wipe out a record */
 export function DeleteEntrySheet({ entry, onClose }: { entry: Entry; onClose: () => void }) {
   const del = async () => {
     if (entry.id != null) await entries.remove(entry.id)

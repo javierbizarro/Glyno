@@ -20,8 +20,8 @@ export function Trends({ profile }: { profile: Profile }) {
   const glucose = entries.filter(e => e.kind === 'glucose' && e.value != null)
   const stats = computeStats(entries, profile)
 
-  // solo se queda vacío si no hay NADA: con un único registro ya se empieza a dibujar,
-  // y quien no mide glucosa igual sí apunta tensión o peso
+  // only stays empty when there's NOTHING: a single entry already starts drawing,
+  // and someone who doesn't measure glucose may still log blood pressure or weight
   if (entries.length === 0) {
     return (
       <>
@@ -143,7 +143,7 @@ function WeightCard({ profile }: { profile: Profile }) {
   const weights = useWatch(() => repo.watchByKind('weight'), [])
   if (!weights || weights.length === 0) return null
   const last = weights[weights.length - 1]
-  const imc = profile.heightCm ? last.value! / Math.pow(profile.heightCm / 100, 2) : null
+  const bmi = profile.heightCm ? last.value! / Math.pow(profile.heightCm / 100, 2) : null
 
   const pts = weights.slice(-12)
   const vmin = Math.min(...pts.map(e => e.value!)) - 1.5
@@ -157,7 +157,7 @@ function WeightCard({ profile }: { profile: Profile }) {
       <div className="row between" style={{ marginBottom: 6 }}>
         <span className="label">Peso</span>
         <span className="muted small">
-          {last.value} kg{imc ? ` · IMC ${imc.toFixed(1)}` : ''}
+          {last.value} kg{bmi ? ` · IMC ${bmi.toFixed(1)}` : ''}
         </span>
       </div>
       {pts.length >= 2 ? (
@@ -228,7 +228,7 @@ function GlucoseChart({ points, profile }: { points: Entry[]; profile: Profile }
   const t1 = Date.now()
   const sorted = [...points].sort((a, b) => a.ts - b.ts)
 
-  // escala ajustada a los datos: las excursiones fuera de rango ganan resolución
+  // scale fitted to the data: out-of-range excursions gain resolution
   const vals = sorted.map(e => e.value!)
   const YMIN = Math.max(40, Math.min(profile.low - 25, Math.min(...vals) - 12))
   const YMAX = Math.min(320, Math.max(profile.high + 30, Math.max(...vals) + 14))
@@ -241,7 +241,7 @@ function GlucoseChart({ points, profile }: { points: Entry[]; profile: Profile }
 
   const out = (e: Entry) => rangeOf(e.value!, profile) !== 'in'
   const outliers = sorted.filter(out)
-  // etiquetas directas selectivas: todos los fuera de rango si son pocos; si no, solo los extremos
+  // selective direct labels: all out-of-range points if there are few; otherwise only the extremes
   const labelled = new Set(
     (outliers.length <= 6
       ? outliers
@@ -279,7 +279,7 @@ function GlucoseChart({ points, profile }: { points: Entry[]; profile: Profile }
         role="img"
         aria-label="Glucemias de los últimos 14 días"
       >
-        {/* banda de rango objetivo */}
+        {/* target range band */}
         <rect
           x={ML}
           y={Y(profile.high)}
@@ -296,13 +296,13 @@ function GlucoseChart({ points, profile }: { points: Entry[]; profile: Profile }
             </text>
           </g>
         ))}
-        {/* marcas de día */}
+        {/* day ticks */}
         {dayTicks.map(ts => (
           <text key={ts} x={X(ts)} y={H - 6} fontSize="9.5" fill="var(--ink-3)" textAnchor="middle">
             {fmtDayShort(ts)}
           </text>
         ))}
-        {/* línea fina + puntos por estado (los fuera de rango, con halo y más grandes) */}
+        {/* thin line + points by state (out-of-range ones get a halo and are larger) */}
         <path d={path} fill="none" stroke="var(--ink-3)" strokeWidth="1.4" opacity="0.55" />
         {sorted.map(e => {
           const r = rangeOf(e.value!, profile)

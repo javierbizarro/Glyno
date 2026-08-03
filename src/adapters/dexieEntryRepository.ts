@@ -3,7 +3,7 @@ import type { Entry, EntryKind } from '../domain/types'
 import type { EntryRepository } from '../ports/repositories'
 import type { Watchable } from '../ports/watchable'
 
-// mismo nombre y esquema que antes del refactor: los datos existentes se conservan
+// same name and schema as before the refactor: existing data is preserved
 class GlynoDB extends Dexie {
   entries!: Table<Entry, number>
   constructor() {
@@ -51,7 +51,7 @@ export class DexieEntryRepository implements EntryRepository {
     return liveQuery(() => this.db.entries.where('kind').equals(kind).last())
   }
 
-  /** solo para el reset de la composición raíz */
+  /** only for the composition root's reset */
   async deleteDatabase() {
     this.db.close()
     await Dexie.delete('glyno')

@@ -1,6 +1,6 @@
 import type { AiAssistant, AiImage } from '../ports/ai'
 
-// alias que sigue al flash vigente — evita 404 cuando Google retira modelos
+// alias that tracks the current flash model — avoids 404s when Google retires models
 const MODEL = 'gemini-flash-latest'
 
 interface GPart {
@@ -9,7 +9,7 @@ interface GPart {
 }
 
 export class GeminiAssistant implements AiAssistant {
-  // la clave vive en el perfil del usuario; se resuelve en cada llamada
+  // the key lives in the user's profile; resolved on every call
   constructor(private readonly getKey: () => string) {}
 
   complete(prompt: string) {

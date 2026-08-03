@@ -4,8 +4,8 @@ import { entries } from './container'
 const rnd = (a: number, b: number) => a + Math.random() * (b - a)
 const r = (x: number) => Math.round(x)
 
-// 14 días de datos plausibles con patrones que la IA pueda encontrar:
-// mal sueño → mañanas altas · ejercicio → tardes más bajas · cena copiosa → noche alta
+// 14 days of plausible data with patterns the AI can find:
+// bad sleep → high mornings · exercise → lower afternoons · heavy dinner → high night
 export async function seedDemo(p: Profile) {
   await entries.clear()
   const list: Entry[] = []
@@ -42,7 +42,7 @@ export async function seedDemo(p: Profile) {
 
     if (exercise) {
       list.push({ ts: at(18, 30), kind: 'exercise', value: r(rnd(30, 50)), label: 'Caminar' })
-      // alguna hipo post-ejercicio
+      // occasional post-exercise hypo
       if (Math.random() < 0.35)
         list.push({ ts: at(19, 45), kind: 'glucose', value: r(rnd(58, 69)), note: 'antes de cenar' })
     }

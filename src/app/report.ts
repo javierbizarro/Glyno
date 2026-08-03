@@ -16,7 +16,7 @@ export interface ReportData {
   entries: Entry[]
   glucose: Entry[]
   stats: Stats
-  /** HbA1c estimada (GMI) a partir de la media — orientativa, no analítica */
+  /** Estimated HbA1c (GMI) from the mean — indicative, not a lab result */
   gmi: number | null
   momentMeans: MomentMean[]
   bp: { n: number; mean: { sys: number; dia: number } | null; high: number }

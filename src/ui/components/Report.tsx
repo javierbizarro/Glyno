@@ -32,15 +32,15 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
   if (!data) return null
   const { stats } = data
   const general = profile.type === 'none'
-  // el GMI está validado en diabetes con monitorización continua: fuera de ahí engaña
+  // GMI is validated for diabetes with continuous monitoring: outside that it's misleading
   const showGmi = !general && data.gmi != null
   const age = profile.birthYear ? new Date().getFullYear() - profile.birthYear : null
-  const imc =
+  const bmi =
     data.weight.last?.value && profile.heightCm
       ? (data.weight.last.value / Math.pow(profile.heightCm / 100, 2)).toFixed(1)
       : null
 
-  // tabla día × momento
+  // day × moment table
   const dayKey = (ts: number) => new Date(ts).toDateString()
   const dayList: string[] = []
   for (let d = days - 1; d >= 0; d--) {
@@ -213,7 +213,7 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
           </section>
         )}
 
-        {(data.weight.last || imc) && (
+        {(data.weight.last || bmi) && (
           <section>
             <h2>Peso</h2>
             <p>
@@ -225,7 +225,7 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
               ) : (
                 <b>{data.weight.last?.value} kg</b>
               )}
-              {imc ? ` · IMC ${imc}` : ''}
+              {bmi ? ` · IMC ${bmi}` : ''}
               {profile.heightCm ? ` (talla ${profile.heightCm} cm)` : ''}
             </p>
           </section>

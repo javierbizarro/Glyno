@@ -7,16 +7,16 @@ import { ai, entries } from './container'
 import { buildContext, mealPrompt, suggestMealPrompt } from './prompts'
 
 export interface MealAnalysis {
-  plato: string
-  hidratos_g: number
-  indice_glucemico: 'bajo' | 'medio' | 'alto'
-  semaforo: 'verde' | 'ambar' | 'rojo'
-  consejo: string
-  mejor_evitar: string[]
-  // orientativos y secundarios: el semáforo NO se decide por las calorías
-  fibra_g?: number
-  calorias_kcal?: number
-  procesado?: 'casero' | 'procesado' | 'ultraprocesado'
+  dish: string
+  carbs_g: number
+  glycemic_index: 'low' | 'medium' | 'high'
+  traffic_light: 'green' | 'amber' | 'red'
+  advice: string
+  better_avoid: string[]
+  // informative extras: the traffic light is NEVER decided by calories
+  fiber_g?: number
+  calories_kcal?: number
+  processing?: 'homemade' | 'processed' | 'ultraprocessed'
 }
 
 function extractJson<T>(s: string): T {
@@ -31,8 +31,8 @@ export async function analyzeMeal(
   lastGlucose?: Entry,
 ): Promise<MealAnalysis> {
   const prompt = mealPrompt(p, !!input.image, input.desc?.trim() ?? '', {
-    ultima: lastGlucoseText(lastGlucose),
-    hipo: needsHypoCare(p, lastGlucose),
+    lastReading: lastGlucoseText(lastGlucose),
+    hypo: needsHypoCare(p, lastGlucose),
   })
   const raw = input.image ? await ai.completeWithImage(prompt, input.image) : await ai.complete(prompt)
   return extractJson<MealAnalysis>(raw)
@@ -43,13 +43,13 @@ export async function logMeal(label: string, carbs?: number, note?: string): Pro
 }
 
 export async function saveMeal(analysis: MealAnalysis): Promise<void> {
-  await logMeal(analysis.plato, analysis.hidratos_g, 'analizada por Glyno')
+  await logMeal(analysis.dish, analysis.carbs_g, 'analizada por Glyno')
 }
 
 export interface MealSuggestion {
-  opciones: { plato: string; hidratos_g: number; por_que: string }[]
-  evitar: string[]
-  nota: string
+  options: { dish: string; carbs_g: number; why: string }[]
+  avoid: string[]
+  note: string
 }
 
 export async function suggestMeal(
@@ -63,14 +63,14 @@ export async function suggestMeal(
   const fmt = (m: { label: string; times: number; carbs: number | null }) =>
     `${m.label}${m.carbs ? ` (~${m.carbs} g HC)` : ''}${m.times > 1 ? ` ×${m.times}` : ''}`
 
-  const habituales = usualMeals(recent, bucket).map(fmt)
-  const otros = usualMeals(recent)
-    .filter(m => !habituales.some(h => h.startsWith(m.label)))
+  const usual = usualMeals(recent, bucket).map(fmt)
+  const others = usualMeals(recent)
+    .filter(m => !usual.some(u => u.startsWith(m.label)))
     .map(fmt)
 
-  const ultima = lastGlucoseText(lastGlucose)
+  const lastReading = lastGlucoseText(lastGlucose)
   const ctx = buildContext(p, computeStats(recent, p), recent, lastWeight)
-  const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  const raw = await ai.complete(suggestMealPrompt(ctx, { moment, hora, ultima, habituales, otros }))
+  const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const raw = await ai.complete(suggestMealPrompt(ctx, { moment, time, lastReading, usual, others }))
   return extractJson<MealSuggestion>(raw)
 }

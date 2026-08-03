@@ -13,7 +13,7 @@ export interface Profile {
   measurement: Measurement
   basal: boolean
   bolus: boolean
-  /** medicación no insulínica: orales (metformina…) e inyectables tipo GLP-1 (Ozempic, Trulicity…) */
+  /** non-insulin medication: orals (metformin…) and GLP-1-type injectables (Ozempic, Trulicity…) */
   pills: boolean
   meds: Med[]
   hypertension: boolean
@@ -48,7 +48,7 @@ export const TYPE_LABEL: Record<DiabetesType, string> = {
   none: 'Control general',
 }
 
-// etiqueta completa para menús y encabezados: "Tipo 2" solo se entiende junto a "Diabetes"
+// full label for menus and headers: "Tipo 2" only makes sense next to "Diabetes"
 export const TYPE_FULL: Record<DiabetesType, string> = {
   t1: 'Diabetes tipo 1',
   t2: 'Diabetes tipo 2',
@@ -57,8 +57,8 @@ export const TYPE_FULL: Record<DiabetesType, string> = {
   none: 'Sin diagnóstico',
 }
 
-// rangos objetivo por defecto en mg/dl: sin diagnóstico de diabetes se usa
-// la referencia de una persona sana, más estrecha que la de un diabético
+// default target ranges in mg/dl: without a diabetes diagnosis we use the
+// reference for a healthy person, narrower than a diabetic's
 export const DEFAULT_TARGETS: Record<DiabetesType, { low: number; high: number }> = {
   t1: { low: 70, high: 180 },
   t2: { low: 70, high: 180 },
@@ -73,15 +73,15 @@ export interface Entry {
   id?: number
   ts: number
   kind: EntryKind
-  value?: number   // glucosa mg/dl · insulina U · ejercicio min
+  value?: number   // glucose mg/dl · insulin U · exercise min
   sys?: number
   dia?: number
   label?: string
-  carbs?: number   // gramos
+  carbs?: number   // grams
   note?: string
 }
 
-// perfil glucémico clásico: antes y después de cada comida, como pide el endocrino
+// classic glycemic profile: before and after each meal, as the endocrinologist asks for
 export const MOMENTS = [
   'ayunas',
   'después de desayunar',

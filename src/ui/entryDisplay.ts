@@ -11,7 +11,7 @@ export const KIND_ICO: Record<string, string> = {
   weight: '⚖️',
 }
 
-/** cabeceras cortas para las tablas del informe, donde "después de desayunar" no cabe */
+/** short headers for the report tables, where "después de desayunar" doesn't fit */
 export const MOMENT_SHORT: Record<string, string> = {
   ayunas: 'Ayunas',
   'después de desayunar': 'Post desayuno',

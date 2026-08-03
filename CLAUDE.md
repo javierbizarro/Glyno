@@ -9,7 +9,10 @@ mascota 3D (Glyno) y valoraciones con IA (Gemini free tier). Objetivo: coste 0 r
   NUNCA ejecutar npm/node en el host (el usuario no quiere instalar nada en local).
 - Los datos del usuario viven en el navegador (IndexedDB `glyno` + localStorage `glyno.profile`).
   `make reset` los borra abriendo `/?reset`. Apagar Docker NO borra datos.
-- UI 100% en español, tono cercano (Glyno habla de tú).
+- UI 100% en español, tono cercano (Glyno habla de tú). PERO el código y los commits van
+  **en inglés**: comentarios, identificadores, mensajes de commit y las claves del JSON que
+  devuelve Gemini. Son español (NO traducir): textos de UI, cuerpos de los prompts, datos de
+  demo y los valores que se guardan en el diario ('ayunas', 'Mal sueño', 'sugerida por Glyno'…).
 - Metodología pactada con Javier: **fase a fase, comprobando cada una en el navegador antes de seguir**.
   Hay tareas creadas con el estado de cada fase.
 - Javier quiere que se le **lleve la contraria** cuando su idea tenga pegas: consejo honesto, no complacencia.

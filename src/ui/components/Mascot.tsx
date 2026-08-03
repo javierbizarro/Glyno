@@ -1,4 +1,4 @@
-/** Glyno plano para tamaños pequeños (barra de pestañas): corazón con corona, sin antenas */
+/** Flat Glyno for small sizes (tab bar): heart with crown, no antennae */
 export function Mascot({ size = 56 }: { size?: number }) {
   const heart = 'M50 78 C35 65 24 55 24 44 C24 35 30 29 38 29 C44 29 48 33 50 37 C52 33 56 29 62 29 C70 29 76 35 76 44 C76 55 65 65 50 78 Z'
   return (
