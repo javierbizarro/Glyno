@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Profile } from '../../domain/types'
 import { daysAgo } from '../../domain/time'
-import { mealMoment } from '../../domain/meals'
+import { mealMoment, MEAL_MOMENT_LABEL } from '../../domain/meals'
 import { needsHypoCare } from '../../domain/glucose'
 import { entries as repo } from '../../app/container'
 import { analyzeMeal, logMeal, saveMeal, suggestMeal, type MealAnalysis, type MealSuggestion } from '../../app/meals'
@@ -114,7 +114,7 @@ function Suggest({
   const [result, setResult] = useState<MealSuggestion | null>(null)
   const [taken, setTaken] = useState<string | null>(null)
 
-  const moment = mealMoment(Date.now())
+  const moment = MEAL_MOMENT_LABEL[mealMoment(Date.now())]
   const hypo = needsHypoCare(profile, lastGlucose)
 
   const ask = async () => {

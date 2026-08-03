@@ -1,6 +1,6 @@
 import type { Entry, Profile } from '../domain/types'
 import { computeStats } from '../domain/stats'
-import { mealMoment, usualMeals } from '../domain/meals'
+import { mealMoment, MEAL_MOMENT_LABEL, usualMeals } from '../domain/meals'
 import type { AiImage } from '../ports/ai'
 import { ai, entries } from './container'
 import { buildContext, mealPrompt, suggestMealPrompt } from './prompts'
@@ -49,11 +49,12 @@ export async function suggestMeal(
   recent: Entry[],
   lastGlucose?: Entry,
 ): Promise<MealSuggestion> {
-  const moment = mealMoment(Date.now())
+  const bucket = mealMoment(Date.now())
+  const moment = MEAL_MOMENT_LABEL[bucket]
   const fmt = (m: { label: string; times: number; carbs: number | null }) =>
     `${m.label}${m.carbs ? ` (~${m.carbs} g HC)` : ''}${m.times > 1 ? ` ×${m.times}` : ''}`
 
-  const habituales = usualMeals(recent, moment).map(fmt)
+  const habituales = usualMeals(recent, bucket).map(fmt)
   const otros = usualMeals(recent)
     .filter(m => !habituales.some(h => h.startsWith(m.label)))
     .map(fmt)

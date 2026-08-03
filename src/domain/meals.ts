@@ -1,14 +1,25 @@
 import type { Entry } from './types'
 import { daysAgo } from './time'
 
-export type MealMoment = 'desayuno' | 'comida' | 'merienda' | 'cena'
+export type MealMoment = 'desayuno' | 'entre horas' | 'comida' | 'merienda' | 'cena'
 
+/** franjas pensadas para horarios españoles; «entre horas» recoge el picoteo */
 export function mealMoment(ts: number): MealMoment {
   const h = new Date(ts).getHours()
-  if (h >= 5 && h < 12) return 'desayuno'
-  if (h >= 12 && h < 17) return 'comida'
-  if (h >= 17 && h < 20) return 'merienda'
-  return 'cena'
+  if (h >= 5 && h < 11) return 'desayuno'
+  if (h >= 11 && h < 13) return 'entre horas'
+  if (h >= 13 && h < 16) return 'comida'
+  if (h >= 16 && h < 20) return 'merienda'
+  if (h >= 20 && h < 23) return 'cena'
+  return 'entre horas'
+}
+
+export const MEAL_MOMENT_LABEL: Record<MealMoment, string> = {
+  desayuno: 'el desayuno',
+  'entre horas': 'un tentempié',
+  comida: 'la comida',
+  merienda: 'la merienda',
+  cena: 'la cena',
 }
 
 export interface UsualMeal {
@@ -95,27 +106,22 @@ export function usualExercises(entries: Entry[], limit = 3): UsualExercise[] {
  * Momento del día que probablemente corresponde a la glucemia que va a apuntar,
  * para traerlo ya marcado: en ayunas si aún no ha comido, tras una comida reciente, etc.
  */
+/**
+ * MANDA LA HORA DEL DÍA. Haber apuntado una comida solo sirve para pasar de «antes» a
+ * «después» dentro de la misma franja: a quien solo se mide antes de comer no se le puede
+ * proponer «después» únicamente porque haya registrado el plato.
+ */
 export function suggestMoment(entries: Entry[], now = Date.now()): string {
   const meals = entries.filter(e => e.kind === 'meal' && e.ts >= daysAgo(0))
-  const lastMeal = meals[meals.length - 1]
+  const ate = (m: MealMoment) => meals.some(e => mealMoment(e.ts) === m)
+  const d = new Date(now)
+  const h = d.getHours() + d.getMinutes() / 60
 
-  // posprandial: entre 45 min y 3 h y media desde la última comida
-  if (lastMeal) {
-    const since = now - lastMeal.ts
-    if (since > 45 * 60e3 && since < 3.5 * 3600e3) {
-      const m = mealMoment(lastMeal.ts)
-      if (m === 'desayuno') return 'después de desayunar'
-      if (m === 'comida') return 'después de comer'
-      if (m === 'cena') return 'después de cenar'
-    }
-  }
-
-  const eaten = (m: MealMoment) => meals.some(e => mealMoment(e.ts) === m)
-  const h = new Date(now).getHours()
-  // la madrugada va primero: a la 1:00 no estás "en ayunas", estás por acostarte
-  if (h >= 22 || h < 4) return 'antes de dormir'
-  if (h < 11 && !eaten('desayuno')) return 'ayunas'
-  if (h >= 12 && h < 15 && !eaten('comida')) return 'antes de comer'
-  if (h >= 19 && h < 22 && !eaten('cena')) return 'antes de cenar'
-  return ''
+  if (h >= 23 || h < 4.5) return 'antes de dormir'
+  if (h < 11) return ate('desayuno') ? 'después de desayunar' : 'ayunas'
+  if (h < 13) return ate('desayuno') ? 'después de desayunar' : ''
+  if (h < 15.5) return ate('comida') ? 'después de comer' : 'antes de comer'
+  if (h < 19) return 'después de comer'
+  if (h < 21.5) return ate('cena') ? 'después de cenar' : 'antes de cenar'
+  return ate('cena') ? 'después de cenar' : 'antes de dormir'
 }

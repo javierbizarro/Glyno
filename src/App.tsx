@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Profile } from './domain/types'
 import { profiles } from './app/container'
 import { Onboarding } from './ui/components/Onboarding'
@@ -59,6 +59,20 @@ const TAB_LABEL: Record<Tab, string> = {
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => profiles.load())
   const [tab, setTab] = useState<Tab>('hoy')
+  const tabbar = useRef<HTMLElement>(null)
+
+  // el alto real de la barra cambia con el área segura del móvil: quien se coloque
+  // encima (la caja del chat) necesita saberlo
+  useEffect(() => {
+    const el = tabbar.current
+    if (!el) return
+    const publish = () =>
+      document.documentElement.style.setProperty('--tabbar', `${Math.round(el.offsetHeight)}px`)
+    publish()
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [profile?.onboarded])
 
   const save = (p: Profile) => {
     profiles.save(p)
@@ -77,7 +91,7 @@ export default function App() {
         {tab === 'ajustes' && <Settings profile={profile} onSave={save} />}
       </div>
 
-      <nav className="tabbar">
+      <nav className="tabbar" ref={tabbar}>
         <div className="inner">
           {(Object.keys(TAB_LABEL) as Tab[]).map(t => (
             <button key={t} className={`tab ${tab === t ? 'on' : ''}`} onClick={() => setTab(t)}>

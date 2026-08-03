@@ -138,7 +138,7 @@ export function Coach({ profile }: { profile: Profile }) {
       <div className="card stack">
         <span className="label">Pregúntame</span>
         {msgs.length > 0 && (
-          <div className="stack" style={{ maxHeight: 320, overflowY: 'auto' }}>
+          <div className="stack" style={{ maxHeight: 340, overflowY: 'auto', overscrollBehavior: 'contain' }}>
             {msgs.map((m, i) => (
               <div key={i} className={`bubble ${m.role}`}>
                 {m.text}
@@ -148,10 +148,13 @@ export function Coach({ profile }: { profile: Profile }) {
             <div ref={chatEnd} />
           </div>
         )}
-        <div className="row">
+      </div>
+
+      <div className="chat-dock">
+        <div className="inner">
           <input
             type="text"
-            placeholder="¿Por qué amanezco alto?"
+            placeholder="Pregúntale a Glyno…"
             value={question}
             onChange={e => setQuestion(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !busy && ask()}
@@ -174,6 +177,9 @@ export function Coach({ profile }: { profile: Profile }) {
         Glyno no da consejo médico ni pautas de medicación. Ante cualquier duda de tratamiento, tu
         equipo sanitario.
       </p>
+
+      {/* hueco final: sin él, el último contenido queda debajo de la caja fija de escribir */}
+      <div style={{ height: 58, flex: 'none' }} />
     </>
   )
 }

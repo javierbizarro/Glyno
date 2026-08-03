@@ -330,6 +330,30 @@ input.bignum {
 .bubble.glyno { background: var(--card); border: 1px solid var(--line); align-self: flex-start; border-bottom-left-radius: 6px; }
 .bubble.me    { background: var(--green); color: #F4F7F2; align-self: flex-end; border-bottom-right-radius: 6px; }
 
+/* caja de escribir fija justo encima de la barra de pestañas: escribir no debe obligar
+   a hacer scroll. --tabbar lo publica App (cambia con el área segura del iPhone) y --kb
+   es el alto del teclado en los navegadores que no reajustan el viewport */
+.chat-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--kb, 0px) + var(--tabbar, 66px));
+  display: flex;
+  justify-content: center;
+  padding: 8px 20px;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+  z-index: 45;
+}
+.chat-dock .inner {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .onb-progress { display: flex; gap: 6px; }
 .onb-progress span { width: 26px; height: 3.5px; border-radius: 2px; background: var(--line); }
 .onb-progress span.on { background: var(--green); }

@@ -205,10 +205,17 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   hace útil la tabla del informe. Los datos antiguos siguen siendo válidos (subconjunto).
   Etiquetas cortas para el informe en `ui/entryDisplay.ts` → `MOMENT_SHORT` ("Post desayuno"…),
   porque "después de desayunar" no cabe como cabecera. Demo actualizado para generar los 7.
-- `suggestMoment` premarca el momento correcto: posprandial si hay comida de hace 45 min-3,5 h
-  (distinguiendo desayuno/comida/cena), y por hora si no. **OJO con el orden de los ifs**: la
-  madrugada va PRIMERO, porque a la 1:00 `h < 11` daba "ayunas" (bug corregido). Verificados los
-  7 casos horarios.
+- `suggestMoment` (reescrito 2026-08-03 por aviso de Javier): **MANDA LA HORA DEL DÍA**. Antes la
+  regla posprandial tenía prioridad, así que a quien solo se mide ANTES de las comidas se le
+  proponía «después» solo por haber registrado el plato. Ahora las franjas horarias deciden y el
+  registro de comida solo sirve para pasar de «antes» a «después» DENTRO de la misma franja:
+  <4,5 o ≥23 → antes de dormir · <11 → ayunas (o después de desayunar) · <13 → después de desayunar
+  o nada · <15,5 → antes de comer (o después) · <19 → después de comer · <21,5 → antes de cenar (o
+  después) · resto → después de cenar / antes de dormir. Verificados 9 casos horarios.
+- **Comida entre horas**: `mealMoment` pasa a 5 franjas con `'entre horas'` (11-13 y 23-5) para que
+  el picoteo no se cuente como desayuno o comida: desayuno 5-11 · entre horas 11-13 · comida 13-16 ·
+  merienda 16-20 · cena 20-23 · entre horas 23-5. `MEAL_MOMENT_LABEL` da el texto para la UI y el
+  prompt («un tentempié», «la merienda»…), que antes decía cosas como "ideas para entre horas".
 - **Teclado en móvil**: las hojas de registro van ancladas abajo y el teclado las tapaba. Solución:
   `main.tsx` escucha `visualViewport` y publica `--kb` (alto del teclado); `.sheet` usa
   `margin-bottom: var(--kb)` + `max-height` + scroll, y el viewport lleva
@@ -287,6 +294,17 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   a la pauta del equipo sanitario. Verificado con una glucemia de 58.
 - Probado en vivo: propuso "Tortilla y ensalada 42 g HC — tu cena habitual más ligera…" y
   "Pollo con ensalada", evitando "pizza y postre" por la hora. Usa 30 días de historial.
+
+## Chat anclado abajo (2026-08-03)
+
+- Javier: molestaba tener que hacer scroll para escribir en el chat de Glyno. Primer intento con
+  `position: sticky` en la caja de escribir: **NO funciona** si la tarjeta del chat queda entera por
+  debajo del pliegue (sticky no sube un elemento a la vista, solo lo retiene).
+- Solución: `.chat-dock` **fijo** sobre la barra de pestañas, con `bottom: calc(var(--kb) +
+  var(--tabbar))`. `--tabbar` lo publica `App` midiendo la barra con un `ResizeObserver` (su alto
+  cambia con el área segura del iPhone) y `--kb` cubre los navegadores que no reajustan el viewport.
+- Hace falta un **hueco final** en el contenido (58 px) o el último elemento queda debajo de la
+  caja; la primera versión lo puso en medio y tapaba el aviso legal.
 
 ## Compartir la app (2026-08-03)
 
