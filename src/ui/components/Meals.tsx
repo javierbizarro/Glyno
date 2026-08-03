@@ -45,6 +45,7 @@ export function Meals({ profile }: { profile: Profile }) {
   const [mode, setMode] = useState<'sugerir' | 'analizar'>('sugerir')
   const recent = useWatch(() => repo.watchSince(daysAgo(29)), [])
   const lastGlucose = useWatch(() => repo.watchLastByKind('glucose'), [])
+  const lastWeight = useWatch(() => repo.watchLastByKind('weight'), [])
   const meals = recent?.filter(e => e.kind === 'meal').reverse().slice(0, 8)
   const hasKey = !!profile.geminiKey
 
@@ -70,9 +71,15 @@ export function Meals({ profile }: { profile: Profile }) {
       )}
 
       {mode === 'sugerir' ? (
-        <Suggest profile={profile} recent={recent} lastGlucose={lastGlucose} hasKey={hasKey} />
+        <Suggest
+          profile={profile}
+          recent={recent}
+          lastGlucose={lastGlucose}
+          lastWeight={lastWeight}
+          hasKey={hasKey}
+        />
       ) : (
-        <Analyze profile={profile} hasKey={hasKey} />
+        <Analyze profile={profile} lastGlucose={lastGlucose} hasKey={hasKey} />
       )}
 
       {(meals?.length ?? 0) > 0 && (
@@ -102,11 +109,13 @@ function Suggest({
   profile,
   recent,
   lastGlucose,
+  lastWeight,
   hasKey,
 }: {
   profile: Profile
   recent: Parameters<typeof suggestMeal>[1] | undefined
   lastGlucose: Parameters<typeof suggestMeal>[2]
+  lastWeight: Parameters<typeof suggestMeal>[3]
   hasKey: boolean
 }) {
   const [busy, setBusy] = useState(false)
@@ -124,7 +133,7 @@ function Suggest({
     setResult(null)
     setTaken(null)
     try {
-      setResult(await suggestMeal(profile, recent, lastGlucose))
+      setResult(await suggestMeal(profile, recent, lastGlucose, lastWeight))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -214,7 +223,15 @@ function Suggest({
   )
 }
 
-function Analyze({ profile, hasKey }: { profile: Profile; hasKey: boolean }) {
+function Analyze({
+  profile,
+  lastGlucose,
+  hasKey,
+}: {
+  profile: Profile
+  lastGlucose: Parameters<typeof analyzeMeal>[2]
+  hasKey: boolean
+}) {
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [desc, setDesc] = useState('')
   const [busy, setBusy] = useState(false)
@@ -230,7 +247,7 @@ function Analyze({ profile, hasKey }: { profile: Profile; hasKey: boolean }) {
     setResult(null)
     setSaved(false)
     try {
-      setResult(await analyzeMeal(profile, { image: photo ?? undefined, desc }))
+      setResult(await analyzeMeal(profile, { image: photo ?? undefined, desc }, lastGlucose))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {

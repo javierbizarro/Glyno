@@ -306,6 +306,31 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Hace falta un **hueco final** en el contenido (58 px) o el último elemento queda debajo de la
   caja; la primera versión lo puso en medio y tapaba el aviso legal.
 
+## Qué contexto ve la IA en cada pantalla (auditado 2026-08-03)
+
+- Todo el contexto sale de `buildContext` (`app/prompts.ts`): perfil (tipo, medición, tratamiento,
+  hipertensión, rango, edad, IMC), BOTIQUÍN (nombre + dosis), números de 14 días y patrones.
+  Lo reciben **chat** y **valoración** (`app/coach.ts`) y las **sugerencias de comida**.
+- La **foto del plato** era la excepción: `mealPrompt` solo llevaba tipo + tratamiento, así que el
+  semáforo era el mismo viniendo de 90 que de 240, y a un hipertenso no le avisaba de la sal aunque
+  la app le registre las tensiones. Corregido: ahora recibe **rango objetivo, última glucemia con su
+  antigüedad e hipertensión**, más dos reglas (exigir más si viene alta; mencionar la sal si es
+  hipertenso).
+- **El botiquín se queda fuera de la foto a propósito**: para juzgar un plato no aporta nada que el
+  tratamiento no diga ya, y tener nombres y dosis delante acerca al modelo a «con tu insulina puedes
+  permitirte…». En el chat sí va, porque ahí el usuario pregunta por su medicación.
+- Salvaguarda de hipoglucemia en la foto: si la última glucemia está bajo rango y es reciente
+  (`needsHypoCare`), el prompt prohíbe decir «evita hidratos» y poner el semáforo en rojo por los
+  azúcares. Comprobado con Gemini: «zumo de naranja + galletas» a 58 mg/dl devuelve semáforo verde,
+  `mejor_evitar` vacío y «te vendrá perfecto para remontar»; sin la regla habría dicho lo contrario.
+  Un «bocadillo de chorizo y queso curado» a 243 devuelve rojo y menciona la sal por la hipertensión.
+- `lastGlucoseText` (en `domain/glucose.ts`) formatea la última glucemia para los prompts y la
+  antigüedad va SIEMPRE (min / h / días): antes las sugerencias decían «hace 4300 min».
+- Arreglado de paso: las sugerencias de comida llamaban a `buildContext` sin el último peso, así que
+  ahí faltaba el IMC que el chat sí tenía.
+- Pendiente menor: del botiquín no se envía `kind` (pastilla/basal/bolo), así que en la lista la IA
+  ve «Lantus 22 U» sin saber que es la basal (lo deduce por los chips de tratamiento).
+
 ## Borrar un registro (2026-08-03)
 
 - Javier: «eliminar un registro por si te has equivocado». Las filas del diario (en Hoy y en

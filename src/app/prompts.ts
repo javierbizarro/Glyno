@@ -98,17 +98,36 @@ TAREA: propón 2 o 3 ideas para ${info.moment}. Devuelve SOLO JSON válido, sin 
 REGLAS: prioriza platos de su diario o variaciones mínimas de ellos (ingredientes que ya tiene); si no hay historial suficiente, propón comida casera española sencilla. Ajusta la propuesta a su glucemia actual y a sus patrones. Nunca hables de medicación ni dosis.`
 }
 
-export function mealPrompt(p: Profile, hasPhoto: boolean, desc: string): string {
+export function mealPrompt(
+  p: Profile,
+  hasPhoto: boolean,
+  desc: string,
+  info: { ultima: string; hipo: boolean },
+): string {
   const quien =
     p.type === 'none'
       ? 'una persona sin diabetes que vigila su glucosa para cuidarse'
       : `una persona con ${TYPE_FULL[p.type].toLowerCase()} (tratamiento: ${treatmentSummary(p)})`
+  // el botiquín se queda fuera a propósito: para juzgar un plato no aporta nada que el
+  // tratamiento no diga ya, y tener los nombres y dosis delante acerca al modelo a la línea roja
+  const contexto = [
+    `rango objetivo ${p.low}–${p.high} mg/dl`,
+    `última glucemia: ${info.ultima}`,
+    p.hypertension ? 'tiene además hipertensión' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
   return `Eres el nutricionista de bolsillo de ${quien}. Analiza esta comida${hasPhoto ? ' de la foto' : ''}${desc ? ` (el usuario dice: "${desc}")` : ''}.
+
+CONTEXTO: ${contexto}
 
 Devuelve SOLO un JSON válido, sin markdown, con esta forma exacta:
 {"plato": "nombre corto del plato", "hidratos_g": número entero (estimación total de hidratos de carbono en gramos), "fibra_g": número entero (fibra estimada), "calorias_kcal": número entero (estimación orientativa), "procesado": "casero"|"procesado"|"ultraprocesado", "indice_glucemico": "bajo"|"medio"|"alto", "semaforo": "verde"|"ambar"|"rojo" (verde=amigable con su glucosa, ambar=con moderación, rojo=le va a dar un pico), "consejo": "1-2 frases prácticas y cercanas en español (orden de los alimentos, acompañamientos, ración) SIN hablar de medicación ni dosis", "mejor_evitar": ["0 a 3 elementos del plato que más le suben la glucosa"]}
 
 IMPORTANTE: el semáforo valora el impacto en su glucosa y la calidad del alimento, NUNCA las calorías. El aceite de oliva, los frutos secos, el aguacate o el pescado azul son calóricos y saludables; el pan blanco o un zumo tienen menos calorías y son peores para su glucemia.
 
+AJUSTA A SU MOMENTO: si viene de una glucemia alta, sé más exigente con el semáforo y con el consejo; si viene en rango, no alarmes. Si la última medición es de hace horas, no la trates como si fuera de ahora.${p.hypertension ? ' Tiene hipertensión: si el plato lleva bastante sal (embutido, conservas, salsas, queso curado, precocinados, encurtidos), dilo en el consejo aunque su glucemia vaya bien.' : ''} Nunca hables de medicación ni dosis, tampoco si su glucemia está fuera de rango.
+${info.hipo ? '\nATENCIÓN — su última glucemia está POR DEBAJO de su rango y es reciente: lo primero es resolver la hipoglucemia. No le digas que evite hidratos, no pongas el semáforo en rojo por los azúcares y deja "mejor_evitar" vacío; si el plato le sirve para remontar, dilo con claridad en el consejo.\n' : ''}
 Si la imagen no parece comida, devuelve {"plato": "no es comida", "hidratos_g": 0, "fibra_g": 0, "calorias_kcal": 0, "procesado": "casero", "indice_glucemico": "bajo", "semaforo": "verde", "consejo": "No he reconocido comida ahí.", "mejor_evitar": []}`
 }

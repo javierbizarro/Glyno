@@ -1,5 +1,6 @@
 import type { Entry, Profile } from '../domain/types'
 import { computeStats } from '../domain/stats'
+import { lastGlucoseText, needsHypoCare } from '../domain/glucose'
 import { mealMoment, MEAL_MOMENT_LABEL, usualMeals } from '../domain/meals'
 import type { AiImage } from '../ports/ai'
 import { ai, entries } from './container'
@@ -24,8 +25,15 @@ function extractJson<T>(s: string): T {
   return JSON.parse(m[0]) as T
 }
 
-export async function analyzeMeal(p: Profile, input: { image?: AiImage; desc?: string }): Promise<MealAnalysis> {
-  const prompt = mealPrompt(p, !!input.image, input.desc?.trim() ?? '')
+export async function analyzeMeal(
+  p: Profile,
+  input: { image?: AiImage; desc?: string },
+  lastGlucose?: Entry,
+): Promise<MealAnalysis> {
+  const prompt = mealPrompt(p, !!input.image, input.desc?.trim() ?? '', {
+    ultima: lastGlucoseText(lastGlucose),
+    hipo: needsHypoCare(p, lastGlucose),
+  })
   const raw = input.image ? await ai.completeWithImage(prompt, input.image) : await ai.complete(prompt)
   return extractJson<MealAnalysis>(raw)
 }
@@ -48,6 +56,7 @@ export async function suggestMeal(
   p: Profile,
   recent: Entry[],
   lastGlucose?: Entry,
+  lastWeight?: Entry,
 ): Promise<MealSuggestion> {
   const bucket = mealMoment(Date.now())
   const moment = MEAL_MOMENT_LABEL[bucket]
@@ -59,12 +68,8 @@ export async function suggestMeal(
     .filter(m => !habituales.some(h => h.startsWith(m.label)))
     .map(fmt)
 
-  const ultima = lastGlucose?.value
-    ? `${lastGlucose.value} mg/dl hace ${Math.round((Date.now() - lastGlucose.ts) / 60000)} min` +
-      (lastGlucose.note ? ` (${lastGlucose.note})` : '')
-    : 'sin medición reciente'
-
-  const ctx = buildContext(p, computeStats(recent, p), recent)
+  const ultima = lastGlucoseText(lastGlucose)
+  const ctx = buildContext(p, computeStats(recent, p), recent, lastWeight)
   const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
   const raw = await ai.complete(suggestMealPrompt(ctx, { moment, hora, ultima, habituales, otros }))
   return extractJson<MealSuggestion>(raw)
