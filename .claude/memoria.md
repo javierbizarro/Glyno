@@ -77,7 +77,8 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   cargar demo, borrar todo (vía /?reset con confirm). Peso: botón ⚖️ en diario (kind 'weight', sin
   cambio de esquema Dexie), tarjeta en Tendencias con última pesada + IMC (si hay altura) + mini
   gráfica al haber ≥2 pesadas. Verificado: perfil persiste tras recarga, CSV/backup con 109 registros,
-  consola limpia. El import de backup NO se probó interactivo (diálogo de fichero) — probar a mano.
+  consola limpia. El import de backup NO se probó interactivo (diálogo de fichero) — sigue
+  PENDIENTE de probar a mano (confirmado 2026-08-04: es la única verificación manual que falta).
 - ✅ Fase 5 — Glyno IA (Coach.tsx): valoración quincenal con estructura fija (cómo vas → patrones
   → "puedes probar" 2-3 consejos anclados → ánimo, ≤180 palabras, cacheada en localStorage
   glyno.review), chat (localStorage glyno.chat, últimas 20), completitud de datos (findGaps: máx 2
@@ -95,8 +96,8 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   verde/ambar/rojo, consejo, mejor_evitar[]} → tarjeta con semáforo + hidratos grandes + consejo +
   chips de aviso → guardar como entry meal (note 'analizada por Glyno'). Historial 7 días.
   PROBADO vía descripción ("lentejas con arroz, ensalada y plátano" → 75 g, ámbar, consejo de orden
-  de alimentos); guardado verificado en el diario. La ruta FOTO comparte pipeline pero no se probó
-  con imagen real (probar desde el móvil de Javier).
+  de alimentos); guardado verificado en el diario. La ruta FOTO quedó verificada por Javier desde
+  su móvil (confirmado 2026-08-04).
 - ✅ Fase 7 — PWA: build de producción OK (`make prod` → http://localhost:4173), service worker
   activado con 7 recursos precacheados (~780 KB, fuentes y three.js incluidos) → funciona offline
   tras la primera visita. apple-touch-icon.png 180px (rasterizado del SVG; NO se generó el de
@@ -113,7 +114,8 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   dos veces: el `?reset` de main.tsx y el botón "Borrar todo" de Settings, que llevaba a
   javierbizarro.github.io/?reset → 404 (corregido 2026-08-03). Verificación rápida:
   `grep -o '"/?reset"' dist/assets/*.js` debe salir vacío tras `DEPLOY_BASE=/Glyno/ npm run build`.
-  RECORDATORIO: Javier debe REGENERAR su clave de Gemini (quedó pegada en el chat de la sesión).
+  La clave de Gemini que quedó expuesta en el chat de una sesión ya fue REGENERADA por Javier
+  (confirmado 2026-08-04).
 - ✅ Historial semanal (2026-08-03): `ui/components/History.tsx`, se abre desde el botón
   "Historial" de Tendencias (sustituye el contenido de la pestaña, sin portal, conserva la barra de
   pestañas). Navegador ‹ · «Esta semana»/«Semana pasada»/«20–26 jul» · › (siguiente deshabilitado
@@ -187,9 +189,20 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   («Metformina» / «850 mg · desayuno y cena») y en Ajustes hay una línea de ayuda con tres ejemplos.
   Los dos campos van **apilados**, no en fila: en 375px una fila cortaba los placeholders.
   Icono 💊 para otra medicación y 💉 para las insulinas.
-- IDEA PENDIENTE (no implementada): los GLP-1 son **semanales**, y acordarse del pinchazo semanal es
-  un dolor real → recordatorio/registro de "hoy toca Ozempic" tendría valor. Requiere estructura de
-  periodicidad en `Med` y avisos (ver plan de nativo).
+- ✅ **Recordatorio semanal implementado (2026-08-04)**: `Med.weekday?` (opcional, convención
+  `getDay()` de JS: 0=domingo — documentado en types.ts) + `domain/medication.ts` con
+  `dueWeeklyMeds(meds, entries, now)` (TDD) y `WEEKDAY_LABEL`. Tarjeta «Medicación semanal» en Hoy
+  (entre Última glucemia y los botones rápidos): «Hoy toca Ozempic (0,5 mg)» + botón «✓ Ya está»
+  que guarda un entry `kind:'med'` con note 'pauta semanal' — al guardarlo la tarjeta desaparece
+  (el registro del día la silencia; el de la semana pasada no, hay test). El match del nombre
+  ignora mayúsculas y espacios. En Ajustes el alta de medicación tiene un select de pauta
+  («Cada día (o según pauta)» / «Semanal · los martes»…, lunes primero, guarda `weekday`) y la
+  fila muestra «· los martes» (plural solo sábados/domingos). El informe médico añade
+  «(semanal, martes)» al botiquín. Onboarding SIN tocar a propósito (no engordarlo; la dosis en
+  texto libre sigue valiendo y el select vive en Ajustes). Sin avisos push (eso sigue siendo del
+  plan nativo); esto es el recordatorio in-app a coste 0. LÍNEA ROJA respetada: si el día pasó sin
+  apuntar, la app NO dice nada de dosis dobles ni recuperar tomas — solo recuerda el día señalado.
+  Posible mejora futura: avisar de «ayer tocaba y no quedó apuntado» (solo hecho factual).
 
 ## Sello de compilación en UTC (bug 2026-08-03)
 
@@ -220,8 +233,8 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - **Teclado en móvil**: las hojas de registro van ancladas abajo y el teclado las tapaba. Solución:
   `main.tsx` escucha `visualViewport` y publica `--kb` (alto del teclado); `.sheet` usa
   `margin-bottom: var(--kb)` + `max-height` + scroll, y el viewport lleva
-  `interactive-widget=resizes-content`. NO se pudo verificar con teclado real (el panel de preview
-  no lo tiene): comprobar en el iPhone.
+  `interactive-widget=resizes-content`. Verificado por Javier con teclado real en el iPhone
+  (confirmado 2026-08-04).
 - **Orientación**: `orientation: 'portrait'` en el manifest (lo respeta Android instalado; iOS lo
   ignora). NO se bloquea el horizontal con un overlay a propósito: sería un problema de
   accesibilidad (quien rota para ver más grande, o para leer el informe). En su lugar, media query
@@ -304,8 +317,16 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Solución: `.chat-dock` **fijo** sobre la barra de pestañas, con `bottom: calc(var(--kb) +
   var(--tabbar))`. `--tabbar` lo publica `App` midiendo la barra con un `ResizeObserver` (su alto
   cambia con el área segura del iPhone) y `--kb` cubre los navegadores que no reajustan el viewport.
-- Hace falta un **hueco final** en el contenido (32 px) o el último elemento queda debajo de la
+- Hace falta un **hueco final** en el contenido o el último elemento queda debajo de la
   caja; la primera versión lo puso en medio y tapaba el aviso legal.
+- **Hueco final recalculado (2026-08-04)**: los 32 px fijos solo funcionaban con la barra de
+  pestañas de escritorio. En iPhone (`--tabbar` ≈ 90 con área segura) o con teclado (`--kb`) la
+  última burbuja («Pensando…») quedaba pegada o DEBAJO de la caja — reportado por Javier. Ahora es
+  `.chat-end` en theme.css: `calc(var(--kb) + var(--tabbar) + 77px - 96px)` (77 = caja ~65 + 12 de
+  aire; 96 = padding inferior de `.screen`, 82 en la media query de landscape, que tiene su
+  override). OJO: el gap de 16 px del flex `.screen` también suma (la caja es fixed y no cuenta
+  para el gap). Verificado en el panel: hueco constante de 28,5 px con teclado simulado (300px),
+  con tabbar 90 y en estado normal.
 
 ## Chat de verdad, segunda vuelta (2026-08-03)
 
@@ -404,17 +425,26 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Batería inicial: 142 tests en 9 ficheros (~220 ms). Primer red→green del repo: el de-dupe de
   `suggestMeal` usaba `startsWith` contra el texto formateado y se tragaba platos de otras
   franjas cuyo nombre fuera prefijo de uno habitual; ahora compara etiquetas crudas.
-- Hallazgos de los tests de caracterización, **pinneados tal cual y pendientes de decidir**:
-  - `suggestMoment` filtra las comidas de hoy con `daysAgo(0)` (reloj real), ignora su parámetro
-    `now`; solo muerde si algún día se llama con un `now` que no sea el actual.
-  - `computeStats.tagEffects`: la media global incluye las lecturas post-etiqueta (con pocos
-    datos se diluye el efecto), y el mínimo `n>=2` cuenta lecturas, no ocurrencias de la etiqueta.
-  - El ejercicio agrupa por día de calendario, no por causalidad (una glucemia de las 8:00 cuenta
-    como «día con ejercicio» aunque el ejercicio fuera a las 23:00).
-  - `logMeal` descarta `carbs: 0` («sin hidratos» indistinguible de «no sé los hidratos»).
-  - Con diario vacío el contexto de IA dice «NaN% en rango» (solo afecta a usuarios recién
-    llegados que usen la IA sin datos).
-  - El paseo post-comida ignora comidas de antes de medianoche (ventana por calendario).
+- Hallazgos de los tests de caracterización — **decididos el 2026-08-04**:
+  - ✅ CORREGIDO `suggestMoment`: `daysAgo` acepta ahora un origen (`daysAgo(n, from)`) y las
+    comidas de hoy se filtran por el día de `now`. `movementState` igual (todas sus ventanas
+    salen de `now`); sus tests congelan el reloj real en 2020 a propósito para cazar cualquier
+    `Date.now()` accidental.
+  - ✅ CORREGIDO el paseo post-comida: la ventana 15-90 min es de digestión, no de calendario —
+    una cena a las 23:55 cuenta a las 00:15.
+  - ✅ CORREGIDO el contexto con diario vacío: «ÚLTIMOS 14 DÍAS: sin glucemias registradas» (sin
+    porcentajes inventados ni «0 hipoglucemias»; la tensión media sí se mantiene si existe).
+    Nota: el «NaN%» literal ya no se reproducía (tir lleva guarda `n ?`); lo engañoso era el «0%».
+  - SE QUEDAN COMO ESTÁN (decisión razonada, no dejadez):
+    - `tagEffects` con la media global como base: excluir las lecturas post-etiqueta dejaría la
+      base casi vacía para quien etiqueta a diario; la dilución actual INFRAVALORA efectos, que
+      es el sesgo seguro para una app que no debe sobreafirmar patrones. Y `n>=2` cuenta lecturas
+      porque es lo que estabiliza la media de la ventana.
+    - Ejercicio por día de calendario: con registro manual esporádico, el día es la granularidad
+      honesta; ventanas causales serían precisión falsa. El texto ya dice «los días que te
+      mueves», no «después de moverte».
+    - `logMeal` descarta `carbs: 0`: «cero hidratos» y «no lo sé» siguen siendo indistinguibles
+      en la UI actual (el campo es opcional); cambiarlo pediría UI nueva para un caso marginal.
 
 ## Idiomas: app en castellano, código y commits en inglés (2026-08-03)
 
@@ -454,8 +484,10 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   antigüedad va SIEMPRE (min / h / días): antes las sugerencias decían «hace 4300 min».
 - Arreglado de paso: las sugerencias de comida llamaban a `buildContext` sin el último peso, así que
   ahí faltaba el IMC que el chat sí tenía.
-- Pendiente menor: del botiquín no se envía `kind` (pastilla/basal/bolo), así que en la lista la IA
-  ve «Lantus 22 U» sin saber que es la basal (lo deduce por los chips de tratamiento).
+- ✅ Resuelto (2026-08-04): el botiquín del contexto lleva ahora el `kind` de cada fármaco —
+  «Metformina 850 mg (no insulínica); Lantus 22 U (insulina basal); Humalog (insulina rápida)» —
+  y la pauta semanal si la hay: «Ozempic 0,5 mg (no insulínica, semanal: martes)». Con test.
+  Sigue FUERA del prompt de foto de comida a propósito (esa exclusión no cambia).
 
 ## Borrar un registro (2026-08-03)
 
@@ -575,6 +607,10 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 ## Documentación pública y licencia (2026-08-03)
 
 - Se añadieron `README.md`, `CONTRIBUTING.md` y `LICENSE`.
+- **`CHANGELOG.md` (2026-08-04, pedido por Javier)**: historial de mejoras de cara al usuario,
+  en castellano y sin jerga, enlazado desde la cabecera del README. Convención: al cerrar un
+  paquete de mejoras se sube la versión en `package.json` (que es lo que muestra «Acerca de
+  Glyno») y se añade su sección al changelog, agrupando en Añadido/Corregido/Cambiado.
 - **Decisión de Javier: «colaborativa pero no open source»** ⇒ source-available con TODOS LOS
   DERECHOS RESERVADOS. El LICENSE permite usar la app, leer/clonar el código, ejecutar copia propia
   para uso personal y enviar PRs; exige permiso escrito para redistribuir, publicar en tiendas, uso

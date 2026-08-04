@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
+import { WEEKDAY_LABEL } from '../../domain/medication'
 import { seedDemo } from '../../app/demo'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
 import { download } from '../format'
@@ -299,14 +300,27 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
   const [name, setName] = useState('')
   const [dose, setDose] = useState('')
   const [kind, setKind] = useState<Med['kind']>(kinds[0] ?? 'pill')
+  // '' = daily (the usual); a number is the due weekday for weekly meds like Ozempic
+  const [weekday, setWeekday] = useState('')
 
   if (!kinds.length && !p.meds.length) return null
 
   const add = () => {
     if (!name.trim()) return
-    set({ meds: [...p.meds, { name: name.trim(), dose: dose.trim() || undefined, kind: kinds.includes(kind) ? kind : kinds[0] ?? 'pill' }] })
+    set({
+      meds: [
+        ...p.meds,
+        {
+          name: name.trim(),
+          dose: dose.trim() || undefined,
+          kind: kinds.includes(kind) ? kind : kinds[0] ?? 'pill',
+          weekday: weekday === '' ? undefined : Number(weekday),
+        },
+      ],
+    })
     setName('')
     setDose('')
+    setWeekday('')
   }
 
   return (
@@ -316,7 +330,11 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
         <div className="row between" key={i}>
           <span style={{ fontSize: 14.5 }}>
             {m.kind === 'pill' ? '💊' : '💉'} {m.name}
-            {m.dose ? ` · ${m.dose}` : ''} <span className="muted small">({KIND_LABEL[m.kind]})</span>
+            {m.dose ? ` · ${m.dose}` : ''}{' '}
+            <span className="muted small">
+              ({KIND_LABEL[m.kind]}
+              {m.weekday != null ? ` · los ${WEEKDAY_LABEL[m.weekday]}${m.weekday === 0 || m.weekday === 6 ? 's' : ''}` : ''})
+            </span>
           </span>
           <button className="chip" onClick={() => set({ meds: p.meds.filter((_, j) => j !== i) })}>
             Quitar
@@ -333,8 +351,9 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
         </div>
       )}
       <p className="muted small">
-        La dosis es texto libre: pon la cantidad y cuándo te toca, como «850 mg · desayuno y cena»,
-        «0,5 mg · los martes» o «22 U · antes de dormir».
+        La dosis es texto libre: pon la cantidad y cuándo te toca, como «850 mg · desayuno y cena»
+        o «22 U · antes de dormir». Si es semanal (Ozempic, Trulicity…), elige el día y Glyno te
+        lo recordará en Hoy.
       </p>
       <div className="stack">
         <input type="text" placeholder="Metformina" value={name} onChange={e => setName(e.target.value)} />
@@ -344,6 +363,15 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
           value={dose}
           onChange={e => setDose(e.target.value)}
         />
+        <select value={weekday} onChange={e => setWeekday(e.target.value)}>
+          <option value="">Cada día (o según pauta)</option>
+          {[1, 2, 3, 4, 5, 6, 0].map(d => (
+            <option key={d} value={d}>
+              Semanal · los {WEEKDAY_LABEL[d]}
+              {d === 0 || d === 6 ? 's' : ''}
+            </option>
+          ))}
+        </select>
         <button className="btn ghost small" disabled={!name.trim()} onClick={add}>
           Añadir al botiquín
         </button>

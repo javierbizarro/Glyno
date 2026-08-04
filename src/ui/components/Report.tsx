@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MOMENTS, treatmentSummary, TYPE_FULL, type Entry, type Profile } from '../../domain/types'
 import { rangeOf } from '../../domain/glucose'
+import { WEEKDAY_LABEL } from '../../domain/medication'
 import { getReportData, type ReportData } from '../../app/report'
 import { fmtDayShort } from '../format'
 import { MOMENT_SHORT } from '../entryDisplay'
@@ -91,7 +92,12 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
             {profile.meds.length > 0 && (
               <>
                 {' — '}
-                {profile.meds.map(m => `${m.name}${m.dose ? ` ${m.dose}` : ''}`).join(' · ')}
+                {profile.meds
+                  .map(
+                    m =>
+                      `${m.name}${m.dose ? ` ${m.dose}` : ''}${m.weekday != null ? ` (semanal, ${WEEKDAY_LABEL[m.weekday]})` : ''}`,
+                  )
+                  .join(' · ')}
               </>
             )}
             <br />

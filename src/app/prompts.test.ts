@@ -41,14 +41,24 @@ describe('buildContext', () => {
     expect(t2).toContain('diabetes tipo 2')
   })
 
-  it('lists the med cabinet with name and optional dose', () => {
+  it('lists the med cabinet with name, optional dose and what each drug is', () => {
     const p = profile({
       meds: [
         { name: 'Metformina', dose: '850 mg', kind: 'pill' },
         { name: 'Lantus', kind: 'basal' },
+        { name: 'Humalog', dose: 'según comida', kind: 'bolus' },
       ],
     })
-    expect(buildContext(p, emptyStats, [])).toContain('BOTIQUÍN (pauta fija): Metformina 850 mg; Lantus')
+    expect(buildContext(p, emptyStats, [])).toContain(
+      'BOTIQUÍN (pauta fija): Metformina 850 mg (no insulínica); Lantus (insulina basal); Humalog según comida (insulina rápida)',
+    )
+  })
+
+  it('marks weekly meds with their day in the med cabinet', () => {
+    const p = profile({
+      meds: [{ name: 'Ozempic', dose: '0,5 mg', kind: 'pill', weekday: 2 }],
+    })
+    expect(buildContext(p, emptyStats, [])).toContain('Ozempic 0,5 mg (no insulínica, semanal: martes)')
   })
 
   it('says so when no medication is registered', () => {
@@ -102,6 +112,18 @@ describe('buildContext', () => {
 
   it('shows a placeholder when there are no patterns yet', () => {
     expect(buildContext(profile(), emptyStats, [])).toContain('- (aún no hay patrones con datos suficientes)')
+  })
+
+  it('says so instead of quoting percentages when there are no glucose readings', () => {
+    const ctx = buildContext(profile(), emptyStats, [])
+    expect(ctx).toContain('ÚLTIMOS 14 DÍAS: sin glucemias registradas\n')
+    expect(ctx).not.toContain('% en rango')
+    expect(ctx).not.toContain('0 hipoglucemias')
+  })
+
+  it('keeps the blood-pressure mean even without glucose readings', () => {
+    const ctx = buildContext(profile(), stats({ bpMean: { sys: 128.4, dia: 79.6 } }), [])
+    expect(ctx).toContain('ÚLTIMOS 14 DÍAS: sin glucemias registradas · tensión media 128/80')
   })
 
   it('needs at least 2 exercise days to show the exercise pattern', () => {

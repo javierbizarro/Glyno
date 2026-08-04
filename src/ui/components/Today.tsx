@@ -3,6 +3,7 @@ import { MOMENTS, PRESET_TAGS, type Entry, type Profile } from '../../domain/typ
 import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
 import { mealMoment, suggestMoment, usualDoses, usualExercises, usualMeals } from '../../domain/meals'
+import { dueWeeklyMeds } from '../../domain/medication'
 import { movementState } from '../../domain/movement'
 import { entries } from '../../app/container'
 import { useWatch } from '../hooks'
@@ -75,6 +76,8 @@ export function Today({ profile }: { profile: Profile }) {
         </div>
       )}
 
+      {recent && <WeeklyMedCard profile={profile} recent={recent} />}
+
       <div className="quick" data-tour="quick">
         {quick.filter(q => q.show).map(q => (
           <button key={q.key} onClick={() => setSheet(q.key)}>
@@ -112,6 +115,31 @@ export function Today({ profile }: { profile: Profile }) {
       )}
       {toDelete && <DeleteEntrySheet entry={toDelete} onClose={() => setToDelete(null)} />}
     </>
+  )
+}
+
+function WeeklyMedCard({ profile, recent }: { profile: Profile; recent: Entry[] }) {
+  const due = dueWeeklyMeds(profile.meds, recent)
+  if (!due.length) return null
+
+  const log = (name: string) =>
+    entries.add({ ts: Date.now(), kind: 'med', label: name, note: 'pauta semanal' })
+
+  return (
+    <div className="card stack">
+      <span className="label">Medicación semanal</span>
+      {due.map(m => (
+        <div className="row between" key={m.name}>
+          <span style={{ fontSize: 14.5 }}>
+            Hoy toca <strong>{m.name}</strong>
+            {m.dose ? ` (${m.dose})` : ''}
+          </span>
+          <button className="btn ghost small" onClick={() => log(m.name)}>
+            ✓ Ya está
+          </button>
+        </div>
+      ))}
+    </div>
   )
 }
 

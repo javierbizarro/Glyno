@@ -16,10 +16,10 @@ export interface MovementState {
  */
 export function movementState(p: Profile, entries: Entry[], now = Date.now()): MovementState {
   const dayKey = (ts: number) => new Date(ts).toDateString()
-  const week = entries.filter(e => e.ts >= daysAgo(6))
+  const week = entries.filter(e => e.ts >= daysAgo(6, now))
   const activeDays = new Set(week.filter(e => e.kind === 'exercise').map(e => dayKey(e.ts))).size
 
-  const today = entries.filter(e => e.ts >= daysAgo(0))
+  const today = entries.filter(e => e.ts >= daysAgo(0, now))
   const minutesToday = today
     .filter(e => e.kind === 'exercise')
     .reduce((sum, e) => sum + (e.value ?? 0), 0)
@@ -32,7 +32,7 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
   // after a recent low, moving is the opposite of what's needed
   if (needsHypoCare(p, last, now)) return { ...base, nudge: null }
 
-  const stats = computeStats(entries.filter(e => e.ts >= daysAgo(13)), p)
+  const stats = computeStats(entries.filter(e => e.ts >= daysAgo(13, now)), p)
   const drop =
     stats.exerciseDelta != null && stats.exerciseDelta < -3 && stats.exerciseDays >= 2
       ? Math.abs(Math.round(stats.exerciseDelta))
@@ -41,8 +41,9 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
 
   if (minutesToday > 0) return { ...base, nudge: `Ya te has movido hoy, ${minutesToday} min.${pattern}` }
 
-  // a short walk after eating is what trims the postprandial spike the most
-  const meals = today.filter(e => e.kind === 'meal')
+  // a short walk after eating is what trims the postprandial spike the most; the
+  // 15-90 min window is about digestion, so a dinner before midnight still counts
+  const meals = entries.filter(e => e.kind === 'meal')
   const lastMeal = meals[meals.length - 1]
   if (lastMeal && now - lastMeal.ts > 15 * 60e3 && now - lastMeal.ts < 90 * 60e3)
     return { ...base, nudge: 'Acabas de comer: un paseo de 10-15 minutos ahora suaviza el pico de después.' }

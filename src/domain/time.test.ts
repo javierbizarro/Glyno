@@ -40,4 +40,10 @@ describe('daysAgo', () => {
   it('accepts a negative n, returning the start of a future day (current behavior)', () => {
     expect(daysAgo(-1)).toBe(new Date(2026, 7, 6).getTime())
   })
+
+  it('counts from the given instant instead of the real clock when one is passed', () => {
+    const from = new Date(2026, 2, 10, 9, 30).getTime()
+    expect(daysAgo(0, from)).toBe(new Date(2026, 2, 10).getTime())
+    expect(daysAgo(2, from)).toBe(new Date(2026, 2, 8).getTime())
+  })
 })

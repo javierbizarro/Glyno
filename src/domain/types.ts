@@ -5,6 +5,8 @@ export interface Med {
   name: string
   dose?: string
   kind: 'pill' | 'basal' | 'bolus'
+  /** weekly meds (GLP-1: Ozempic, Trulicity…): due day, JS getDay() convention (0 = Sunday) */
+  weekday?: number
 }
 
 export interface Profile {

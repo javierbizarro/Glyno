@@ -11,12 +11,11 @@ const HOUR = 60 * MIN
 const INVITE = 'Hoy aún no te has movido; con 20-30 minutos vale.'
 const POST_MEAL = 'Acabas de comer: un paseo de 10-15 minutos ahora suaviza el pico de después.'
 
-// movementState builds its day windows through daysAgo(), which reads the real
-// clock, so the clock is frozen and the same instant is passed as `now`
+// day windows must come from the `now` parameter alone: the real clock is frozen on a
+// FAR-AWAY day, so anything inside reading Date.now() would make these tests fail
 const setNow = (iso: string): number => {
-  const t = new Date(iso).getTime()
-  vi.setSystemTime(t)
-  return t
+  vi.setSystemTime(new Date('2020-01-01T12:00:00'))
+  return new Date(iso).getTime()
 }
 
 beforeEach(() => vi.useFakeTimers())
@@ -93,16 +92,18 @@ describe('movementState priority ladder', () => {
     expect(movementState(p, [], setNow('2026-08-05T22:00:00')).nudge).toBeNull()
   })
 
-  it('ignores a meal eaten before midnight: only today counts for the post-meal walk', () => {
+  it('counts a meal eaten shortly before midnight for the post-meal walk', () => {
+    // dinner at 23:55, opened the app at 00:15: the 15-90 min window is about
+    // digestion, not about the calendar day
     const now = setNow('2026-08-05T00:15:00')
-    expect(movementState(p, [meal(now - 20 * MIN)], now).nudge).toBeNull()
+    expect(movementState(p, [meal(now - 20 * MIN)], now).nudge).toBe(POST_MEAL)
   })
 })
 
 describe('movementState counters', () => {
   it('counts distinct exercise days within the 7-day midnight-based window', () => {
     const now = setNow('2026-08-05T18:00:00')
-    const weekStart = daysAgo(6)
+    const weekStart = daysAgo(6, now)
     const entries = [
       exercise(weekStart - 1, 30), // 7 days ago: outside the window
       exercise(weekStart, 30), // exactly at the window start: inside
@@ -130,7 +131,8 @@ describe('movementState counters', () => {
 })
 
 describe('movementState personal pattern suffix', () => {
-  const day = (n: number, h: number) => daysAgo(n) + h * HOUR
+  const NOW = new Date('2026-08-05T18:00:00').getTime()
+  const day = (n: number, h: number) => daysAgo(n, NOW) + h * HOUR
 
   it('appends the pattern when exercise days average >3 mg/dl lower over 2+ days', () => {
     const now = setNow('2026-08-05T18:00:00')

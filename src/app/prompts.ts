@@ -1,5 +1,6 @@
-import type { Entry, Profile } from '../domain/types'
+import type { Entry, Med, Profile } from '../domain/types'
 import { treatmentSummary, TYPE_FULL } from '../domain/types'
+import { WEEKDAY_LABEL } from '../domain/medication'
 import type { Stats } from '../domain/stats'
 
 // Prompt bodies are product copy: they stay in Spanish because Glyno speaks Spanish.
@@ -28,16 +29,28 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
     .filter(Boolean)
     .join(' · ')
 
+  // the model must know which drug is which: "Lantus 22 U" alone reads like a mystery
+  const KIND_NOTE: Record<Med['kind'], string> = {
+    pill: 'no insulínica',
+    basal: 'insulina basal',
+    bolus: 'insulina rápida',
+  }
   const medCabinet = p.meds.length
-    ? p.meds.map(m => `${m.name}${m.dose ? ` ${m.dose}` : ''}`).join('; ')
+    ? p.meds
+        .map(m => {
+          const weekly = m.weekday != null ? `, semanal: ${WEEKDAY_LABEL[m.weekday]}` : ''
+          return `${m.name}${m.dose ? ` ${m.dose}` : ''} (${KIND_NOTE[m.kind]}${weekly})`
+        })
+        .join('; ')
     : 'sin medicación registrada'
 
+  // without readings, percentages would be made-up precision ("0% en rango" reads as alarming)
   const numbers = [
-    `${stats.n} mediciones`,
+    stats.n === 0 ? 'sin glucemias registradas' : `${stats.n} mediciones`,
     stats.mean != null ? `media ${Math.round(stats.mean)}` : null,
-    `${Math.round(stats.tir)}% en rango`,
-    `${Math.round(stats.pctLow)}% bajas`,
-    `${Math.round(stats.pctHigh)}% altas`,
+    stats.n > 0 ? `${Math.round(stats.tir)}% en rango` : null,
+    stats.n > 0 ? `${Math.round(stats.pctLow)}% bajas` : null,
+    stats.n > 0 ? `${Math.round(stats.pctHigh)}% altas` : null,
     stats.fasting != null ? `ayunas media ${Math.round(stats.fasting)}` : null,
     stats.bpMean ? `tensión media ${Math.round(stats.bpMean.sys)}/${Math.round(stats.bpMean.dia)}` : null,
   ]
@@ -59,7 +72,7 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
 
 PERFIL: ${profileLine}
 BOTIQUÍN (pauta fija): ${medCabinet}
-ÚLTIMOS 14 DÍAS: ${numbers} · ${hypoCount} hipoglucemias
+ÚLTIMOS 14 DÍAS: ${numbers}${stats.n > 0 ? ` · ${hypoCount} hipoglucemias` : ''}
 PATRONES CALCULADOS CON SUS DATOS (medias frente a su media general; interpreta SOLO estos):
 ${patterns || '- (aún no hay patrones con datos suficientes)'}`
 }

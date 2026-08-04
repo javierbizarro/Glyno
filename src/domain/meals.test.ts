@@ -180,14 +180,10 @@ describe('usualExercises', () => {
 })
 
 describe('suggestMoment', () => {
-  // suggestMoment filters "today's meals" via daysAgo(0), which reads the real clock,
-  // so the faked system time must sit on the same day as the `now` we pass
-  beforeEach(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-08-03T12:00:00'))
-  })
-  afterEach(() => {
-    vi.useRealTimers()
+  it('filters "today\'s meals" by the day of `now`, not by the real clock', () => {
+    // the real clock runs on a different day than these fixtures: the breakfast
+    // must still count as today's because it shares the day with `now`
+    expect(suggestMoment([meal('07:30', 'Tostada')], at('08:00'))).toBe('después de desayunar')
   })
 
   it('suggests "antes de dormir" through the night, from 23h until 4:30', () => {
@@ -250,8 +246,18 @@ describe('suggestMoment', () => {
     expect(suggestMoment([yesterdayDinner], at('22:00'))).toBe('antes de dormir')
   })
 
-  it('defaults `now` to the current time', () => {
-    // faked clock says 12:00 and no breakfast is logged
-    expect(suggestMoment([])).toBe('')
+  describe('default `now`', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-08-03T12:00:00'))
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('defaults `now` to the current time', () => {
+      // faked clock says 12:00 and no breakfast is logged
+      expect(suggestMoment([])).toBe('')
+    })
   })
 })

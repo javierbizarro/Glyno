@@ -109,7 +109,7 @@ export function usualExercises(entries: Entry[], limit = 3): UsualExercise[] {
  * they logged the dish. Return values are diary data and stay in Spanish.
  */
 export function suggestMoment(entries: Entry[], now = Date.now()): string {
-  const meals = entries.filter(e => e.kind === 'meal' && e.ts >= daysAgo(0))
+  const meals = entries.filter(e => e.kind === 'meal' && e.ts >= daysAgo(0, now))
   const ate = (m: MealMoment) => meals.some(e => mealMoment(e.ts) === m)
   const d = new Date(now)
   const h = d.getHours() + d.getMinutes() / 60
