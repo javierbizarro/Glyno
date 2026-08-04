@@ -4,7 +4,7 @@ import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
 import { mealMoment, suggestMoment, usualDoses, usualExercises, usualMeals } from '../../domain/meals'
 import { dueWeeklyMeds } from '../../domain/medication'
-import { movementState } from '../../domain/movement'
+import { movementState, WEEKLY_TARGET_MIN } from '../../domain/movement'
 import { entries } from '../../app/container'
 import { useWatch } from '../hooks'
 import { fmtDayLong, fmtTime, greeting, RANGE_LABEL, RANGE_VAR, timeAgo } from '../format'
@@ -158,6 +158,12 @@ function MovementCard({ profile, recent }: { profile: Profile; recent: Entry[] }
         <span className="muted small">{state.activeDays} de 7 días</span>
       </div>
       {state.nudge && <p className="small" style={{ lineHeight: 1.55 }}>{state.nudge}</p>}
+      {state.weekMinutes > 0 && (
+        <p className="muted small">
+          Esta semana: {state.weekMinutes} de los {WEEKLY_TARGET_MIN} min de actividad que se
+          recomiendan.
+        </p>
+      )}
       {!state.movedToday && (
         <button className="btn ghost small" onClick={logWalk}>
           👟 Apuntar 15 min de paseo

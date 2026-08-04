@@ -29,6 +29,8 @@ const DAILY_HOUR: Record<string, string> = {
   steps: 'T12:00:00',
   sleep: 'T07:30:00', // the night is filed on the morning it ended
   weight: 'T08:00:00',
+  activity: 'T19:00:00',
+  cycling: 'T19:30:00',
 }
 
 const isDate = (s: unknown): s is string => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
@@ -54,20 +56,22 @@ function toEntry(s: RawSample): Entry | null {
       extId: `health:exercise:${ts}`,
     }
   }
-  if (s.kind === 'steps' || s.kind === 'sleep' || s.kind === 'weight') {
+  if (s.kind === 'steps' || s.kind === 'sleep' || s.kind === 'weight' || s.kind === 'activity' || s.kind === 'cycling') {
     if (!isDate(s.date)) return null
-    const value = s.kind === 'sleep' ? s.minutes : s.value
-    const ok =
-      s.kind === 'steps'
-        ? value != null && value >= 1 && value <= 100_000
-        : s.kind === 'sleep'
-          ? value != null && value >= 30 && value <= 960
-          : value != null && value >= 30 && value <= 300
-    if (!ok) return null
+    const value = s.kind === 'sleep' || s.kind === 'activity' ? s.minutes : s.value
+    const RANGE: Record<string, [number, number]> = {
+      steps: [1, 100_000],
+      sleep: [30, 960],
+      weight: [30, 300],
+      activity: [1, 600],
+      cycling: [0.3, 300],
+    }
+    const [lo, hi] = RANGE[s.kind]
+    if (value == null || value < lo || value > hi) return null
     return {
       ts: new Date(s.date + DAILY_HOUR[s.kind]).getTime(),
       kind: s.kind,
-      value: s.kind === 'weight' ? round1(value!) : Math.round(value!),
+      value: s.kind === 'weight' || s.kind === 'cycling' ? round1(value) : Math.round(value),
       source: 'health',
       extId: `health:${s.kind}:${s.date}`,
     }
@@ -76,7 +80,8 @@ function toEntry(s: RawSample): Entry | null {
 }
 
 /** daily aggregates may be re-imported with fresher values; point samples never change */
-const isDaily = (e: Entry) => e.kind === 'steps' || e.kind === 'sleep' || e.kind === 'weight'
+const isDaily = (e: Entry) =>
+  e.kind === 'steps' || e.kind === 'sleep' || e.kind === 'weight' || e.kind === 'activity' || e.kind === 'cycling'
 
 const localDate = (now: number): string => {
   const d = new Date(now)
@@ -113,6 +118,23 @@ function parseLine(line: string, today: string): RawSample | null {
 
   if (keyword === 'peso' && /^\d+([.,]\d+)?$/.test(tokens[0] ?? ''))
     return { kind: 'weight', date, value: num(tokens[0]) }
+
+  if (keyword === 'actividad' && tokens.length) {
+    // same duration tolerance as sleep: '45 min', '45min', '1 h 5 min', raw seconds
+    const rest = tokens.join(' ')
+    const hm = rest.match(/^(\d{1,2})\s*h(?:\s*(\d{1,2}))?\s*(?:min)?$/)
+    const mins = rest.match(/^([\d.]+)\s*min$/)
+    if (hm) return { kind: 'activity', date, minutes: Number(hm[1]) * 60 + Number(hm[2] ?? 0) }
+    if (mins) {
+      let minutes = Number(mins[1].replace(/\./g, ''))
+      if (minutes > 600) minutes = Math.round(minutes / 60)
+      return { kind: 'activity', date, minutes }
+    }
+    return null
+  }
+
+  if (keyword === 'bici' && /^\d+([.,]\d+)?$/.test(tokens[0] ?? ''))
+    return { kind: 'cycling', date, value: num(tokens[0]) }
 
   if (keyword === 'glucosa' && TIME.test(tokens[0] ?? '') && /^\d+$/.test(tokens[1] ?? ''))
     return { kind: 'glucose', ts: `${date}T${tokens[0].padStart(5, '0')}:00`, value: Number(tokens[1]) }

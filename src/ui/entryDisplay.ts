@@ -12,6 +12,8 @@ export const KIND_ICO: Record<string, string> = {
   weight: '⚖️',
   steps: '👣',
   sleep: '🌙',
+  activity: '🏃',
+  cycling: '🚴',
 }
 
 /** short headers for the report tables, where "después de desayunar" doesn't fit */
@@ -39,6 +41,8 @@ export function entryText(e: Entry): string {
       case 'weight': return `${e.value} kg`
       case 'steps': return `${thousands(e.value ?? 0)} pasos`
       case 'sleep': return `Sueño · ${Math.floor((e.value ?? 0) / 60)} h ${(e.value ?? 0) % 60} min`
+      case 'activity': return `${e.value} min de actividad`
+      case 'cycling': return `${String(e.value ?? 0).replace('.', ',')} km en bici`
       default: return ''
     }
   })()

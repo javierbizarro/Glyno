@@ -25,6 +25,8 @@ const glucose = (ts: number, value: number): Entry => ({ ts, kind: 'glucose', va
 const exercise = (ts: number, minutes?: number): Entry => ({ ts, kind: 'exercise', value: minutes })
 const meal = (ts: number): Entry => ({ ts, kind: 'meal', label: 'lentejas' })
 const steps = (ts: number, count: number): Entry => ({ ts, kind: 'steps', value: count, source: 'health' })
+const activity = (ts: number, minutes: number): Entry => ({ ts, kind: 'activity', value: minutes, source: 'health' })
+const cycling = (ts: number, km: number): Entry => ({ ts, kind: 'cycling', value: km, source: 'health' })
 
 describe('movementState priority ladder', () => {
   it('suggests nothing after a recent hypo, even when every other rung applies', () => {
@@ -136,6 +138,52 @@ describe('movementState with automatic steps', () => {
     const now = setNow('2026-08-05T18:00:00')
     const s = movementState(p, [steps(now - 6 * HOUR, 9241), glucose(now - 30 * MIN, 58)], now)
     expect(s.nudge).toBeNull()
+  })
+})
+
+describe('movementState with detected activity minutes and cycling', () => {
+  it('30+ detected minutes count as an active day and as moved today; 29 do not', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const s = movementState(p, [activity(now - 4 * HOUR, 35)], now)
+    expect(s.activeDays).toBe(1)
+    expect(s.movedToday).toBe(true)
+    expect(s.nudge).toBe('Ya llevas 35 min de actividad hoy.')
+
+    const below = movementState(p, [activity(now - 4 * HOUR, 29)], now)
+    expect(below.movedToday).toBe(false)
+    expect(below.nudge).toBe(INVITE)
+  })
+
+  it('a cycling day of 3+ km counts as active; below the bar it does not', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const entries = [
+      cycling(now - 30 * HOUR, 12.4), // yesterday
+      cycling(now - 54 * HOUR, 2.1), // two days ago: too short
+    ]
+    expect(movementState(p, entries, now).activeDays).toBe(1)
+  })
+
+  it('logged exercise still wins the acknowledgment over detected activity', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const s = movementState(p, [activity(now - 4 * HOUR, 35), exercise(now - HOUR, 20)], now)
+    expect(s.nudge).toContain('Ya te has movido hoy, 20 min')
+  })
+
+  it('sums the weekly minutes taking, per day, the max of logged and detected', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const entries = [
+      exercise(now - 4 * HOUR, 40), // today, logged...
+      activity(now - 3 * HOUR, 25), // ...and detected: max = 40
+      activity(now - 26 * HOUR, 50), // yesterday, detected only
+      exercise(now - 50 * HOUR, 30), // two days ago, logged only
+      exercise(now - 8 * 24 * HOUR, 60), // outside the 7-day window
+    ]
+    expect(movementState(p, entries, now).weekMinutes).toBe(120)
+  })
+
+  it('weekMinutes is 0 with no movement data at all', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    expect(movementState(p, [], now).weekMinutes).toBe(0)
   })
 })
 

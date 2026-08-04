@@ -203,6 +203,19 @@ describe('importHealthPayload · plain-text format (what a simple Shortcut can b
     expect(rows[1]).toMatchObject({ kind: 'steps', value: 8734 })
   })
 
+  it('parses detected activity minutes and daily cycling km', async () => {
+    const r = await importHealthPayload(
+      asText('actividad 45 min', 'actividad 2026-08-03 1 h 5 min', 'bici 12,4 km', 'bici 2026-08-03 2,9 km'),
+      NOW,
+    )
+    expect(r.added).toBe(4)
+    const rows = bulkAdd.mock.calls[0][0] as Entry[]
+    expect(rows[0]).toMatchObject({ kind: 'activity', value: 45, extId: 'health:activity:2026-08-04' })
+    expect(rows[1]).toMatchObject({ kind: 'activity', value: 65, extId: 'health:activity:2026-08-03' })
+    expect(rows[2]).toMatchObject({ kind: 'cycling', value: 12.4, extId: 'health:cycling:2026-08-04' })
+    expect(rows[3]).toMatchObject({ kind: 'cycling', value: 2.9 })
+  })
+
   it('detects sleep durations that arrive in seconds and converts them', async () => {
     // HealthKit durations often print as raw seconds: 24.780 s = 413 min
     const r = await importHealthPayload(asText('sueño 24780 min', 'sueño 2026-08-03 24.780 min'), NOW)

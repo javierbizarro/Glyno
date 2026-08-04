@@ -7,8 +7,10 @@ import { computeStats } from './stats'
 export interface MovementState {
   activeDays: number
   minutesToday: number
-  /** already moved today, by logged exercise or by the steps threshold */
+  /** already moved today, by logged exercise, the steps threshold or detected activity */
   movedToday: boolean
+  /** activity minutes over the last 7 days: per day, max(logged, detected) — never the sum */
+  weekMinutes: number
   /** suggestion for right now; null when nothing should be suggested */
   nudge: string | null
 }
@@ -16,6 +18,12 @@ export interface MovementState {
 /** a day counts as active from this many automatic steps; below it, walking to the
     fridge is not "moving". Deliberately high — the goal is movement, not the button */
 export const STEP_ACTIVE_THRESHOLD = 8000
+/** detected exercise minutes (Apple ring) that make a day active */
+export const ACTIVITY_ACTIVE_MIN = 30
+/** cycling km that make a day active: steps cannot see the bike */
+export const CYCLING_ACTIVE_KM = 3
+/** ADA/WHO recommendation: weekly minutes of moderate activity */
+export const WEEKLY_TARGET_MIN = 150
 
 /**
  * Movement as a lever on glucose, never as compensation for what was eaten:
@@ -25,17 +33,34 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
   const dayKey = (ts: number) => new Date(ts).toDateString()
   const week = entries.filter(e => e.ts >= daysAgo(6, now))
   const active = (e: Entry) =>
-    e.kind === 'exercise' || (e.kind === 'steps' && (e.value ?? 0) >= STEP_ACTIVE_THRESHOLD)
+    e.kind === 'exercise' ||
+    (e.kind === 'steps' && (e.value ?? 0) >= STEP_ACTIVE_THRESHOLD) ||
+    (e.kind === 'activity' && (e.value ?? 0) >= ACTIVITY_ACTIVE_MIN) ||
+    (e.kind === 'cycling' && (e.value ?? 0) >= CYCLING_ACTIVE_KM)
   const activeDays = new Set(week.filter(active).map(e => dayKey(e.ts))).size
+
+  // weekly minutes toward the 150-min recommendation: logged and detected overlap
+  // (the phone sees your logged walk too), so each day contributes the MAX of both
+  const perDay = new Map<string, { logged: number; detected: number }>()
+  for (const e of week) {
+    if (e.kind !== 'exercise' && e.kind !== 'activity') continue
+    const d = perDay.get(dayKey(e.ts)) ?? { logged: 0, detected: 0 }
+    if (e.kind === 'exercise') d.logged += e.value ?? 0
+    else d.detected = Math.max(d.detected, e.value ?? 0)
+    perDay.set(dayKey(e.ts), d)
+  }
+  const weekMinutes = [...perDay.values()].reduce((s, d) => s + Math.max(d.logged, d.detected), 0)
 
   const today = entries.filter(e => e.ts >= daysAgo(0, now))
   const minutesToday = today
     .filter(e => e.kind === 'exercise')
     .reduce((sum, e) => sum + (e.value ?? 0), 0)
   const stepsToday = Math.max(0, ...today.filter(e => e.kind === 'steps').map(e => e.value ?? 0))
-  const movedToday = minutesToday > 0 || stepsToday >= STEP_ACTIVE_THRESHOLD
+  const activityToday = Math.max(0, ...today.filter(e => e.kind === 'activity').map(e => e.value ?? 0))
+  const movedToday =
+    minutesToday > 0 || stepsToday >= STEP_ACTIVE_THRESHOLD || activityToday >= ACTIVITY_ACTIVE_MIN
 
-  const base = { activeDays, minutesToday, movedToday }
+  const base = { activeDays, minutesToday, movedToday, weekMinutes }
 
   const glucose = entries.filter(e => e.kind === 'glucose' && e.value != null)
   const last = glucose[glucose.length - 1]
@@ -54,6 +79,9 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
 
   if (stepsToday >= STEP_ACTIVE_THRESHOLD)
     return { ...base, nudge: `Hoy ya llevas ${thousands(stepsToday)} pasos.${pattern}` }
+
+  if (activityToday >= ACTIVITY_ACTIVE_MIN)
+    return { ...base, nudge: `Ya llevas ${activityToday} min de actividad hoy.${pattern}` }
 
   // a short walk after eating is what trims the postprandial spike the most; the
   // 15-90 min window is about digestion, so a dinner before midnight still counts

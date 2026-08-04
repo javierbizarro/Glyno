@@ -80,8 +80,10 @@ export type EntryKind =
   | 'exercise'
   | 'tag'
   | 'weight'
-  | 'steps'  // daily total, from Salud/Health Connect
-  | 'sleep'  // minutes per night, from Salud/Health Connect
+  | 'steps'    // daily total, from Salud/Health Connect
+  | 'sleep'    // minutes per night, from Salud/Health Connect
+  | 'activity' // detected exercise minutes per day (Apple ring), from Salud
+  | 'cycling'  // km cycled per day, from Salud — steps cannot see the bike
 
 export interface Entry {
   id?: number

@@ -262,6 +262,41 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
     y la etiqueta es lo que queda. Texto final: pasos/sueño/peso/bloque glucosas/bloque
     entrenos (offsets 18/26/37/39/41). PENDIENTE DE VALIDAR EN EL IPHONE: nombres de propiedad
     'Workout Type'/'Duration'/'Distance' y el formato real que imprimen.
+    V6 (tras probar V5 en el iPhone): (1) el tipo `WFHealthSampleType: 'Workouts'` NO resuelve
+    en el dispositivo — error «no hay muestras de (null)… o falta acceso» que puede abortar el
+    atajo entero → BLOQUE DE ENTRENOS RETIRADO. CERRADO DEFINITIVAMENTE (2026-08-04, noche):
+    Javier comprobó en su iPhone que NO existe acción «Buscar entrenamientos» (solo
+    iniciar/finalizar/registrar entreno, que son del Watch) y el desplegable de tipos de
+    «Buscar muestras de salud» solo trae CANTIDADES (distancia andando/corriendo, en bici…),
+    no sesiones. LÍMITE DE PLATAFORMA: los entrenos no son legibles desde Atajos en iOS
+    actual. El formato `ejercicio` de Glyno queda implementado y testeado, esperando a la
+    fase B (Health Connect sí expone ExerciseSessionRecord) o a la app nativa iOS. Posible
+    señal futura si se quiere: «distancia en bici» diaria (los pasos no la ven); la distancia
+    andando NO aporta sobre los pasos. No volver a perseguir esto en Atajos.
+    V7 + PAQUETE «150 MINUTOS» (0.6.0, 2026-08-04 noche): Javier propuso recomendar según
+    KCAL QUEMADAS («energía en actividad») — RECHAZADO con argumento (línea roja: el bucle
+    «he quemado X, puedo comer Y»; no existe estándar clínico de kcal/día) y CONVERTIDO a su
+    equivalente con evidencia: los 150 MIN SEMANALES de la OMS/ADA. Implementado:
+    - Kinds nuevos `activity` (min de ejercicio detectados/día, 🏃) y `cycling` (km bici/día,
+      🚴), diarios con update y líneas `actividad 45 min` / `bici 12,4 km`.
+    - `movementState`: `ACTIVITY_ACTIVE_MIN=30` y `CYCLING_ACTIVE_KM=3` cuentan día activo;
+      `weekMinutes` = por día MAX(apuntado a mano, detectado) — nunca la suma (el iPhone ve
+      también tu paseo apuntado) — y `WEEKLY_TARGET_MIN=150`. Reconocimiento «Ya llevas 35
+      min de actividad hoy» (el ejercicio manual gana). Tarjeta: «Esta semana: X de los 150
+      min de actividad que se recomiendan» (solo si >0, sin culpa).
+    - Atajo v7 con la serialización CAPTURADA del iPhone de Javier (mini-atajo de referencia
+      compartido por iCloud y descargado): «Minutos de ejercicio» = enum «Move Time»,
+      «Distancia en bici» = «Cycling Distance»; las acciones del dispositivo NO llevan
+      WFHealthSampleType, solo la Enumeration del filtro (probable causa del (null) de
+      Workouts). REGLA DE ORO para tipos nuevos: pedir mini-atajo de referencia y copiar su
+      serialización, nunca adivinar el enum.
+    - OJO pendiente de validar: «Move Time» podría ser el anillo Movimiento y no el de
+      Ejercicio (la UI española era «Minutos de ejercicio»); sin Apple Watch ambos suelen
+      estar vacíos, así que la línea saldrá vacía y se descarta — inofensivo. Verificar si
+      algún día hay Watch. (2) El filtro del sueño pierde «Valor es Dormido»:
+    las entradas MANUALES de Salud no siempre llevan ese valor y lo dejaban a cero; sin Apple
+    Watch no hay doble conteo — si algún día hay usuarios con Watch, reponer el filtro (con
+    Watch los tramos «en la cama» + fases dormido se sumarían dos veces).
     Enlace de iCloud publicado (v2, PENDIENTE de re-compartir la v3 buena):
     https://www.icloud.com/shortcuts/3275a6302b4b44ecb59dbcde5a37906d (v2; la v1 fue
     533f34e58cfb47938b4158c6927d29af). El botón de Ajustes usa

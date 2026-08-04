@@ -3,6 +3,24 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.6.0 — 4 de agosto de 2026
+
+### Añadido
+
+- **Los 150 minutos semanales**: el atajo trae ahora los minutos de ejercicio detectados por
+  el iPhone (el anillo de actividad) y la distancia en bici diaria, y la tarjeta de
+  movimiento muestra tu progreso hacia los 150 minutos semanales que recomiendan la OMS y la
+  ADA — en minutos, nunca en calorías. Lo apuntado a mano y lo detectado no se suman dos
+  veces: cada día cuenta el máximo de los dos.
+- Un día con 30+ minutos de actividad detectada, o con 3+ km de bici, cuenta como día activo
+  aunque los pasos no lleguen.
+
+### Corregido
+
+- El atajo suma cualquier muestra de sueño (el filtro por «Dormido» dejaba fuera las
+  entradas manuales de Salud) y ya no intenta leer sesiones de entrenamiento, que Atajos no
+  permite leer en el iOS actual.
+
 ## 0.5.3 — 4 de agosto de 2026
 
 ### Añadido

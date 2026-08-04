@@ -89,25 +89,40 @@ con Siri («Oye Siri, Glyno Salud»), desde un icono en la pantalla de inicio o 
 acción. Son tres gestos en total (lanzar → volver → pegar): iOS no deja leer el portapapeles
 sin que tú lo pidas, y es deliberado.
 
-## Más datos: glucosa, entrenamientos y peso
+## Más datos: glucosa y peso (y el límite de los entrenamientos)
 
-El atajo publicado ya incluye estas líneas (glucosa y entrenamientos con un «Repetir con
-cada» por muestra; el peso, la última pesada del día):
+El atajo publicado incluye, además de pasos y sueño:
 
 ```
 glucosa 08:10 118
 glucosa 2026-08-03 22:15 141
-ejercicio 18:30 Caminar 40 min 3,2 km
 peso 92,1
 ```
 
-- **Glucosa**: hora y valor. La que vuelca tu app del sensor en Salud (LibreLink y Dexcom lo
-  hacen) — ojo, Salud va **por detrás del sensor**, con retraso variable; para el minuto a
-  minuto, tu app del sensor.
-- **Ejercicio**: hora, nombre, duración y distancia opcional. Glyno tolera los formatos que
-  Atajos imprima («42 min», «2.520 s», «0:42:15»). Las calorías quemadas no se importan a
-  propósito: en Glyno el movimiento no compensa comida.
+- **Glucosa**: hora y valor, una línea por lectura del último día. La que vuelca tu app del
+  sensor en Salud (LibreLink y Dexcom lo hacen) — ojo, Salud va **por detrás del sensor**,
+  con retraso variable; para el minuto a minuto, tu app del sensor.
+- **Peso**: la última pesada del día.
 - Sin datos de un tipo, su línea sale vacía y simplemente se descarta al pegar.
+
+**Actividad y bici (el sustituto honesto de los entrenamientos).** El atajo trae también los
+**minutos de ejercicio** del día (el anillo de actividad — suele requerir Apple Watch) y la
+**distancia en bici** diaria (que los pasos no ven):
+
+```
+actividad 45 min
+bici 12,4 km
+```
+
+Con ellos, la tarjeta de movimiento de Glyno muestra tu progreso hacia los **150 minutos
+semanales** que recomiendan la OMS y la ADA — en minutos, nunca en calorías. Para evitar el
+doble conteo entre lo que apuntas a mano y lo que detecta el iPhone, cada día cuenta el
+máximo de los dos, no la suma.
+
+**Entrenamientos como tales: límite de la plataforma.** En el iOS actual, Atajos no puede
+*leer* sesiones de entrenamiento (solo iniciarlas/registrarlas). Glyno sí entiende las líneas
+`ejercicio 18:30 Caminar 40 min 3,2 km` — quedan esperando a las integraciones nativas
+(Health Connect en Android las expone), y el ejercicio se sigue apuntando a mano en un toque.
 
 ## Formato avanzado (JSON)
 
