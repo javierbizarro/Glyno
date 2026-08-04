@@ -27,6 +27,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
+      workbox: {
+        // downloadable files must escape the SPA fallback: without this, navigating
+        // to them returns index.html and the "file" opens the app on Hoy
+        navigateFallbackDenylist: [/\.shortcut$/, /\.mobileconfig$/],
+      },
       manifest: {
         name: 'Glyno — tu copiloto de diabetes',
         short_name: 'Glyno',

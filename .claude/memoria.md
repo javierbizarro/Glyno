@@ -206,6 +206,15 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
     validado, compartir TAMBIÉN el enlace de iCloud es el camino más fino); (2) bug conocido
     de iOS 26: Atajos confunde acciones de apps de terceros del mismo desarrollador — no nos
     afecta (solo usamos acciones integradas: salud, estadísticas, texto, portapapeles).
+    BUG REAL CAZADO POR JAVIER (0.5.1): desde la PWA instalada el botón «llevaba a Hoy y no
+    hacía nada» — el `navigateFallback` del service worker (vite-plugin-pwa/workbox) servía
+    `index.html` para CUALQUIER navegación, incluida la del .shortcut. Doble arreglo:
+    `workbox.navigateFallbackDenylist: [/\.shortcut$/, /\.mobileconfig$/]` en vite.config
+    (verificado en build de producción: la navegación al fichero devuelve el binario AEA1 y
+    dispara descarga) y el botón usa ahora el ESQUEMA OFICIAL
+    `shortcuts://import-shortcut?url=<url-codificada>` — abre la app Atajos y es ella quien
+    descarga el fichero, así que funciona desde la PWA instalada sin tocar Safari. REGLA:
+    cualquier fichero descargable futuro en public/ debe añadirse a esa denylist.
     ADVERTENCIA HONESTA pendiente de validar en iPhone real: los parámetros de las acciones de
     salud (`WFHealthSampleType: Steps / Sleep Analysis`) van de memoria y los filtros de fecha
     van vacíos a propósito — al instalar hay que revisar las dos acciones «Buscar muestras de

@@ -343,7 +343,14 @@ function HealthCard() {
         .
       </p>
       {isIos() && (
-        <a className="btn ghost small" href={`${import.meta.env.BASE_URL}glyno-salud.shortcut`}>
+        <a
+          className="btn ghost small"
+          // official scheme: Shortcuts itself fetches the file, so the link works from
+          // the installed PWA too (a plain href would be swallowed by the SPA fallback)
+          href={`shortcuts://import-shortcut?url=${encodeURIComponent(
+            location.origin + import.meta.env.BASE_URL + 'glyno-salud.shortcut',
+          )}`}
+        >
           ⬇️ Añadir el atajo «Glyno Salud»
         </a>
       )}

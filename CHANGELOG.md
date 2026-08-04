@@ -3,6 +3,14 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.5.1 — 4 de agosto de 2026
+
+### Corregido
+
+- El botón «Añadir el atajo» no hacía nada desde la app instalada (la app interceptaba la
+  descarga y te llevaba a Hoy). Ahora abre la app Atajos directamente, y los ficheros
+  descargables quedan fuera de la caché de la aplicación.
+
 ## 0.5.0 — 4 de agosto de 2026
 
 ### Añadido

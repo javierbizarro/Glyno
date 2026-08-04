@@ -7,10 +7,12 @@ Nada sale de tu iPhone.
 
 ## Instalarlo: un toque
 
-En el iPhone, **Ajustes → Salud del iPhone → «⬇️ Añadir el atajo “Glyno Salud”»** (o abre
-directamente <https://javierbizarro.github.io/Glyno/glyno-salud.shortcut>). Se abre la app
-Atajos con la vista previa → «Añadir atajo». El fichero está firmado con la herramienta
-oficial de Apple (`shortcuts sign`) para que se pueda importar.
+En el iPhone, **Ajustes → Salud del iPhone → «⬇️ Añadir el atajo “Glyno Salud”»**: el botón usa
+el esquema `shortcuts://import-shortcut?url=…`, así que se abre la app Atajos directamente con
+la vista previa → «Añadir atajo». (Alternativa: descargar
+<https://javierbizarro.github.io/Glyno/glyno-salud.shortcut> en Safari y tocar la descarga.)
+El fichero está firmado con la herramienta oficial de Apple (`shortcuts sign`) para que se
+pueda importar.
 
 Tras añadirlo, ábrelo una vez en Atajos y **revisa las dos acciones de «Buscar muestras de
 salud»** (el propio atajo lo recuerda en su primer paso): la primera debe ser *Pasos* de
