@@ -11,6 +11,7 @@
 
 <p align="center">
   <a href="https://javierbizarro.github.io/Glyno/"><b>Probar la app</b></a> ·
+  <a href="CHANGELOG.md">Historial de mejoras</a> ·
   <a href="CONTRIBUTING.md">Cómo colaborar</a> ·
   <a href="LICENSE">Condiciones de uso</a>
 </p>
