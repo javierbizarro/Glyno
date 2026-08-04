@@ -293,7 +293,27 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
     - OJO pendiente de validar: «Move Time» podría ser el anillo Movimiento y no el de
       Ejercicio (la UI española era «Minutos de ejercicio»); sin Apple Watch ambos suelen
       estar vacíos, así que la línea saldrá vacía y se descarta — inofensivo. Verificar si
-      algún día hay Watch. (2) El filtro del sueño pierde «Valor es Dormido»:
+      algún día hay Watch.
+    ESTADO AL CIERRE (2026-08-05, madrugada) — DOS BUGS PENDIENTES del atajo, aparcados por
+    decisión de Javier («ya lo arreglaremos»):
+    1. **El sueño sigue sin salir** pese a la v6 sin filtro de valor y con datos manuales
+       añadidos en Salud. Sospechas por orden: (a) el tipo del filtro quedó como enum «Sleep»
+       en su acción (el mío era «Sleep Analysis» — puede que ninguno case con lo que hay);
+       (b) permiso de lectura de Análisis del sueño a medias en Ajustes iOS → Privacidad →
+       Salud → Atajos; (c) la cadena Detalles→Duración→Suma se recableó en su última versión
+       — REVISAR descargando su última compartida (está en scratchpad como v8.plist, acciones
+       listadas: la estructura general es correcta).
+    2. **Sin datos de movimiento, la acción «Move Time» lanza un AVISO que obliga a ir a
+       Salud** (mismo síntoma-familia que el (null) de Workouts: acción de salud sin muestras
+       que pide permiso/interacción y rompe la automatización silenciosa). Posible arreglo:
+       conceder permiso de lectura a esos tipos aunque estén vacíos, o quitar del atajo los
+       tipos sin datos para el usuario (versión «lite»), o investigar un parámetro de la
+       acción que tolere el vacío.
+    La ÚLTIMA versión compartida por Javier
+    (https://www.icloud.com/shortcuts/a4140a650d7140c7b247ce0f96e708f7, 20 acciones: steps +
+    sleep(Detalles→Suma) + weight + glucosa con bucle + Move Time + Cycling Distance) quedó
+    FIRMADA y servida en public/, con su fuente en docs/ y el botón de Ajustes apuntando a
+    ese enlace. Cuando se arreglen 1 y 2: re-compartir y actualizar enlace+fichero+fuente. (2) El filtro del sueño pierde «Valor es Dormido»:
     las entradas MANUALES de Salud no siempre llevan ese valor y lo dejaban a cero; sin Apple
     Watch no hay doble conteo — si algún día hay usuarios con Watch, reponer el filtro (con
     Watch los tramos «en la cama» + fases dormido se sumarían dos veces).
