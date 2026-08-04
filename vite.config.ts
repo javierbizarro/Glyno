@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { version } from './package.json'
 
 export default defineConfig({
   // on GitHub Pages the app lives at /Glyno/; locally, at the root
@@ -8,6 +9,7 @@ export default defineConfig({
   // build stamp: makes it possible to tell if the phone is serving a cached version.
   // Pinned to Madrid time because GitHub Actions builds in UTC, which is disorienting.
   define: {
+    __VERSION__: JSON.stringify(version),
     __BUILD__: JSON.stringify(
       new Date().toLocaleString('es-ES', {
         timeZone: 'Europe/Madrid',

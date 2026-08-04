@@ -331,6 +331,22 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Al probar se machacó el historial de chat (`glyno.chat`) con una conversación de prueba; se dejó
   limpio. Eran pruebas de fases anteriores, nada del usuario real.
 
+## Plan: ayuda con el peso cuando el IMC lo pide (2026-08-04, NO implementado)
+
+- Javier: adelgazar es clave para un diabético con IMC alto; la app debe ayudar. Acordado el CÓMO:
+  **automonitorización y calidad, jamás contador de calorías** (presupuestos kcal = adherencia
+  pésima + bucles de culpa + riesgo de hipos en insulinizados; coherente con «el semáforo NUNCA
+  las calorías» y sin gamificación con culpa). La palanca: lo bueno para la glucosa es casi
+  siempre bueno para el peso — se dice en lenguaje de glucosa, no de báscula.
+- Paquete (pura web, barato, puede ir antes que las fases A/B de datos automáticos):
+  1. Gráfica de tendencia de peso en Tendencias con **media semanal** (el dato diario baila).
+  2. Objetivo de peso opcional en Ajustes, «pactado con tu equipo sanitario», progreso sobrio.
+  3. La IA activa el modo peso sola con IMC ≥ ~27: valoración lee la tendencia, un consejo
+     apunta a saciedad/raciones/orden; sugerencias priorizan saciantes de baja densidad.
+  4. Educación con derivación: «un 5-10% menos mejora mucho el control — coméntalo con tu
+     equipo». El plan de adelgazamiento concreto es del médico (misma línea roja que dosis).
+  5. Kcal quemadas por ejercicio: siguen fuera (ver plan-datos-automaticos.md).
+
 ## Contador anónimo de visitas (2026-08-03)
 
 - Javier quería saber cuánta gente usa la app. Opciones valoradas: nada / GoatCounter / analítica

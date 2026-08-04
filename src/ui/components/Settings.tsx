@@ -257,7 +257,7 @@ export function Settings({
       <div className="card stack">
         <span className="label">Acerca de Glyno</span>
         <p className="muted small">
-          v0.1 · compilada el {__BUILD__} · Tus datos de salud viven en este dispositivo y no salen
+          v{__VERSION__} · compilada el {__BUILD__} · Tus datos de salud viven en este dispositivo y no salen
           de aquí (salvo lo que tú envíes a la IA con tu clave). Glyno no da consejo médico ni
           pautas de medicación: para eso, siempre tu equipo sanitario.
         </p>
