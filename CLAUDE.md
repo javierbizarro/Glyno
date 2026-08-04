@@ -34,7 +34,10 @@ mascota 3D (Glyno) y valoraciones con IA (Gemini free tier). Objetivo: coste 0 r
 ## Líneas rojas de producto
 
 - NUNCA sugerir dosis ni cambios de medicación (ni la IA ni la UI). Disclaimer visible.
-- Los datos de salud no salen del dispositivo (única excepción: llamadas a Gemini con la clave del propio usuario).
+- Los datos de salud no salen del dispositivo. Dos únicas excepciones, ambas documentadas en el
+  README: llamadas a Gemini con la clave del propio usuario, y un ping anónimo de apertura a
+  GoatCounter (`src/app/analytics.ts` — sin cookies ni identificadores; respeta DNT/GPC; NUNCA
+  añadir más telemetría ni eventos).
 - Si algún día calcula dosis → sería producto sanitario (MDR/CE). No entrar ahí.
 
 ## Arquitectura (hexagonal pragmática)

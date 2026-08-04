@@ -28,7 +28,7 @@ export default defineConfig({
       manifest: {
         name: 'Glyno — tu copiloto de diabetes',
         short_name: 'Glyno',
-        description: 'Diario de glucemias con un compañero de IA. Tus datos no salen de tu dispositivo.',
+        description: 'Diario de glucemias con un compañero de IA. Tus datos de salud, en tu dispositivo.',
         lang: 'es',
         theme_color: '#F7F2E9',
         background_color: '#F7F2E9',

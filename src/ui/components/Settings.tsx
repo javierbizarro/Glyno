@@ -239,7 +239,7 @@ export function Settings({
         <span className="label">Comparte Glyno</span>
         <p className="muted small">
           Si te está sirviendo, pásasela a quien creas que le puede venir bien. Es gratis, no pide
-          cuenta y los datos se quedan en el móvil de cada uno.
+          cuenta y los datos de salud se quedan en el móvil de cada uno.
         </p>
         <button className="btn ghost" onClick={share}>
           Compartir la app
@@ -257,9 +257,15 @@ export function Settings({
       <div className="card stack">
         <span className="label">Acerca de Glyno</span>
         <p className="muted small">
-          v0.1 · compilada el {__BUILD__} · Tus datos viven en este dispositivo y no salen de aquí
-          (salvo lo que tú envíes a la IA con tu clave). Glyno no da consejo médico ni pautas de
-          medicación: para eso, siempre tu equipo sanitario.
+          v0.1 · compilada el {__BUILD__} · Tus datos de salud viven en este dispositivo y no salen
+          de aquí (salvo lo que tú envíes a la IA con tu clave). Glyno no da consejo médico ni
+          pautas de medicación: para eso, siempre tu equipo sanitario.
+        </p>
+        <p className="muted small">
+          Contamos aperturas de la app de forma anónima (GoatCounter): la petición no lleva ningún
+          dato tuyo — ni cookies ni identificadores —, solo «alguien la ha abierto». Como en
+          cualquier web, GoatCounter ve tu IP al recibirla, pero no la guarda. Si tu navegador
+          envía «Do Not Track» o Global Privacy Control, ni eso.
         </p>
         <p className="muted small">
           El personaje de Glyno lo dibujó una niña de 8 años. 💛

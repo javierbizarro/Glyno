@@ -66,7 +66,8 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
           </h1>
           <p className="muted">
             Te acompaño con la diabetes: apuntamos juntos tus glucemias, busco patrones y te cuento lo
-            que veo. Tus datos se quedan en tu dispositivo, no salen de aquí.
+            que veo. Tus datos de salud se quedan en tu dispositivo, no salen de aquí. Solo
+            contamos aperturas de la app de forma anónima, sin identificadores.
           </p>
           <div className="stack">
             <span className="label">¿Cómo te llamas?</span>

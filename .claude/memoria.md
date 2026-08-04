@@ -35,7 +35,8 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
    (estáticos, opcionales) + **peso como registro evolutivo** (botón en diario, gráfica en Tendencias,
    IMC calculado). El peso importa como tendencia, no como campo estático. La edad NO ajusta rangos
    (eso es del endocrino), solo contexto para la IA e informe.
-6. **Líneas rojas**: nunca dosis/cambios de medicación; datos en el dispositivo; disclaimer visible.
+6. **Líneas rojas**: nunca dosis/cambios de medicación; datos de salud en el dispositivo (únicas
+   excepciones: Gemini con clave propia y el ping anónimo de GoatCounter); disclaimer visible.
 7. Etiquetas de contexto: Mal sueño, Estrés, Alcohol, Enfermo, Comida fuera, Regla, Olvido medicación + libres.
 8. **Modo "Sin diagnóstico" (2026-08-03)**: `DiabetesType` incluye `'none'` para quien no es
    diabético pero quiere cuidarse. REGLA EXPLÍCITA DE JAVIER: **la app sigue siendo de diabetes y
@@ -330,6 +331,29 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Al probar se machacó el historial de chat (`glyno.chat`) con una conversación de prueba; se dejó
   limpio. Eran pruebas de fases anteriores, nada del usuario real.
 
+## Contador anónimo de visitas (2026-08-03)
+
+- Javier quería saber cuánta gente usa la app. Opciones valoradas: nada / GoatCounter / analítica
+  completa. Elegido **GoatCounter** (cuenta de Javier: `glyno.goatcounter.com`) con una decisión
+  clave: **NO se carga su script** (regla «nada de CDNs») — el ping es nuestro, 4 líneas en
+  `src/app/analytics.ts` vía `new Image()` al endpoint `/count` (p=/app, t=Glyno, rnd=cache buster).
+  La URL completa está testeada: exactamente esas 3 claves, nada personal.
+- Guardas (TDD-first, `analytics.test.ts`): DNT ('1' y 'yes'), Global Privacy Control, y hosts de
+  desarrollo (localhost/127.0.0.1/[::1]/*.local) → no se envía nada. Nunca en la rama `?reset`.
+- La promesa «tus datos no salen de tu dispositivo» pasó a «tus datos DE SALUD no salen» en los
+  6 sitios donde vivía (README, CONTRIBUTING, CLAUDE.md, manifest, Acerca de, onboarding, tarjeta
+  de compartir), con párrafo de transparencia en Acerca de y sección en el README.
+- **Línea roja nueva en CLAUDE.md y CONTRIBUTING**: este ping es la ÚNICA telemetría admitida.
+  Nada de eventos, identificadores ni más analítica.
+- Límite honesto: las aperturas offline no cuentan (PWA). Es aproximación, no censo.
+- Al verificar quedó registrada 1 visita de prueba (2026-08-03, deliberada, avisado Javier).
+- Revisión adversaria (3 lentes) aplicada: los textos decían «sin ningún dato tuyo», que era
+  prometer de más — la IP llega a GoatCounter como en toda petición web (la usa para agrupar
+  visitas y no la guarda); ahora se dice tal cual. Guarda de dev reforzada: `import.meta.env.DEV`
+  + IPs literales (el dev server escucha en 0.0.0.0 y probar desde el móvil en LAN habría
+  contaminado las estadísticas). DNT legado (`window.doNotTrack`), GPC mencionado en los textos,
+  ping envuelto en try/catch (jamás puede romper el arranque), y aviso también en el onboarding.
+
 ## Guía tour para nuevos usuarios (2026-08-03)
 
 - Pedido por Javier: tour de bienvenida re-lanzable desde Ajustes. Diseño: **6 pasos, saltable
@@ -545,8 +569,9 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   exactamente lo que se buscaba.
 - CONTRIBUTING recoge las convenciones (español de España, hexagonal con `ui` sin tocar `adapters`,
   comentarios mínimos, sin dependencias nuevas ni CDNs, móvil primero, paleta validada) y una lista
-  explícita de **lo que no se acepta**: calculadoras de dosis, predicción de hipos, telemetría o
-  enviar datos de salud a servidores, y gamificación con rachas.
+  explícita de **lo que no se acepta**: calculadoras de dosis, predicción de hipos, enviar datos
+  de salud a servidores o cualquier telemetría más allá del contador anónimo de aperturas
+  (`src/app/analytics.ts`), y gamificación con rachas.
 - Verificado: sin claves en ficheros ni en el historial de git antes de dar visibilidad al repo.
 
 ## Versiones de CI y Node (2026-08-03)

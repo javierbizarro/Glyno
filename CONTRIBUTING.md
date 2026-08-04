@@ -67,8 +67,10 @@ No es por gusto, es por seguridad de quien la usa:
   real. Glyno registra la medicación que tú decides ponerte; no la propone.
 - **Predicción de hipoglucemias** sin sensor continuo ni validación clínica: un falso negativo es
   peligroso.
-- **Enviar datos de salud a servidores propios o de terceros**, telemetría, analítica o cuentas de
-  usuario. El modelo es «tus datos no salen de tu dispositivo» y no se negocia.
+- **Enviar datos de salud a servidores propios o de terceros**, cuentas de usuario, o cualquier
+  telemetría o analítica más allá del contador anónimo de aperturas ya existente
+  (`src/app/analytics.ts`). El modelo es «tus datos de salud no salen de tu dispositivo» y no se
+  negocia: nada de añadir eventos, identificadores ni más analítica.
 - **Rachas y gamificación con culpa**. En una enfermedad crónica de por vida, romper una racha
   produce vergüenza y hace que la gente deje de mirar sus datos.
 

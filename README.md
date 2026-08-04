@@ -6,7 +6,7 @@
 
 <p align="center">
   Un copiloto para el día a día con diabetes.<br>
-  Sin coste, sin servidores y con tus datos en tu propio móvil.
+  Sin coste, sin servidores propios y con tus datos de salud en tu propio móvil.
 </p>
 
 <p align="center">
@@ -48,12 +48,18 @@ ayudarte a registrar tus datos, entenderlos y llevarlos a la consulta.
 
 ## Privacidad
 
-No hay servidor, ni cuentas, ni analítica, ni telemetría. Todo vive en el almacenamiento de tu
-navegador (IndexedDB) y no sale de ahí.
+No hay servidor ni cuentas. Tus datos de salud viven en el almacenamiento de tu navegador
+(IndexedDB) y no salen de ahí. Dos excepciones, las dos transparentes:
 
-La única excepción es la IA: **si tú activas esa parte**, el texto de tus datos recientes y las fotos
-que hagas viajan a la API de Google Gemini usando **tu propia clave gratuita**, que se guarda solo en
-tu dispositivo. Si no pones clave, la app funciona igual sin las funciones de IA.
+- **La IA, si tú la activas**: el texto de tus datos recientes y las fotos que hagas viajan a la
+  API de Google Gemini usando **tu propia clave gratuita**, que se guarda solo en tu dispositivo.
+  Sin clave, la app funciona igual sin las funciones de IA.
+- **Un contador anónimo de aperturas** ([GoatCounter](https://www.goatcounter.com)): al abrir la
+  app se envía un único «alguien ha abierto Glyno». La petición no lleva ningún dato tuyo — ni
+  cookies ni identificadores — y no se ejecuta ningún script de terceros: es una línea que puedes
+  auditar en `src/app/analytics.ts`. Como en cualquier petición web, GoatCounter ve tu IP al
+  recibirla; la usa solo para agrupar las visitas del día y no la guarda. Si tu navegador envía
+  «Do Not Track» o Global Privacy Control, no se envía nada.
 
 Como todo es local, conviene usar la **copia de seguridad** (Ajustes → *Crear copia de seguridad*)
 para no perder el diario si cambias de móvil o borras los datos del navegador.

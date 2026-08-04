@@ -5,6 +5,7 @@ import '@fontsource-variable/lora'
 import '@fontsource-variable/inter'
 import './theme.css'
 import App from './App'
+import { countVisit } from './app/analytics'
 import { resetAll } from './app/container'
 
 // persistent storage: the browser won't purge IndexedDB under storage pressure
@@ -33,6 +34,7 @@ window.addEventListener('beforeinstallprompt', e => {
 if (new URLSearchParams(location.search).has('reset')) {
   resetAll().finally(() => location.replace(import.meta.env.BASE_URL))
 } else {
+  countVisit()
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <App />
