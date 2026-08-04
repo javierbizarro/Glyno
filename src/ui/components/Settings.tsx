@@ -166,8 +166,23 @@ export function Settings({
               onChange={e => set({ heightCm: e.target.value ? Number(e.target.value) : undefined })}
             />
           </div>
+          <div className="stack" style={{ flex: 1 }}>
+            <span className="label">Objetivo de peso (kg)</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              step="0.5"
+              placeholder="—"
+              value={p.targetWeightKg ?? ''}
+              onChange={e => set({ targetWeightKg: e.target.value ? Number(e.target.value) : undefined })}
+            />
+          </div>
         </div>
-        <p className="muted small">El peso se apunta en el diario (botón ⚖️), para ver su evolución.</p>
+        <p className="muted small">
+          El peso se apunta en el diario (botón ⚖️), para ver su evolución. El objetivo es opcional
+          y mejor si está pactado con tu equipo sanitario: Glyno solo lo dibuja en Tendencias —
+          nunca propone dietas ni cuenta calorías.
+        </p>
       </div>
 
       <div className="card stack">

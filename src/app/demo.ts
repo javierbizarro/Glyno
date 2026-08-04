@@ -27,6 +27,10 @@ export async function seedDemo(p: Profile) {
 
     if (badSleep) list.push({ ts: at(7, 45), kind: 'tag', label: 'Mal sueño' })
 
+    // one weigh-in per week, drifting gently down so the weekly-mean chart has a trend
+    if (d % 7 === 6 || d === 0)
+      list.push({ ts: at(8, 15), kind: 'weight', value: Math.round((93.6 - (13 - d) * 0.07 + rnd(-0.3, 0.3)) * 10) / 10 })
+
     list.push({ ts: at(8, 5), kind: 'glucose', value: r(rnd(90, 128) + (badSleep ? 42 : 0)), note: 'ayunas' })
 
     if (p.hypertension) list.push({ ts: at(8, 40), kind: 'bp', sys: r(rnd(124, 147)), dia: r(rnd(76, 92)) })

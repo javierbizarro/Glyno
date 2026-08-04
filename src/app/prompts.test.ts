@@ -69,9 +69,47 @@ describe('buildContext', () => {
 
   it('includes the BMI only when both a weight entry and a height exist', () => {
     // 80 kg / 1.75 m² = 26.1
-    expect(buildContext(profile({ heightCm: 175 }), emptyStats, [], weight(80))).toContain('IMC 26.1')
-    expect(buildContext(profile(), emptyStats, [], weight(80))).not.toContain('IMC')
+    expect(buildContext(profile({ heightCm: 175 }), emptyStats, [], [weight(80)])).toContain('IMC 26.1')
+    expect(buildContext(profile(), emptyStats, [], [weight(80)])).not.toContain('IMC')
     expect(buildContext(profile({ heightCm: 175 }), emptyStats, [])).not.toContain('IMC')
+  })
+
+  describe('weight mode', () => {
+    const heavy = profile({ heightCm: 170 }) // 92 kg → BMI 31.8
+
+    it('activates on its own from BMI 27: satiety and portions, never calories, plan with the team', () => {
+      const ctx = buildContext(heavy, emptyStats, [], [weight(92)])
+      expect(ctx).toContain('MODO PESO')
+      expect(ctx).toContain('saciedad')
+      expect(ctx).toContain('NUNCA cuentes ni menciones calorías')
+      expect(ctx).toContain('perder un 5-10 %')
+      expect(ctx).toContain('se pacta con su equipo sanitario')
+    })
+
+    it('stays off below BMI 27 and when the BMI is unknown', () => {
+      expect(buildContext(profile({ heightCm: 175 }), emptyStats, [], [weight(80)])).not.toContain('MODO PESO')
+      expect(buildContext(profile(), emptyStats, [], [weight(92)])).not.toContain('MODO PESO')
+      expect(buildContext(heavy, emptyStats, [])).not.toContain('MODO PESO')
+    })
+
+    it('describes the weight line with the last weigh-in and the weekly trend', () => {
+      const weights: Entry[] = [
+        { ts: NOW - 14 * 86_400_000, kind: 'weight', value: 93.5 },
+        { ts: NOW, kind: 'weight', value: 92.5 },
+      ]
+      const ctx = buildContext(heavy, emptyStats, [], weights)
+      expect(ctx).toContain('PESO: última pesada 92,5 kg')
+      expect(ctx).toContain('kg/semana')
+    })
+
+    it('adds the agreed target weight when the profile has one', () => {
+      const ctx = buildContext(profile({ heightCm: 170, targetWeightKg: 85 }), emptyStats, [], [weight(92)])
+      expect(ctx).toContain('objetivo pactado con su equipo: 85 kg')
+    })
+
+    it('omits the weight line entirely without weigh-ins', () => {
+      expect(buildContext(heavy, emptyStats, [])).not.toContain('PESO:')
+    })
   })
 
   describe('age', () => {

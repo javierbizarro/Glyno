@@ -3,6 +3,21 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.4.0 — 4 de agosto de 2026
+
+### Añadido
+
+- **Ayuda con el peso, sin contar calorías**: la gráfica de peso de Tendencias usa ahora la
+  **media semanal** (el dato diario baila con el agua y la sal), en Ajustes puedes poner un
+  objetivo de peso opcional — mejor pactado con tu equipo sanitario — que se dibuja en la
+  gráfica, y con IMC alto aparece el recordatorio de que perder un 5-10 % ya mejora mucho el
+  control glucémico.
+- Con IMC ≥ 27, Glyno (la IA) activa solo su **modo peso**: lee tu tendencia semanal y orienta
+  sus consejos a saciedad, raciones y orden de los alimentos — en lenguaje de glucosa, nunca
+  contando calorías ni proponiendo dietas. El plan concreto sigue siendo de tu equipo sanitario.
+- La IA recibe la evolución del peso (tendencia semanal), no solo la última pesada.
+- Los datos de ejemplo incluyen pesadas semanales para ver la gráfica en acción.
+
 ## 0.3.0 — 4 de agosto de 2026
 
 ### Añadido

@@ -8,8 +8,8 @@ export interface ChatMsg {
   text: string
 }
 
-export async function generateReview(p: Profile, entries: Entry[], lastWeight?: Entry): Promise<string> {
-  const ctx = buildContext(p, computeStats(entries, p), entries, lastWeight)
+export async function generateReview(p: Profile, entries: Entry[], weights: Entry[] = []): Promise<string> {
+  const ctx = buildContext(p, computeStats(entries, p), entries, weights)
   return ai.complete(reviewPrompt(ctx, p.name))
 }
 
@@ -17,9 +17,9 @@ export async function askCoach(
   p: Profile,
   entries: Entry[],
   history: ChatMsg[],
-  lastWeight?: Entry,
+  weights: Entry[] = [],
 ): Promise<string> {
-  const ctx = buildContext(p, computeStats(entries, p), entries, lastWeight)
+  const ctx = buildContext(p, computeStats(entries, p), entries, weights)
   const lines = history
     .slice(-7)
     .map(m => `${m.role === 'me' ? p.name : 'Glyno'}: ${m.text}`)

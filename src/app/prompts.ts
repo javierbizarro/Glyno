@@ -1,15 +1,17 @@
 import type { Entry, Med, Profile } from '../domain/types'
 import { treatmentSummary, TYPE_FULL } from '../domain/types'
 import { WEEKDAY_LABEL } from '../domain/medication'
+import { bmiOf, WEIGHT_FOCUS_BMI, weeklyWeights, weightTrendPerWeek } from '../domain/weight'
 import type { Stats } from '../domain/stats'
 
 // Prompt bodies are product copy: they stay in Spanish because Glyno speaks Spanish.
 // JSON keys requested from the model are English — they are code, parsed by app/meals.ts.
 
-export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWeight?: Entry): string {
+export function buildContext(p: Profile, stats: Stats, entries: Entry[], weights: Entry[] = []): string {
   const age = p.birthYear ? new Date().getFullYear() - p.birthYear : null
-  const bmi =
-    lastWeight?.value && p.heightCm ? (lastWeight.value / Math.pow(p.heightCm / 100, 2)).toFixed(1) : null
+  const lastWeight = weights.length ? weights[weights.length - 1] : undefined
+  const bmiNum = bmiOf(lastWeight?.value, p.heightCm)
+  const bmi = bmiNum?.toFixed(1) ?? null
 
   const general = p.type === 'none'
 
@@ -68,14 +70,41 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], lastWei
 
   const hypoCount = entries.filter(e => e.kind === 'glucose' && e.value! < p.low).length
 
+  // Spanish decimal comma: these numbers are prose for the model, not data
+  const kg = (x: number) => String(round1(x)).replace('.', ',')
+  const weekly = weeklyWeights(weights)
+  const trend = weightTrendPerWeek(weekly)
+  const weightLine = lastWeight?.value
+    ? '\nPESO: ' +
+      [
+        `última pesada ${kg(lastWeight.value)} kg`,
+        bmi ? `IMC ${bmi}` : null,
+        trend != null
+          ? `tendencia ${trend > 0 ? '+' : ''}${kg(trend)} kg/semana (media semanal de ${weekly.length} semanas)`
+          : null,
+        p.targetWeightKg ? `objetivo pactado con su equipo: ${kg(p.targetWeightKg)} kg` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : ''
+
+  // weight mode: satiety and habits in glucose language; calorie counting and diet
+  // plans are red lines (adherence, guilt loops, hypo risk under insulin)
+  const weightMode =
+    bmiNum != null && bmiNum >= WEIGHT_FOCUS_BMI
+      ? `\nMODO PESO (IMC ≥ ${WEIGHT_FOCUS_BMI}, se activa solo): a esta persona le beneficia perder peso, y lo que le va bien a su glucosa casi siempre le va bien al peso — díselo en lenguaje de glucosa y hábitos: saciedad, raciones, orden de los alimentos, verdura y proteína primero. NUNCA cuentes ni menciones calorías, ni propongas dietas ni planes de adelgazamiento. Si viene al caso, recuérdale que perder un 5-10 % ya mejora mucho el control y que el plan concreto se pacta con su equipo sanitario. Lee la tendencia sin culpa: si baja, reconócelo; si no, ni una palabra de reproche.`
+      : ''
+
   return `Eres Glyno, copiloto de diabetes: cercano, llano, hablas de tú, español de España. REGLAS INQUEBRANTABLES: nunca sugieras dosis, cambios de medicación ni diagnósticos; si un patrón es asunto médico (hipoglucemias repetidas, ayunas altas persistentes), tu consejo es llevárselo al equipo sanitario con este resumen. No inventes causas que los datos no muestren.${general ? ' OJO: esta persona no tiene diabetes diagnosticada, usa la app para cuidarse; no hables de «tu diabetes» ni des por hecho ningún diagnóstico.' : ''}
 
 PERFIL: ${profileLine}
 BOTIQUÍN (pauta fija): ${medCabinet}
-ÚLTIMOS 14 DÍAS: ${numbers}${stats.n > 0 ? ` · ${hypoCount} hipoglucemias` : ''}
+ÚLTIMOS 14 DÍAS: ${numbers}${stats.n > 0 ? ` · ${hypoCount} hipoglucemias` : ''}${weightLine}${weightMode}
 PATRONES CALCULADOS CON SUS DATOS (medias frente a su media general; interpreta SOLO estos):
 ${patterns || '- (aún no hay patrones con datos suficientes)'}`
 }
+
+const round1 = (x: number) => Math.round(x * 10) / 10
 
 export function reviewPrompt(ctx: string, name: string): string {
   return `${ctx}

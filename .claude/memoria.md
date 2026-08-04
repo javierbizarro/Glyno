@@ -352,21 +352,31 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
 - Al probar se machacó el historial de chat (`glyno.chat`) con una conversación de prueba; se dejó
   limpio. Eran pruebas de fases anteriores, nada del usuario real.
 
-## Plan: ayuda con el peso cuando el IMC lo pide (2026-08-04, NO implementado)
+## Ayuda con el peso cuando el IMC lo pide (plan 2026-08-04 → ✅ IMPLEMENTADO 2026-08-04)
 
 - Javier: adelgazar es clave para un diabético con IMC alto; la app debe ayudar. Acordado el CÓMO:
   **automonitorización y calidad, jamás contador de calorías** (presupuestos kcal = adherencia
   pésima + bucles de culpa + riesgo de hipos en insulinizados; coherente con «el semáforo NUNCA
   las calorías» y sin gamificación con culpa). La palanca: lo bueno para la glucosa es casi
   siempre bueno para el peso — se dice en lenguaje de glucosa, no de báscula.
-- Paquete (pura web, barato, puede ir antes que las fases A/B de datos automáticos):
-  1. Gráfica de tendencia de peso en Tendencias con **media semanal** (el dato diario baila).
-  2. Objetivo de peso opcional en Ajustes, «pactado con tu equipo sanitario», progreso sobrio.
-  3. La IA activa el modo peso sola con IMC ≥ ~27: valoración lee la tendencia, un consejo
-     apunta a saciedad/raciones/orden; sugerencias priorizan saciantes de baja densidad.
-  4. Educación con derivación: «un 5-10% menos mejora mucho el control — coméntalo con tu
-     equipo». El plan de adelgazamiento concreto es del médico (misma línea roja que dosis).
-  5. Kcal quemadas por ejercicio: siguen fuera (ver plan-datos-automaticos.md).
+- Implementación (todo TDD en dominio/app; 183 tests):
+  1. **`domain/weight.ts`**: `bmiOf`, `WEIGHT_FOCUS_BMI = 27`, `weeklyWeights` (media semanal
+     por semanas lunes-domingo vía `weekRange`, que ahora acepta origen `from` como `daysAgo`),
+     `weightTrendPerWeek` (kg/semana entre la primera y la última media; usa el span real).
+  2. **Tendencias**: la tarjeta Peso pinta la MEDIA SEMANAL (ya no las pesadas sueltas), con
+     línea discontinua verde del objetivo, texto de tendencia («bajando 0,5 kg por semana»)
+     solo si |tendencia| ≥ 0,05, y con IMC ≥ 27 la línea educativa del 5-10 % con derivación
+     al equipo. La etiqueta del primer lunes va con textAnchor start (se recortaba).
+  3. **Ajustes → Sobre ti**: tercer campo «Objetivo de peso (kg)» (`profile.targetWeightKg`),
+     con texto de «pactado con tu equipo sanitario» y «nunca propone dietas ni cuenta calorías».
+  4. **IA**: `buildContext` recibe ahora la SERIE de pesos (antes solo la última pesada — firma
+     cambiada en coach/meals y los componentes pasan `watchByKind('weight')`). Añade línea
+     `PESO: última pesada X kg · IMC · tendencia ±Y kg/semana · objetivo pactado…` y, con
+     IMC ≥ 27, el bloque **MODO PESO**: saciedad/raciones/orden en lenguaje de glucosa,
+     «NUNCA cuentes ni menciones calorías», 5-10 % con plan pactado con su equipo, tendencia
+     sin culpa. Tests pinnean el umbral, el bloque y sus líneas rojas.
+  5. Demo: una pesada semanal con deriva suave a la baja para que la gráfica tenga tendencia.
+  6. Kcal quemadas por ejercicio: siguen fuera (ver plan-datos-automaticos.md).
 
 ## Contador anónimo de visitas (2026-08-03)
 

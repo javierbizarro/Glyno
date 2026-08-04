@@ -61,4 +61,14 @@ describe('weekRange', () => {
     expect(w.from).toBe(new Date(2025, 11, 29).getTime()) // Monday 29 Dec 2025
     expect(w.to).toBe(new Date(2026, 0, 5).getTime())
   })
+
+  it('counts from the given instant instead of the real clock when one is passed', () => {
+    vi.setSystemTime(new Date(2020, 0, 1)) // far away: it must not be read
+    const from = new Date(2026, 7, 5, 15, 0).getTime() // Wednesday 5 Aug 2026
+    expect(weekRange(0, from)).toEqual({
+      from: new Date(2026, 7, 3).getTime(),
+      to: new Date(2026, 7, 10).getTime(),
+    })
+    expect(weekRange(-1, from).from).toBe(new Date(2026, 6, 27).getTime())
+  })
 })

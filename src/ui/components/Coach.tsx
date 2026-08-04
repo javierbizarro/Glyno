@@ -13,7 +13,8 @@ const REVIEW_KEY = 'glyno.review'
 
 export function Coach({ profile }: { profile: Profile }) {
   const entries = useWatch(() => repo.watchSince(daysAgo(13)), [])
-  const lastWeight = useWatch(() => repo.watchLastByKind('weight'), [])
+  // the whole weight history: the AI reads the weekly trend, not just the last number
+  const weights = useWatch(() => repo.watchByKind('weight'), [])
 
   const [review, setReview] = useState<{ date: string; text: string } | null>(() => {
     try {
@@ -77,14 +78,14 @@ export function Coach({ profile }: { profile: Profile }) {
 
   if (!entries) return null
   const stats = computeStats(entries, profile)
-  const gaps = findGaps(profile, entries, lastWeight)
+  const gaps = findGaps(profile, entries, weights?.[weights.length - 1])
   const hasKey = !!profile.geminiKey
 
   const doReview = async () => {
     setBusy('review')
     setError('')
     try {
-      const text = await generateReview(profile, entries, lastWeight)
+      const text = await generateReview(profile, entries, weights)
       const r = { date: new Date().toISOString(), text }
       setReview(r)
       localStorage.setItem(REVIEW_KEY, JSON.stringify(r))
@@ -105,7 +106,7 @@ export function Coach({ profile }: { profile: Profile }) {
     setBusy('chat')
     setError('')
     try {
-      const text = await askCoach(profile, entries, withMine, lastWeight)
+      const text = await askCoach(profile, entries, withMine, weights)
       const all = [...withMine, { role: 'glyno' as const, text }].slice(-20)
       setMsgs(all)
       localStorage.setItem(CHAT_KEY, JSON.stringify(all))

@@ -3,6 +3,7 @@ import type { Entry, Profile } from '../../domain/types'
 import { computeStats } from '../../domain/stats'
 import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
+import { bmiOf, WEIGHT_FOCUS_BMI, weeklyWeights, weightTrendPerWeek } from '../../domain/weight'
 import { entries as repo } from '../../app/container'
 import { seedDemo } from '../../app/demo'
 import { useWatch } from '../hooks'
@@ -143,35 +144,86 @@ function WeightCard({ profile }: { profile: Profile }) {
   const weights = useWatch(() => repo.watchByKind('weight'), [])
   if (!weights || weights.length === 0) return null
   const last = weights[weights.length - 1]
-  const bmi = profile.heightCm ? last.value! / Math.pow(profile.heightCm / 100, 2) : null
+  const bmi = bmiOf(last.value, profile.heightCm)
+  const focus = bmi != null && bmi >= WEIGHT_FOCUS_BMI
+  const target = profile.targetWeightKg
 
-  const pts = weights.slice(-12)
-  const vmin = Math.min(...pts.map(e => e.value!)) - 1.5
-  const vmax = Math.max(...pts.map(e => e.value!)) + 1.5
-  const Xw = (i: number) => 8 + (i / Math.max(1, pts.length - 1)) * (W - 60)
-  const Yw = (v: number) => 10 + (1 - (v - vmin) / (vmax - vmin)) * 60
-  const path = pts.map((e, i) => `${i ? 'L' : 'M'}${Xw(i).toFixed(1)} ${Yw(e.value!).toFixed(1)}`).join(' ')
+  // the chart draws the WEEKLY MEAN: the daily number bounces with water and salt,
+  // the week is the honest granularity for a trend
+  const weekly = weeklyWeights(weights)
+  const trend = weightTrendPerWeek(weekly)
+  const kg = (x: number) => String(Math.round(x * 10) / 10).replace('.', ',')
+
+  const CH = 104
+  const vals = weekly.map(s => s.mean)
+  const all = target ? [...vals, target] : vals
+  const vmin = Math.min(...all) - 1
+  const vmax = Math.max(...all) + 1
+  const t0 = weekly[0].from
+  const t1 = weekly[weekly.length - 1].from
+  const Xw = (ts: number) => 10 + (t1 > t0 ? (ts - t0) / (t1 - t0) : 0) * (W - 78)
+  const Yw = (v: number) => 12 + (1 - (v - vmin) / (vmax - vmin)) * (CH - 34)
+  const path = weekly.map((s, i) => `${i ? 'L' : 'M'}${Xw(s.from).toFixed(1)} ${Yw(s.mean).toFixed(1)}`).join(' ')
+  const lastMean = weekly[weekly.length - 1]
 
   return (
-    <div className="card">
-      <div className="row between" style={{ marginBottom: 6 }}>
+    <div className="card stack">
+      <div className="row between">
         <span className="label">Peso</span>
         <span className="muted small">
-          {last.value} kg{bmi ? ` · IMC ${bmi.toFixed(1)}` : ''}
+          {kg(last.value!)} kg{bmi ? ` · IMC ${bmi.toFixed(1)}` : ''}
         </span>
       </div>
-      {pts.length >= 2 ? (
-        <svg viewBox={`0 0 ${W} 84`} style={{ width: '100%', display: 'block' }} role="img" aria-label="Evolución del peso">
-          <path d={path} fill="none" stroke="var(--ink)" strokeWidth="2" />
-          {pts.map((e, i) => (
-            <circle key={e.id} cx={Xw(i)} cy={Yw(e.value!)} r="3.5" fill="var(--ink)" stroke="var(--card)" strokeWidth="1.4" />
-          ))}
-          <text x={Xw(pts.length - 1) + 8} y={Yw(last.value!) + 3.5} fontSize="10" fill="var(--ink-2)">
-            {last.value} kg
-          </text>
-        </svg>
+      {weekly.length >= 2 ? (
+        <>
+          <svg viewBox={`0 0 ${W} ${CH}`} style={{ width: '100%', display: 'block' }} role="img" aria-label="Media semanal del peso">
+            {target != null && (
+              <g>
+                <line x1={10} x2={W - 68} y1={Yw(target)} y2={Yw(target)} stroke="var(--green)" strokeWidth="1.2" strokeDasharray="4 4" />
+                <text x={W - 64} y={Yw(target) + 3.5} fontSize="10" fill="var(--green)">
+                  objetivo {kg(target)}
+                </text>
+              </g>
+            )}
+            <path d={path} fill="none" stroke="var(--ink)" strokeWidth="2" />
+            {weekly.map(s => (
+              <circle key={s.from} cx={Xw(s.from)} cy={Yw(s.mean)} r="3.5" fill="var(--ink)" stroke="var(--card)" strokeWidth="1.4" />
+            ))}
+            <text x={Xw(lastMean.from) + 7} y={Yw(lastMean.mean) + 3.5} fontSize="10" fill="var(--ink-2)">
+              {kg(lastMean.mean)}
+            </text>
+            {[weekly[0], lastMean].map((s, i) => (
+              <text
+                key={s.from}
+                x={i === 0 ? 2 : Xw(s.from)}
+                y={CH - 4}
+                fontSize="9.5"
+                fill="var(--ink-3)"
+                textAnchor={i === 0 ? 'start' : 'middle'}
+              >
+                {fmtDayShort(s.from)}
+              </text>
+            ))}
+          </svg>
+          <p className="muted small">
+            Media semanal de tus pesadas.
+            {trend != null && Math.abs(trend) >= 0.05
+              ? ` Ahora mismo, ${trend < 0 ? 'bajando' : 'subiendo'} ${kg(Math.abs(trend))} kg por semana.`
+              : ''}
+            {target != null && last.value! > target ? ` Objetivo pactado: ${kg(target)} kg.` : ''}
+          </p>
+        </>
       ) : (
-        <p className="muted small">Apunta el peso una vez por semana y aquí verás su evolución.</p>
+        <p className="muted small">
+          Apunta el peso una vez por semana: la gráfica usa la media semanal, que es la que no baila
+          con el agua y la sal del día.
+        </p>
+      )}
+      {focus && (
+        <p className="muted small">
+          Con tu IMC, perder un 5-10 % del peso mejora mucho el control glucémico. El cómo — ritmo y
+          plan — se pacta con tu equipo sanitario, no con una app.
+        </p>
       )}
     </div>
   )

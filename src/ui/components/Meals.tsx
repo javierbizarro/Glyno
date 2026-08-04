@@ -55,7 +55,7 @@ export function Meals({ profile }: { profile: Profile }) {
   const [mode, setMode] = useState<'suggest' | 'analyze'>('suggest')
   const recent = useWatch(() => repo.watchSince(daysAgo(29)), [])
   const lastGlucose = useWatch(() => repo.watchLastByKind('glucose'), [])
-  const lastWeight = useWatch(() => repo.watchLastByKind('weight'), [])
+  const weights = useWatch(() => repo.watchByKind('weight'), [])
   const meals = recent?.filter(e => e.kind === 'meal').reverse().slice(0, 8)
   const hasKey = !!profile.geminiKey
 
@@ -85,7 +85,7 @@ export function Meals({ profile }: { profile: Profile }) {
           profile={profile}
           recent={recent}
           lastGlucose={lastGlucose}
-          lastWeight={lastWeight}
+          weights={weights}
           hasKey={hasKey}
         />
       ) : (
@@ -119,13 +119,13 @@ function Suggest({
   profile,
   recent,
   lastGlucose,
-  lastWeight,
+  weights,
   hasKey,
 }: {
   profile: Profile
   recent: Parameters<typeof suggestMeal>[1] | undefined
   lastGlucose: Parameters<typeof suggestMeal>[2]
-  lastWeight: Parameters<typeof suggestMeal>[3]
+  weights: Parameters<typeof suggestMeal>[3]
   hasKey: boolean
 }) {
   const [busy, setBusy] = useState(false)
@@ -143,7 +143,7 @@ function Suggest({
     setResult(null)
     setTaken(null)
     try {
-      setResult(await suggestMeal(profile, recent, lastGlucose, lastWeight))
+      setResult(await suggestMeal(profile, recent, lastGlucose, weights))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {

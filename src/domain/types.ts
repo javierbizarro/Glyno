@@ -23,6 +23,8 @@ export interface Profile {
   high: number  // mg/dl
   birthYear?: number
   heightCm?: number
+  /** agreed with their healthcare team; the app draws it, never proposes it */
+  targetWeightKg?: number
   geminiKey: string
   onboarded: boolean
 }

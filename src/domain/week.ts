@@ -4,8 +4,8 @@ export interface Week {
 }
 
 /** Monday-to-Sunday week; offset 0 = current week, -1 = previous */
-export function weekRange(offset: number): Week {
-  const start = new Date()
+export function weekRange(offset: number, from = Date.now()): Week {
+  const start = new Date(from)
   start.setHours(0, 0, 0, 0)
   const mondayFirst = (start.getDay() + 6) % 7
   start.setDate(start.getDate() - mondayFirst + offset * 7)

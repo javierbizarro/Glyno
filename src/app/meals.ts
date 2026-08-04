@@ -56,7 +56,7 @@ export async function suggestMeal(
   p: Profile,
   recent: Entry[],
   lastGlucose?: Entry,
-  lastWeight?: Entry,
+  weights: Entry[] = [],
 ): Promise<MealSuggestion> {
   const bucket = mealMoment(Date.now())
   const moment = MEAL_MOMENT_LABEL[bucket]
@@ -71,7 +71,7 @@ export async function suggestMeal(
     .map(fmt)
 
   const lastReading = lastGlucoseText(lastGlucose)
-  const ctx = buildContext(p, computeStats(recent, p), recent, lastWeight)
+  const ctx = buildContext(p, computeStats(recent, p), recent, weights)
   const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
   const raw = await ai.complete(suggestMealPrompt(ctx, { moment, time, lastReading, usual, others }))
   return extractJson<MealSuggestion>(raw)

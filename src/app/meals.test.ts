@@ -201,11 +201,11 @@ describe('suggestMeal', () => {
     expect(complete.mock.calls[0][0]).toContain('ÚLTIMA GLUCEMIA: 120 mg/dl hace 45 min')
   })
 
-  it('passes lastWeight into the context: BMI appears when the profile has a height', async () => {
+  it('passes the weights into the context: BMI appears when the profile has a height', async () => {
     complete.mockResolvedValue(JSON.stringify(SUGGESTION))
-    const lastWeight: Entry = { ts: NOW - 24 * 60 * MIN, kind: 'weight', value: 80 }
-    await suggestMeal({ ...p, heightCm: 175 }, [], undefined, lastWeight)
-    await suggestMeal(p, [], undefined, lastWeight) // no height → no BMI
+    const weights: Entry[] = [{ ts: NOW - 24 * 60 * MIN, kind: 'weight', value: 80 }]
+    await suggestMeal({ ...p, heightCm: 175 }, [], undefined, weights)
+    await suggestMeal(p, [], undefined, weights) // no height → no BMI
     expect(complete.mock.calls[0][0]).toContain('IMC 26.1')
     expect(complete.mock.calls[1][0]).not.toContain('IMC')
   })
