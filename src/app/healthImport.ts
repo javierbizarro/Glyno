@@ -78,22 +78,86 @@ function toEntry(s: RawSample): Entry | null {
 /** daily aggregates may be re-imported with fresher values; point samples never change */
 const isDaily = (e: Entry) => e.kind === 'steps' || e.kind === 'sleep' || e.kind === 'weight'
 
-export async function importHealthPayload(text: string): Promise<HealthImportResult> {
-  let data: { app?: string; type?: string; samples?: RawSample[] }
-  try {
-    data = JSON.parse(text)
-  } catch {
-    throw new Error(BAD_PAYLOAD)
-  }
-  if (data?.app !== 'glyno' || data.type !== 'health' || !Array.isArray(data.samples))
-    throw new Error(BAD_PAYLOAD)
+const localDate = (now: number): string => {
+  const d = new Date(now)
+  const p = (x: number) => String(x).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
 
+const TIME = /^\d{1,2}:\d{2}$/
+const num = (s: string) => Number(s.replace(',', '.'))
+
+/** one line of the plain-text format → a raw sample; null when the line makes no sense */
+function parseLine(line: string, today: string): RawSample | null {
+  const tokens = line.trim().split(/\s+/)
+  const keyword = tokens.shift()?.toLowerCase().replace('ñ', 'n')
+  const date = isDate(tokens[0]) ? tokens.shift()! : today
+
+  if (keyword === 'pasos' && /^[\d.]+$/.test(tokens[0] ?? ''))
+    return { kind: 'steps', date, value: Number(tokens[0].replace(/\./g, '')) }
+
+  if (keyword === 'sueno' && tokens[0]) {
+    const hm = tokens[0].match(/^(\d{1,2})h(\d{1,2})?$/)
+    const mins = tokens[0].match(/^(\d+)min$/)
+    if (hm) return { kind: 'sleep', date, minutes: Number(hm[1]) * 60 + Number(hm[2] ?? 0) }
+    if (mins) return { kind: 'sleep', date, minutes: Number(mins[1]) }
+    return null
+  }
+
+  if (keyword === 'peso' && /^\d+([.,]\d+)?$/.test(tokens[0] ?? ''))
+    return { kind: 'weight', date, value: num(tokens[0]) }
+
+  if (keyword === 'glucosa' && TIME.test(tokens[0] ?? '') && /^\d+$/.test(tokens[1] ?? ''))
+    return { kind: 'glucose', ts: `${date}T${tokens[0].padStart(5, '0')}:00`, value: Number(tokens[1]) }
+
+  if (keyword === 'ejercicio' && TIME.test(tokens[0] ?? '')) {
+    const time = tokens.shift()!
+    const minAt = tokens.findIndex(t => /^\d+min$/.test(t))
+    if (minAt < 0) return null
+    const km = tokens[minAt + 1]?.match(/^(\d+([.,]\d+)?)km$/)
+    return {
+      kind: 'exercise',
+      ts: `${date}T${time.padStart(5, '0')}:00`,
+      minutes: Number(tokens[minAt].slice(0, -3)),
+      label: tokens.slice(0, minAt).join(' ') || undefined,
+      ...(km ? { km: num(km[1]) } : {}),
+    }
+  }
+
+  return null
+}
+
+/**
+ * Accepts either the JSON contract or the plain-text format ("glyno salud" header +
+ * one sample per line). The text form exists so an iOS Shortcut needs zero JSON
+ * assembly — and so a human can type it in a note.
+ */
+export async function importHealthPayload(text: string, now = Date.now()): Promise<HealthImportResult> {
   const result: HealthImportResult = { added: 0, updated: 0, ignored: 0, invalid: 0 }
   const candidates: Entry[] = []
-  for (const raw of data.samples) {
-    const e = toEntry(raw)
+
+  const push = (raw: RawSample | null) => {
+    const e = raw && toEntry(raw)
     if (e) candidates.push(e)
     else result.invalid++
+  }
+
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  if (text.trim().startsWith('{')) {
+    let data: { app?: string; type?: string; samples?: RawSample[] }
+    try {
+      data = JSON.parse(text)
+    } catch {
+      throw new Error(BAD_PAYLOAD)
+    }
+    if (data?.app !== 'glyno' || data.type !== 'health' || !Array.isArray(data.samples))
+      throw new Error(BAD_PAYLOAD)
+    data.samples.forEach(push)
+  } else if (/^glyno salud$/i.test(lines[0] ?? '')) {
+    const today = localDate(now)
+    lines.slice(1).forEach(line => push(parseLine(line, today)))
+  } else {
+    throw new Error(BAD_PAYLOAD)
   }
   if (!candidates.length) return result
 

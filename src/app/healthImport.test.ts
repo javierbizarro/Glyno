@@ -175,6 +175,72 @@ describe('importHealthPayload · dedupe by extId', () => {
   })
 })
 
+describe('importHealthPayload · plain-text format (what a simple Shortcut can build)', () => {
+  const NOW = at('2026-08-04T15:00:00')
+  const asText = (...lines: string[]) => ['glyno salud', ...lines].join('\n')
+
+  it('parses the daily lines, with dates defaulting to today', async () => {
+    const r = await importHealthPayload(asText('pasos 8734', 'sueño 6h35', 'peso 92,1'), NOW)
+    expect(r.added).toBe(3)
+    expect(bulkAdd).toHaveBeenCalledWith([
+      { ts: at('2026-08-04T12:00:00'), kind: 'steps', value: 8734, source: 'health', extId: 'health:steps:2026-08-04' },
+      { ts: at('2026-08-04T07:30:00'), kind: 'sleep', value: 395, source: 'health', extId: 'health:sleep:2026-08-04' },
+      { ts: at('2026-08-04T08:00:00'), kind: 'weight', value: 92.1, source: 'health', extId: 'health:weight:2026-08-04' },
+    ])
+  })
+
+  it('accepts an explicit date before the value, for the nightly automation pasted next morning', async () => {
+    await importHealthPayload(asText('pasos 2026-08-03 10234', 'sueño 2026-08-03 390min'), NOW)
+    const rows = bulkAdd.mock.calls[0][0] as Entry[]
+    expect(rows[0]).toMatchObject({ value: 10234, extId: 'health:steps:2026-08-03' })
+    expect(rows[1]).toMatchObject({ value: 390, extId: 'health:sleep:2026-08-03' })
+  })
+
+  it('understands sleep as XhYY, Xh or Nmin, and steps with thousands dots', async () => {
+    await importHealthPayload(asText('sueño 7h', 'pasos 8.734'), NOW)
+    const rows = bulkAdd.mock.calls[0][0] as Entry[]
+    expect(rows[0]).toMatchObject({ kind: 'sleep', value: 420 })
+    expect(rows[1]).toMatchObject({ kind: 'steps', value: 8734 })
+  })
+
+  it('parses glucose with time (date optional) and workouts with label, minutes and optional km', async () => {
+    const r = await importHealthPayload(
+      asText('glucosa 08:10 118', 'glucosa 2026-08-03 22:15 141', 'ejercicio 18:30 Bici estática 40min 3,2km'),
+      NOW,
+    )
+    expect(r.added).toBe(3)
+    const rows = bulkAdd.mock.calls[0][0] as Entry[]
+    expect(rows[0]).toMatchObject({ kind: 'glucose', ts: at('2026-08-04T08:10:00'), value: 118 })
+    expect(rows[1]).toMatchObject({ kind: 'glucose', ts: at('2026-08-03T22:15:00'), value: 141 })
+    expect(rows[2]).toMatchObject({
+      kind: 'exercise',
+      ts: at('2026-08-04T18:30:00'),
+      value: 40,
+      label: 'Bici estática',
+      distanceKm: 3.2,
+    })
+  })
+
+  it('skips blank lines, tolerates spacing and counts gibberish as invalid', async () => {
+    const r = await importHealthPayload(asText('', '  pasos   9000  ', 'cafeína 3 tazas', 'sueño mucho'), NOW)
+    expect(r.added).toBe(1)
+    expect(r.invalid).toBe(2)
+  })
+
+  it('rejects text without the glyno salud header', async () => {
+    await expect(importHealthPayload('pasos 8734', NOW)).rejects.toThrow('No he reconocido ahí datos de Salud')
+  })
+
+  it('goes through the same dedupe as the JSON route', async () => {
+    byExtIds.mockResolvedValue([
+      { id: 7, ts: at('2026-08-04T12:00:00'), kind: 'steps', value: 5100, extId: 'health:steps:2026-08-04' },
+    ])
+    const r = await importHealthPayload(asText('pasos 8734'), NOW)
+    expect(r.updated).toBe(1)
+    expect(update).toHaveBeenCalledWith(7, { value: 8734 })
+  })
+})
+
 describe('healthImportSummary', () => {
   it('celebrates new and updated entries', () => {
     expect(healthImportSummary({ added: 12, updated: 0, ignored: 3, invalid: 0 })).toBe(

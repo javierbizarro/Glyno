@@ -150,13 +150,21 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   - **Fontanería común**: `Entry` gana `extId?` (clave de dedupe), `source?: 'manual'|'health'`
     y `distanceKm?` (solo entrenos; kcal y velocidad fuera a propósito). Dexie **v2** con índice
     `extId`. Puerto: `update(id, patch)` y `byExtIds(ids)`.
-  - **`app/healthImport.ts` (TDD, 15 tests)**: `importHealthPayload(text)` parsea el contrato
-    JSON del atajo `{app:'glyno',type:'health',samples:[…]}` — kinds `glucose`/`exercise` con
-    `ts` puntual, `steps`/`sleep`/`weight` diarios con `date` (ts representativo 12:00/07:30/
-    08:00). Valida rangos plausibles (inválidas se descartan y se cuentan), dedupe por `extId`
-    contra la BD y dentro del lote, y los DIARIOS SE ACTUALIZAN si cambia el valor (los pasos de
-    hoy crecen durante el día) mientras los puntuales solo se ignoran. `healthImportSummary` da
-    el texto en castellano («De Salud: 12 registros nuevos y 1 al día.»).
+  - **`app/healthImport.ts` (TDD, 22 tests)**: `importHealthPayload(text, now?)` acepta DOS
+    formatos. (1) **Texto plano** — el principal, añadido el 2026-08-04 porque a Javier el JSON
+    en Atajos le pareció complejo (con razón: comillas curvas, comas…): cabecera `glyno salud` +
+    una línea por dato (`pasos 8734` · `sueño 6h35`/`7h`/`395min` · `peso 92,1` ·
+    `glucosa 08:10 118` · `ejercicio 18:30 Caminar 40min 3,2km`), fecha opcional delante del
+    valor (sin fecha = hoy; recomendada en la automatización nocturna), tolera puntos de miles
+    y coma decimal, y hasta se puede escribir a mano en una nota. (2) JSON estricto
+    `{app:'glyno',type:'health',samples:[…]}` como formato avanzado. Ambos convergen en el
+    mismo pipeline: kinds `glucose`/`exercise` con `ts` puntual, `steps`/`sleep`/`weight`
+    diarios con `date` (ts representativo 12:00/07:30/08:00), rangos plausibles (inválidas se
+    descartan y se cuentan), dedupe por `extId` contra la BD y dentro del lote, y los DIARIOS
+    SE ACTUALIZAN si cambia el valor (los pasos de hoy crecen) mientras los puntuales solo se
+    ignoran. `healthImportSummary` da el texto en castellano («De Salud: 12 registros nuevos y
+    1 al día.»). El atajo mínimo documentado queda en ~6 acciones SIN bucles (sueño+pasos);
+    glucosa/entrenos son la ampliación con «Repetir con cada».
   - **Rutas de entrega**: portapapeles (Ajustes → «Salud del iPhone» → «Pegar datos de Salud»,
     con errores de permiso en castellano) y fragmento `#import=` (main.tsx lo guarda en
     sessionStorage y limpia el hash; App lo importa al montar y muestra un `.toast` — botón
@@ -180,11 +188,35 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   - **`thousands()` en `domain/number.ts`**: el node de Alpine lleva ICU recortado y
     `toLocaleString('es-ES')` NO separa miles en los tests (en el navegador sí). Formateador
     propio determinista; no volver a usar toLocaleString para miles.
-  - **Doc del atajo**: `docs/atajo-salud.md` (contrato JSON, receta de Atajos, automatización
-    22:30, Siri, alternativa `#import=`, expectativas honestas: la glucosa en Salud va por
-    detrás del sensor). Enlazada desde la tarjeta de Ajustes. PENDIENTE: Javier monta el atajo
-    en su iPhone con esa doc (la receta es orientativa, hay que validarla en el dispositivo) y
-    lo comparte por iCloud; probar también el pegado real (el panel no permite automatizar el
+  - **Atajo INSTALABLE CON UN TOQUE (2026-08-04, pedido por Javier: «sino no lo usarán»)**:
+    generamos nosotros el `.shortcut` y lo firmamos con el CLI de macOS
+    (`shortcuts sign --mode anyone`) — los .shortcut sin firmar NO se pueden importar desde
+    iOS 15, pero firmados «para cualquiera» sí. Fuente legible en
+    `docs/glyno-salud.shortcut.plist` (plist XML escrito a mano: comment + 2× Buscar muestras
+    de salud + 2× Estadísticas Suma + Texto con attachments `{18,1}`/`{26,1}` (U+FFFC) + Copiar
+    al portapapeles); firmado en `public/glyno-salud.shortcut` (la web lo sirve) y botón
+    «⬇️ Añadir el atajo» en Ajustes (solo iOS, `import.meta.env.BASE_URL + 'glyno-salud.shortcut'`).
+    Comando de regeneración documentado al pie de `docs/atajo-salud.md`.
+    VERIFICADO EN LA WEB (2026-08-04): el mecanismo sigue vivo en iOS moderno — la firma es
+    obligatoria desde iOS 15 y `shortcuts sign --mode anyone` es la vía oficial; la comunidad
+    (RoutineHub, HubSign, el compilador Cherri) distribuye .shortcut firmados así para
+    iOS 16/17/18/26. «Buscar muestras de salud» sigue en la doc oficial de Apple. Matices:
+    (1) desde web, Safari descarga el fichero y hay que tocarlo en Descargas para que se abra
+    la vista previa de Atajos (un toque más que un enlace de iCloud — cuando el atajo esté
+    validado, compartir TAMBIÉN el enlace de iCloud es el camino más fino); (2) bug conocido
+    de iOS 26: Atajos confunde acciones de apps de terceros del mismo desarrollador — no nos
+    afecta (solo usamos acciones integradas: salud, estadísticas, texto, portapapeles).
+    ADVERTENCIA HONESTA pendiente de validar en iPhone real: los parámetros de las acciones de
+    salud (`WFHealthSampleType: Steps / Sleep Analysis`) van de memoria y los filtros de fecha
+    van vacíos a propósito — al instalar hay que revisar las dos acciones «Buscar muestras de
+    salud» (tipo y fechas); el primer paso del atajo es un comentario que lo recuerda. Si algo
+    sale vacío en la vista previa, se ajusta en el iPhone y regeneramos la fuente para que
+    coincida (o Javier comparte su versión buena por enlace de iCloud y enlazamos ese).
+  - **Doc del atajo**: `docs/atajo-salud.md` — instalación con un toque primero, formato de
+    texto, receta manual como alternativa, contrato JSON avanzado, automatización 22:30, Siri,
+    alternativa `#import=`, expectativas honestas (la glucosa en Salud va por detrás del
+    sensor). Enlazada desde la tarjeta de Ajustes. PENDIENTE: probar la importación del
+    .shortcut y el pegado real en el iPhone de Javier (el panel no permite automatizar el
     portapapeles).
   - Resumen del plan original: fuente única Apple Salud / Health Connect (Libre y Dexcom ya
     escriben ahí); B) Android con Capacitor, C) iOS 99 $/año — por demanda. Sensor directo:

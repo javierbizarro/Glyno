@@ -329,18 +329,24 @@ function HealthCard() {
     <div className="card stack">
       <span className="label">Salud del iPhone</span>
       <p className="muted small">
-        Con un atajo de iOS, Glyno importa de Apple Salud tu sueño, pasos, entrenamientos y la
-        glucosa que vuelque tu sensor — sin que nada salga del dispositivo.{' '}
+        Con el atajo «Glyno Salud», Glyno importa de Apple Salud tu sueño, pasos, entrenamientos
+        y la glucosa que vuelque tu sensor — sin que nada salga del dispositivo. Instálalo con un
+        toque, ejecútalo y pega aquí lo que deja copiado.{' '}
         <a
           href="https://github.com/javierbizarro/Glyno/blob/main/docs/atajo-salud.md"
           target="_blank"
           rel="noopener noreferrer"
           style={{ color: 'var(--green)', fontWeight: 600 }}
         >
-          Cómo montar el atajo
+          Guía completa
         </a>
-        . Luego: lanza el atajo y pega aquí lo que deja copiado.
+        .
       </p>
+      {isIos() && (
+        <a className="btn ghost small" href={`${import.meta.env.BASE_URL}glyno-salud.shortcut`}>
+          ⬇️ Añadir el atajo «Glyno Salud»
+        </a>
+      )}
       <div className="row">
         {isIos() && (
           <button

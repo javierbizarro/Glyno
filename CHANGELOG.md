@@ -10,7 +10,9 @@ Ajustes → «Acerca de Glyno».
 - **Datos automáticos desde Apple Salud** (primera fase, sin coste y sin apps intermedias): un
   atajo de iOS lee tu sueño, pasos, entrenamientos y la glucosa que vuelque tu sensor, y Glyno
   lo importa desde el portapapeles con un botón en Ajustes → «Salud del iPhone». Nada sale de
-  tu dispositivo. Instrucciones para montar el atajo en `docs/atajo-salud.md`.
+  tu dispositivo. El atajo **se instala con un toque** desde Ajustes (fichero firmado servido
+  por la propia web); el formato es texto normal (`pasos 8734`, `sueño 6h35`) y hasta puedes
+  escribir las líneas a mano en una nota. Guía en `docs/atajo-salud.md`.
 - Reimportar no duplica nada, y los pasos de hoy se actualizan si vuelves a importar más tarde.
 - Los registros importados se distinguen en el diario con «· Salud».
 - **Los pasos cuentan como movimiento**: a partir de 8.000 pasos el día cuenta como activo y la
