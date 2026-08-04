@@ -5,8 +5,11 @@ export interface EntryRepository {
   add(entry: Entry): Promise<void>
   bulkAdd(entries: Entry[]): Promise<void>
   remove(id: number): Promise<void>
+  update(id: number, patch: Partial<Entry>): Promise<void>
   clear(): Promise<void>
   all(): Promise<Entry[]>
+  /** entries whose extId is in the list (health-import dedupe) */
+  byExtIds(ids: string[]): Promise<Entry[]>
   /** entries with ts >= since, ascending order, live */
   watchSince(since: number): Watchable<Entry[]>
   /** entries in [from, to), ascending order, live */

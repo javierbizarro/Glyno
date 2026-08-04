@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Profile } from './domain/types'
 import { profiles } from './app/container'
+import { healthImportSummary, importHealthPayload } from './app/healthImport'
 import { Onboarding } from './ui/components/Onboarding'
 import { Today } from './ui/components/Today'
 import { Trends } from './ui/components/Trends'
@@ -63,7 +64,24 @@ export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => profiles.load())
   const [tab, setTab] = useState<Tab>('today')
   const [touring, setTouring] = useState(false)
+  const [toast, setToast] = useState('')
   const tabbar = useRef<HTMLElement>(null)
+
+  // health data stashed by main.tsx from the #import= fragment (iOS Shortcut route)
+  useEffect(() => {
+    const pending = sessionStorage.getItem('glyno.pendingHealthImport')
+    if (!pending) return
+    sessionStorage.removeItem('glyno.pendingHealthImport')
+    importHealthPayload(pending)
+      .then(r => setToast(healthImportSummary(r)))
+      .catch(e => setToast(e instanceof Error ? e.message : String(e)))
+  }, [])
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(''), 6000)
+    return () => clearTimeout(t)
+  }, [toast])
 
   // the tour welcomes each user exactly once, right after onboarding;
   // afterwards it only opens manually from Ajustes
@@ -107,6 +125,12 @@ export default function App() {
       </div>
 
       {touring && <Tour go={setTab} onClose={endTour} />}
+
+      {toast && (
+        <button className="toast" onClick={() => setToast('')}>
+          {toast}
+        </button>
+      )}
 
       <nav className="tabbar" ref={tabbar}>
         <div className="inner">

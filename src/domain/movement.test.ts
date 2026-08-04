@@ -24,6 +24,7 @@ afterEach(() => vi.useRealTimers())
 const glucose = (ts: number, value: number): Entry => ({ ts, kind: 'glucose', value })
 const exercise = (ts: number, minutes?: number): Entry => ({ ts, kind: 'exercise', value: minutes })
 const meal = (ts: number): Entry => ({ ts, kind: 'meal', label: 'lentejas' })
+const steps = (ts: number, count: number): Entry => ({ ts, kind: 'steps', value: count, source: 'health' })
 
 describe('movementState priority ladder', () => {
   it('suggests nothing after a recent hypo, even when every other rung applies', () => {
@@ -97,6 +98,44 @@ describe('movementState priority ladder', () => {
     // digestion, not about the calendar day
     const now = setNow('2026-08-05T00:15:00')
     expect(movementState(p, [meal(now - 20 * MIN)], now).nudge).toBe(POST_MEAL)
+  })
+})
+
+describe('movementState with automatic steps', () => {
+  it('a day with 8000+ steps counts as an active day; below the bar it does not', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const entries = [
+      steps(now - 30 * HOUR, 8000), // yesterday, exactly at the threshold
+      steps(now - 54 * HOUR, 7999), // two days ago, just below: going to the fridge is not moving
+    ]
+    expect(movementState(p, entries, now).activeDays).toBe(1)
+  })
+
+  it("acknowledges today's steps over the threshold instead of inviting, and reports movedToday", () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const s = movementState(p, [steps(now - 6 * HOUR, 9241)], now)
+    expect(s.nudge).toBe('Hoy ya llevas 9.241 pasos.')
+    expect(s.movedToday).toBe(true)
+  })
+
+  it('steps below the threshold leave the normal ladder untouched', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const s = movementState(p, [steps(now - 6 * HOUR, 3200)], now)
+    expect(s.nudge).toBe(INVITE)
+    expect(s.movedToday).toBe(false)
+  })
+
+  it('logged exercise wins over the steps acknowledgment', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const s = movementState(p, [steps(now - 6 * HOUR, 9241), exercise(now - 2 * HOUR, 30)], now)
+    expect(s.nudge).toContain('Ya te has movido hoy, 30 min')
+    expect(s.movedToday).toBe(true)
+  })
+
+  it('a recent hypo still silences everything, steps included', () => {
+    const now = setNow('2026-08-05T18:00:00')
+    const s = movementState(p, [steps(now - 6 * HOUR, 9241), glucose(now - 30 * MIN, 58)], now)
+    expect(s.nudge).toBeNull()
   })
 })
 

@@ -145,15 +145,51 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
   navegador lo ignora) + `@page margin: 12mm 8mm` para el espaciado vertical entre páginas.
   El CSV quedó como formato de DATOS con columna `estado` (glucosa vs rango; tensión ≥140/90);
   buildCsv ahora requiere el Profile.
-- **Datos automáticos (sensor de glucosa, sueño, pasos)**: PLAN ESCRITO, sin implementar, en
-  `.claude/plan-datos-automaticos.md` (decidido así el 2026-08-03). Resumen: la fuente única debe
-  ser Apple Salud / Health Connect (las apps de Libre y Dexcom ya escriben ahí ⇒ una integración da
-  glucosa + sueño + pasos sin sacar datos del dispositivo); el puerto `HealthSource` + adaptadores
-  encajan en la arquitectura actual; hace falta dedupe con `extId` (Dexie v2) y **agregación tipo
-  AGP porque 96 lecturas/día rompen la UI actual**. Fases: A) puente con Atajos de iOS (0 €, sin
-  Xcode), B) Android nativo con Capacitor (0 € distribución), C) iOS (99 $/año). Alternativas de
-  sensor: Nightscout (limpia), API oficial de Dexcom (retraso 3 h, irrelevante para nosotros),
-  LibreLinkUp (no oficial, necesita proxy: evitar).
+- **Datos automáticos — FASE A IMPLEMENTADA (2026-08-04)**; plan completo y fases B/C en
+  `.claude/plan-datos-automaticos.md`. Lo construido:
+  - **Fontanería común**: `Entry` gana `extId?` (clave de dedupe), `source?: 'manual'|'health'`
+    y `distanceKm?` (solo entrenos; kcal y velocidad fuera a propósito). Dexie **v2** con índice
+    `extId`. Puerto: `update(id, patch)` y `byExtIds(ids)`.
+  - **`app/healthImport.ts` (TDD, 15 tests)**: `importHealthPayload(text)` parsea el contrato
+    JSON del atajo `{app:'glyno',type:'health',samples:[…]}` — kinds `glucose`/`exercise` con
+    `ts` puntual, `steps`/`sleep`/`weight` diarios con `date` (ts representativo 12:00/07:30/
+    08:00). Valida rangos plausibles (inválidas se descartan y se cuentan), dedupe por `extId`
+    contra la BD y dentro del lote, y los DIARIOS SE ACTUALIZAN si cambia el valor (los pasos de
+    hoy crecen durante el día) mientras los puntuales solo se ignoran. `healthImportSummary` da
+    el texto en castellano («De Salud: 12 registros nuevos y 1 al día.»).
+  - **Rutas de entrega**: portapapeles (Ajustes → «Salud del iPhone» → «Pegar datos de Salud»,
+    con errores de permiso en castellano) y fragmento `#import=` (main.tsx lo guarda en
+    sessionStorage y limpia el hash; App lo importa al montar y muestra un `.toast` — botón
+    fijo sobre la tabbar, 6 s o toque). JAMÁS query string (dejaría glucemias en logs).
+    En iOS «Traer datos de Salud» lanza el atajo por `shortcuts://run-shortcut?name=Glyno%20Salud`
+    (botón solo visible en iOS).
+  - **Kinds nuevos** `steps` y `sleep` (👣/🌙 en `entryDisplay`; «11.000 pasos», «Sueño · 6 h
+    52 min»). Todo lo importado lleva sufijo «· Salud» en el diario.
+  - **Pasos → movimiento**: `STEP_ACTIVE_THRESHOLD = 8000` (constante en domain/movement.ts,
+    decidido por Javier: umbral alto, ir a la nevera no es moverse). Cuenta para «X de 7 días»
+    y para hoy: `movedToday` + reconocimiento «Hoy ya llevas 9.241 pasos» (el ejercicio
+    apuntado gana). La hipo reciente sigue silenciando todo.
+  - **Sueño → patrones**: `computeStats` gana `sleepMean`, `stepsMean`, `sleepDelta` y
+    `shortSleepDays` (`SHORT_SLEEP_MIN = 360`; noche corta = <6 h, agrupación por día de
+    calendario como el ejercicio). Fila «Tras dormir <6 h (×n)» en Tendencias y en el prompt
+    (mínimo 2 noches); el contexto añade «sueño medio 6,7 h · pasos medios 7.432/día».
+  - **BUG CAZADO por la importación**: `watchLastByKind` usaba `.last()` de Dexie = último
+    INSERTADO, no el más reciente por ts. Con registro manual nunca asomó (insertas en orden);
+    al importar días desordenados la «Última glucemia» enseñaba la más vieja. Arreglado con
+    `sortBy('ts')`.
+  - **`thousands()` en `domain/number.ts`**: el node de Alpine lleva ICU recortado y
+    `toLocaleString('es-ES')` NO separa miles en los tests (en el navegador sí). Formateador
+    propio determinista; no volver a usar toLocaleString para miles.
+  - **Doc del atajo**: `docs/atajo-salud.md` (contrato JSON, receta de Atajos, automatización
+    22:30, Siri, alternativa `#import=`, expectativas honestas: la glucosa en Salud va por
+    detrás del sensor). Enlazada desde la tarjeta de Ajustes. PENDIENTE: Javier monta el atajo
+    en su iPhone con esa doc (la receta es orientativa, hay que validarla en el dispositivo) y
+    lo comparte por iCloud; probar también el pegado real (el panel no permite automatizar el
+    portapapeles).
+  - Resumen del plan original: fuente única Apple Salud / Health Connect (Libre y Dexcom ya
+    escriben ahí); B) Android con Capacitor, C) iOS 99 $/año — por demanda. Sensor directo:
+    Nightscout (limpia), Dexcom oficial (retraso 3 h, irrelevante), LibreLinkUp (evitar).
+    OJO pendiente para densidad de sensor: gráficas AGP (percentiles) — van con A0 o B.
 - Ideas v2 (no comprometidas): modo familiar, recordatorios de medicación, foto del ticket de la
   compra para saber qué hay en casa.
 - **Salud iPhone/Android (aclarado 2026-08-02)**: una PWA NO puede leer HealthKit ni Health Connect

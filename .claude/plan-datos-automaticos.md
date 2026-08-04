@@ -1,7 +1,10 @@
 # Plan: datos automáticos (sensor de glucosa, sueño y pasos)
 
-> Escrito el 2026-08-03 tras analizarlo con Javier. NO implementado: es el plan para retomarlo.
-> Decisión: dejar el plan por escrito y decidir la fase más adelante.
+> Escrito el 2026-08-03 tras analizarlo con Javier.
+> **Estado (2026-08-04): FASE A IMPLEMENTADA** (fontanería común + rutas portapapeles/#import +
+> kinds steps/sleep + pasos en movimiento + sueño en patrones + doc del atajo en
+> `docs/atajo-salud.md`). Detalle en `.claude/memoria.md`. Pendiente: que Javier monte el atajo
+> en su iPhone siguiendo la doc y lo comparta por iCloud. Fases A0/B/C sin empezar (por demanda).
 
 ## Principio que ordena todo
 

@@ -71,18 +71,32 @@ export const DEFAULT_TARGETS: Record<DiabetesType, { low: number; high: number }
   none: { low: 70, high: 140 },
 }
 
-export type EntryKind = 'glucose' | 'bp' | 'meal' | 'insulin' | 'med' | 'exercise' | 'tag' | 'weight'
+export type EntryKind =
+  | 'glucose'
+  | 'bp'
+  | 'meal'
+  | 'insulin'
+  | 'med'
+  | 'exercise'
+  | 'tag'
+  | 'weight'
+  | 'steps'  // daily total, from Salud/Health Connect
+  | 'sleep'  // minutes per night, from Salud/Health Connect
 
 export interface Entry {
   id?: number
   ts: number
   kind: EntryKind
-  value?: number   // glucose mg/dl · insulin U · exercise min
+  value?: number   // glucose mg/dl · insulin U · exercise/sleep min · steps · weight kg
   sys?: number
   dia?: number
   label?: string
   carbs?: number   // grams
   note?: string
+  distanceKm?: number // workouts only; speed and calories stay out on purpose
+  /** stable id of the external sample (Salud/CSV); the dedupe key on re-imports */
+  extId?: string
+  source?: 'manual' | 'health'
 }
 
 // classic glycemic profile: before and after each meal, as the endocrinologist asks for

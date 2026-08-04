@@ -17,6 +17,10 @@ const emptyStats: Stats = {
   exerciseDelta: null,
   exerciseDays: 0,
   bpMean: null,
+  sleepMean: null,
+  sleepDelta: null,
+  shortSleepDays: 0,
+  stepsMean: null,
 }
 
 const stats = (over: Partial<Stats> = {}): Stats => ({ ...emptyStats, ...over })
@@ -162,6 +166,24 @@ describe('buildContext', () => {
   it('keeps the blood-pressure mean even without glucose readings', () => {
     const ctx = buildContext(profile(), stats({ bpMean: { sys: 128.4, dia: 79.6 } }), [])
     expect(ctx).toContain('ÚLTIMOS 14 DÍAS: sin glucemias registradas · tensión media 128/80')
+  })
+
+  it('summarises automatic sleep and steps when present', () => {
+    const ctx = buildContext(profile(), stats({ sleepMean: 402, stepsMean: 7432.4 }), [])
+    expect(ctx).toContain('sueño medio 6,7 h')
+    expect(ctx).toContain('pasos medios 7.432/día')
+
+    const none = buildContext(profile(), emptyStats, [])
+    expect(none).not.toContain('sueño medio')
+    expect(none).not.toContain('pasos medios')
+  })
+
+  it('needs at least 2 short nights to show the sleep pattern', () => {
+    const one = buildContext(profile(), stats({ sleepDelta: 14.2, shortSleepDays: 1 }), [])
+    expect(one).not.toContain('dormir menos de 6 h')
+
+    const two = buildContext(profile(), stats({ sleepDelta: 14.2, shortSleepDays: 3 }), [])
+    expect(two).toContain('- tras dormir menos de 6 h: +14 mg/dl (3 noches)')
   })
 
   it('needs at least 2 exercise days to show the exercise pattern', () => {

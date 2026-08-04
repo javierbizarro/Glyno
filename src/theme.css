@@ -393,6 +393,26 @@ button.entry-row:active { opacity: .6; }
   height: max(0px, calc(var(--kb, 0px) + var(--tabbar, 66px) + 77px - 96px));
 }
 
+/* one-line confirmation after a health import; tap to dismiss */
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--kb, 0px) + var(--tabbar, 66px) + 14px);
+  max-width: 88%;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.4;
+  box-shadow: 0 10px 26px rgba(35, 39, 31, 0.28);
+  z-index: 80;
+  animation: rise .22s ease-out;
+}
+
 /* ---- guided tour ---- */
 .tour { position: fixed; inset: 0; z-index: 70; } /* blocks the app while touring */
 .tour-hole {

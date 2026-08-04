@@ -3,6 +3,7 @@ import { TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, t
 import { WEEKDAY_LABEL } from '../../domain/medication'
 import { seedDemo } from '../../app/demo'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
+import { healthImportSummary, importHealthPayload } from '../../app/healthImport'
 import { download } from '../format'
 import { InstallHint } from './InstallHint'
 
@@ -185,6 +186,8 @@ export function Settings({
         </p>
       </div>
 
+      <HealthCard />
+
       <div className="card stack">
         <span className="label">Glyno IA</span>
         <p className="muted small">
@@ -298,6 +301,64 @@ export function Settings({
         </button>
       </div>
     </>
+  )
+}
+
+const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
+
+function HealthCard() {
+  const [msg, setMsg] = useState('')
+
+  const paste = async () => {
+    let text: string
+    try {
+      text = await navigator.clipboard.readText()
+    } catch {
+      // the browser's raw permission error is English noise: say it in ours
+      setMsg('No he podido leer el portapapeles. Dale permiso al navegador y vuelve a intentarlo.')
+      return
+    }
+    try {
+      setMsg(healthImportSummary(await importHealthPayload(text)))
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  return (
+    <div className="card stack">
+      <span className="label">Salud del iPhone</span>
+      <p className="muted small">
+        Con un atajo de iOS, Glyno importa de Apple Salud tu sueño, pasos, entrenamientos y la
+        glucosa que vuelque tu sensor — sin que nada salga del dispositivo.{' '}
+        <a
+          href="https://github.com/javierbizarro/Glyno/blob/main/docs/atajo-salud.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: 'var(--green)', fontWeight: 600 }}
+        >
+          Cómo montar el atajo
+        </a>
+        . Luego: lanza el atajo y pega aquí lo que deja copiado.
+      </p>
+      <div className="row">
+        {isIos() && (
+          <button
+            className="btn ghost small"
+            style={{ flex: 1 }}
+            onClick={() => {
+              location.href = 'shortcuts://run-shortcut?name=Glyno%20Salud'
+            }}
+          >
+            Traer datos de Salud
+          </button>
+        )}
+        <button className="btn small" style={{ flex: 1 }} onClick={paste}>
+          📋 Pegar datos de Salud
+        </button>
+      </div>
+      {msg && <p className="small">{msg}</p>}
+    </div>
   )
 }
 

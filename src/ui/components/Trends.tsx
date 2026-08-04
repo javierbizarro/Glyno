@@ -116,13 +116,19 @@ export function Trends({ profile }: { profile: Profile }) {
         </>
       )}
 
-      {(stats.tagEffects.length > 0 || stats.exerciseDelta != null) && (
+      {(stats.tagEffects.length > 0 || stats.exerciseDelta != null || stats.sleepDelta != null) && (
         <div className="card stack">
           <span className="label">Patrones que asoman</span>
           {stats.exerciseDelta != null && stats.exerciseDays >= 2 && (
             <PatternRow
               label={`Días con ejercicio (${stats.exerciseDays})`}
               delta={stats.exerciseDelta}
+            />
+          )}
+          {stats.sleepDelta != null && stats.shortSleepDays >= 2 && (
+            <PatternRow
+              label={`Tras dormir <6 h (×${stats.shortSleepDays})`}
+              delta={stats.sleepDelta}
             />
           )}
           {stats.tagEffects.slice(0, 4).map(t => (

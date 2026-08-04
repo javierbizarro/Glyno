@@ -1,6 +1,7 @@
 import type { Entry, Med, Profile } from '../domain/types'
 import { treatmentSummary, TYPE_FULL } from '../domain/types'
 import { WEEKDAY_LABEL } from '../domain/medication'
+import { thousands } from '../domain/number'
 import { bmiOf, WEIGHT_FOCUS_BMI, weeklyWeights, weightTrendPerWeek } from '../domain/weight'
 import type { Stats } from '../domain/stats'
 
@@ -55,6 +56,10 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], weights
     stats.n > 0 ? `${Math.round(stats.pctHigh)}% altas` : null,
     stats.fasting != null ? `ayunas media ${Math.round(stats.fasting)}` : null,
     stats.bpMean ? `tensión media ${Math.round(stats.bpMean.sys)}/${Math.round(stats.bpMean.dia)}` : null,
+    stats.sleepMean != null
+      ? `sueño medio ${String(Math.round(stats.sleepMean / 6) / 10).replace('.', ',')} h`
+      : null,
+    stats.stepsMean != null ? `pasos medios ${thousands(stats.stepsMean)}/día` : null,
   ]
     .filter(Boolean)
     .join(' · ')
@@ -62,6 +67,9 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], weights
   const patterns = [
     stats.exerciseDelta != null && stats.exerciseDays >= 2
       ? `- días con ejercicio: ${Math.round(stats.exerciseDelta)} mg/dl (${stats.exerciseDays} días)`
+      : null,
+    stats.sleepDelta != null && stats.shortSleepDays >= 2
+      ? `- tras dormir menos de 6 h: ${stats.sleepDelta > 0 ? '+' : ''}${Math.round(stats.sleepDelta)} mg/dl (${stats.shortSleepDays} noches)`
       : null,
     ...stats.tagEffects.slice(0, 4).map(t => `- tras "${t.label}": ${t.delta > 0 ? '+' : ''}${Math.round(t.delta)} mg/dl (${t.n} veces)`),
   ]

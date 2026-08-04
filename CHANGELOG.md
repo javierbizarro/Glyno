@@ -3,6 +3,29 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.5.0 — 4 de agosto de 2026
+
+### Añadido
+
+- **Datos automáticos desde Apple Salud** (primera fase, sin coste y sin apps intermedias): un
+  atajo de iOS lee tu sueño, pasos, entrenamientos y la glucosa que vuelque tu sensor, y Glyno
+  lo importa desde el portapapeles con un botón en Ajustes → «Salud del iPhone». Nada sale de
+  tu dispositivo. Instrucciones para montar el atajo en `docs/atajo-salud.md`.
+- Reimportar no duplica nada, y los pasos de hoy se actualizan si vuelves a importar más tarde.
+- Los registros importados se distinguen en el diario con «· Salud».
+- **Los pasos cuentan como movimiento**: a partir de 8.000 pasos el día cuenta como activo y la
+  tarjeta de Hoy te lo reconoce («Hoy ya llevas 9.241 pasos») sin que tengas que apuntar nada.
+- **El sueño entra en los patrones**: con dos o más noches de menos de 6 horas, Tendencias y
+  Glyno muestran cuánto sube tu glucosa tras dormir poco. El contexto de la IA incluye tu sueño
+  y pasos medios.
+- Los entrenamientos importados guardan la distancia. Las calorías quemadas no se importan a
+  propósito: en Glyno el movimiento no compensa comida.
+
+### Corregido
+
+- La tarjeta «Última glucemia» podía enseñar una lectura antigua si los datos entraban
+  desordenados (solo pasaba con importaciones).
+
 ## 0.4.0 — 4 de agosto de 2026
 
 ### Añadido

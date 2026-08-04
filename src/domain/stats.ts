@@ -11,7 +11,17 @@ export interface Stats {
   exerciseDelta: number | null
   exerciseDays: number
   bpMean: { sys: number; dia: number } | null
+  /** nightly sleep minutes, averaged (automatic data) */
+  sleepMean: number | null
+  /** glucose mean on short-sleep days minus the other days' mean */
+  sleepDelta: number | null
+  shortSleepDays: number
+  /** daily steps, averaged (automatic data) */
+  stepsMean: number | null
 }
+
+/** a night under 6 h counts as short sleep for the pattern */
+export const SHORT_SLEEP_MIN = 360
 
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null)
 
@@ -41,6 +51,14 @@ export function computeStats(entries: Entry[], p: Profile): Stats {
 
   const bps = entries.filter(e => e.kind === 'bp' && e.sys && e.dia)
 
+  // automatic data: sleep nights and step days, grouped like exercise (calendar day)
+  const sleeps = entries.filter(e => e.kind === 'sleep' && e.value != null)
+  const stepDays = entries.filter(e => e.kind === 'steps' && e.value != null)
+  const shortDays = new Set(sleeps.filter(e => e.value! < SHORT_SLEEP_MIN).map(e => dayKey(e.ts)))
+  const normalDays = new Set(sleeps.filter(e => e.value! >= SHORT_SLEEP_MIN).map(e => dayKey(e.ts)))
+  const shortAvg = avg(gl.filter(e => shortDays.has(dayKey(e.ts))).map(e => e.value!))
+  const normalAvg = avg(gl.filter(e => normalDays.has(dayKey(e.ts))).map(e => e.value!))
+
   return {
     n,
     mean,
@@ -54,5 +72,9 @@ export function computeStats(entries: Entry[], p: Profile): Stats {
     bpMean: bps.length
       ? { sys: avg(bps.map(e => e.sys!))!, dia: avg(bps.map(e => e.dia!))! }
       : null,
+    sleepMean: avg(sleeps.map(e => e.value!)),
+    sleepDelta: shortAvg != null && normalAvg != null ? shortAvg - normalAvg : null,
+    shortSleepDays: shortDays.size,
+    stepsMean: avg(stepDays.map(e => e.value!)),
   }
 }

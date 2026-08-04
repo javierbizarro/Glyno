@@ -18,6 +18,8 @@ const glucose = (value: number, iso: string, note?: string): Entry => ({
 const tag = (label: string, iso: string): Entry => ({ ts: at(iso), kind: 'tag', label })
 const exercise = (iso: string, min = 30): Entry => ({ ts: at(iso), kind: 'exercise', value: min })
 const bp = (sys: number, dia: number, iso: string): Entry => ({ ts: at(iso), kind: 'bp', sys, dia })
+const sleep = (iso: string, minutes: number): Entry => ({ ts: at(iso), kind: 'sleep', value: minutes })
+const steps = (iso: string, count: number): Entry => ({ ts: at(iso), kind: 'steps', value: count })
 
 describe('computeStats with an empty diary', () => {
   it('returns the neutral shape', () => {
@@ -32,6 +34,10 @@ describe('computeStats with an empty diary', () => {
       exerciseDelta: null,
       exerciseDays: 0,
       bpMean: null,
+      sleepMean: null,
+      sleepDelta: null,
+      shortSleepDays: 0,
+      stepsMean: null,
     })
   })
 })
@@ -181,6 +187,56 @@ describe('exercise effect', () => {
     )
     expect(stats.exerciseDelta).toBeNull()
     expect(stats.exerciseDays).toBe(1)
+  })
+})
+
+describe('sleep and steps from automatic data', () => {
+  it('averages nightly sleep minutes and daily steps', () => {
+    const stats = computeStats(
+      [
+        sleep('2026-07-20T07:30:00', 420),
+        sleep('2026-07-21T07:30:00', 380),
+        steps('2026-07-20T12:00:00', 9000),
+        steps('2026-07-21T12:00:00', 5000),
+      ],
+      p,
+    )
+    expect(stats.sleepMean).toBe(400)
+    expect(stats.stepsMean).toBe(7000)
+  })
+
+  it('compares the glucose mean on short-sleep days (<6 h) against the other days', () => {
+    const stats = computeStats(
+      [
+        sleep('2026-07-20T07:30:00', 320), // short night → its day
+        glucose(150, '2026-07-20T10:00:00'),
+        glucose(160, '2026-07-20T16:00:00'),
+        sleep('2026-07-21T07:30:00', 450),
+        glucose(110, '2026-07-21T10:00:00'),
+        glucose(120, '2026-07-21T16:00:00'),
+      ],
+      p,
+    )
+    expect(stats.sleepDelta).toBe(40) // 155 vs 115
+    expect(stats.shortSleepDays).toBe(1)
+  })
+
+  it('sleepDelta is null without both short-sleep days and normal days to compare', () => {
+    const onlyShort = computeStats(
+      [sleep('2026-07-20T07:30:00', 300), glucose(150, '2026-07-20T10:00:00')],
+      p,
+    )
+    expect(onlyShort.sleepDelta).toBeNull()
+    expect(onlyShort.shortSleepDays).toBe(1)
+
+    const noSleepData = computeStats([glucose(120, '2026-07-20T10:00:00')], p)
+    expect(noSleepData.sleepDelta).toBeNull()
+    expect(noSleepData.shortSleepDays).toBe(0)
+  })
+
+  it('exactly 6 hours is not a short night', () => {
+    const stats = computeStats([sleep('2026-07-20T07:30:00', 360)], p)
+    expect(stats.shortSleepDays).toBe(0)
   })
 })
 

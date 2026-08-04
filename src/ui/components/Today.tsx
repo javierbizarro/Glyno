@@ -158,7 +158,7 @@ function MovementCard({ profile, recent }: { profile: Profile; recent: Entry[] }
         <span className="muted small">{state.activeDays} de 7 días</span>
       </div>
       {state.nudge && <p className="small" style={{ lineHeight: 1.55 }}>{state.nudge}</p>}
-      {state.minutesToday === 0 && (
+      {!state.movedToday && (
         <button className="btn ghost small" onClick={logWalk}>
           👟 Apuntar 15 min de paseo
         </button>

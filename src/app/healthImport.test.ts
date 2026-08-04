@@ -1,0 +1,202 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Entry } from '../domain/types'
+import { healthImportSummary, importHealthPayload } from './healthImport'
+import { entries } from './container'
+
+vi.mock('./container', () => ({
+  entries: { bulkAdd: vi.fn(), byExtIds: vi.fn(), update: vi.fn() },
+}))
+
+const bulkAdd = vi.mocked(entries.bulkAdd)
+const byExtIds = vi.mocked(entries.byExtIds)
+const update = vi.mocked(entries.update)
+
+const at = (iso: string) => new Date(iso).getTime()
+
+const payload = (samples: unknown[]) => JSON.stringify({ app: 'glyno', type: 'health', samples })
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  byExtIds.mockResolvedValue([])
+  bulkAdd.mockResolvedValue()
+  update.mockResolvedValue()
+})
+
+describe('importHealthPayload · payload shape', () => {
+  it('rejects anything that is not a Glyno health payload, in plain Spanish', async () => {
+    await expect(importHealthPayload('hola')).rejects.toThrow('No he reconocido ahí datos de Salud para Glyno.')
+    await expect(importHealthPayload('{"foo":1}')).rejects.toThrow('No he reconocido ahí datos de Salud')
+    await expect(importHealthPayload(payload([]).replace('glyno', 'otra'))).rejects.toThrow()
+  })
+
+  it('accepts an empty sample list and adds nothing', async () => {
+    const r = await importHealthPayload(payload([]))
+    expect(r).toEqual({ added: 0, updated: 0, ignored: 0, invalid: 0 })
+    expect(bulkAdd).not.toHaveBeenCalled()
+  })
+})
+
+describe('importHealthPayload · sample conversion', () => {
+  it('converts a glucose sample: point timestamp, health source and derived extId', async () => {
+    const r = await importHealthPayload(payload([{ kind: 'glucose', ts: '2026-08-04T08:05:00', value: 112 }]))
+    expect(r.added).toBe(1)
+    expect(bulkAdd).toHaveBeenCalledWith([
+      {
+        ts: at('2026-08-04T08:05:00'),
+        kind: 'glucose',
+        value: 112,
+        source: 'health',
+        extId: `health:glucose:${at('2026-08-04T08:05:00')}`,
+      },
+    ])
+  })
+
+  it('converts daily steps to a midday entry keyed by date', async () => {
+    await importHealthPayload(payload([{ kind: 'steps', date: '2026-08-04', value: 9241 }]))
+    expect(bulkAdd).toHaveBeenCalledWith([
+      {
+        ts: at('2026-08-04T12:00:00'),
+        kind: 'steps',
+        value: 9241,
+        source: 'health',
+        extId: 'health:steps:2026-08-04',
+      },
+    ])
+  })
+
+  it('converts a night of sleep to minutes on the morning it ended', async () => {
+    await importHealthPayload(payload([{ kind: 'sleep', date: '2026-08-04', minutes: 412 }]))
+    expect(bulkAdd).toHaveBeenCalledWith([
+      {
+        ts: at('2026-08-04T07:30:00'),
+        kind: 'sleep',
+        value: 412,
+        source: 'health',
+        extId: 'health:sleep:2026-08-04',
+      },
+    ])
+  })
+
+  it('converts a workout with optional label and distance, never calories', async () => {
+    await importHealthPayload(
+      payload([{ kind: 'exercise', ts: '2026-08-04T18:30:00', minutes: 42, label: 'Caminar', km: 3.42, kcal: 300 }]),
+    )
+    expect(bulkAdd).toHaveBeenCalledWith([
+      {
+        ts: at('2026-08-04T18:30:00'),
+        kind: 'exercise',
+        value: 42,
+        label: 'Caminar',
+        distanceKm: 3.4,
+        source: 'health',
+        extId: `health:exercise:${at('2026-08-04T18:30:00')}`,
+      },
+    ])
+  })
+
+  it('falls back to the generic label for workouts without one', async () => {
+    await importHealthPayload(payload([{ kind: 'exercise', ts: '2026-08-04T18:30:00', minutes: 42 }]))
+    const entry = bulkAdd.mock.calls[0][0][0] as Entry
+    expect(entry.label).toBe('Ejercicio')
+    expect(entry.distanceKm).toBeUndefined()
+  })
+
+  it('converts a daily weight keyed by date', async () => {
+    await importHealthPayload(payload([{ kind: 'weight', date: '2026-08-04', value: 92.4 }]))
+    expect(bulkAdd).toHaveBeenCalledWith([
+      {
+        ts: at('2026-08-04T08:00:00'),
+        kind: 'weight',
+        value: 92.4,
+        source: 'health',
+        extId: 'health:weight:2026-08-04',
+      },
+    ])
+  })
+})
+
+describe('importHealthPayload · validation', () => {
+  it('counts out-of-range or malformed samples as invalid without failing the batch', async () => {
+    const r = await importHealthPayload(
+      payload([
+        { kind: 'glucose', ts: '2026-08-04T08:05:00', value: 700 }, // impossible reading
+        { kind: 'steps', date: '2026-08-04', value: -5 },
+        { kind: 'sleep', date: '2026-08-04', minutes: 2000 }, // more than 16 h
+        { kind: 'weight', date: '2026-08-04', value: 500 },
+        { kind: 'exercise', ts: '2026-08-04T18:30:00' }, // no minutes
+        { kind: 'unknown', date: '2026-08-04', value: 1 },
+        { kind: 'glucose', ts: 'not-a-date', value: 100 },
+        { kind: 'glucose', ts: '2026-08-04T09:00:00', value: 104 }, // the only good one
+      ]),
+    )
+    expect(r.invalid).toBe(7)
+    expect(r.added).toBe(1)
+  })
+})
+
+describe('importHealthPayload · dedupe by extId', () => {
+  it('ignores samples whose extId already exists with the same value', async () => {
+    byExtIds.mockResolvedValue([
+      { id: 7, ts: at('2026-08-04T12:00:00'), kind: 'steps', value: 9241, extId: 'health:steps:2026-08-04' },
+    ])
+    const r = await importHealthPayload(payload([{ kind: 'steps', date: '2026-08-04', value: 9241 }]))
+    expect(r).toEqual({ added: 0, updated: 0, ignored: 1, invalid: 0 })
+    expect(bulkAdd).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it("updates daily aggregates whose value changed: today's steps grow through the day", async () => {
+    byExtIds.mockResolvedValue([
+      { id: 7, ts: at('2026-08-04T12:00:00'), kind: 'steps', value: 5100, extId: 'health:steps:2026-08-04' },
+    ])
+    const r = await importHealthPayload(payload([{ kind: 'steps', date: '2026-08-04', value: 9241 }]))
+    expect(r.updated).toBe(1)
+    expect(update).toHaveBeenCalledWith(7, { value: 9241 })
+    expect(bulkAdd).not.toHaveBeenCalled()
+  })
+
+  it('never updates point samples (glucose, workouts): a repeated extId is just ignored', async () => {
+    const ts = at('2026-08-04T08:05:00')
+    byExtIds.mockResolvedValue([{ id: 3, ts, kind: 'glucose', value: 112, extId: `health:glucose:${ts}` }])
+    const r = await importHealthPayload(payload([{ kind: 'glucose', ts: '2026-08-04T08:05:00', value: 108 }]))
+    expect(r).toEqual({ added: 0, updated: 0, ignored: 1, invalid: 0 })
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('dedupes inside the same batch too: the shortcut may repeat a sample', async () => {
+    const r = await importHealthPayload(
+      payload([
+        { kind: 'glucose', ts: '2026-08-04T08:05:00', value: 112 },
+        { kind: 'glucose', ts: '2026-08-04T08:05:00', value: 112 },
+      ]),
+    )
+    expect(r.added).toBe(1)
+    expect(r.ignored).toBe(1)
+  })
+})
+
+describe('healthImportSummary', () => {
+  it('celebrates new and updated entries', () => {
+    expect(healthImportSummary({ added: 12, updated: 0, ignored: 3, invalid: 0 })).toBe(
+      'De Salud: 12 registros nuevos.',
+    )
+    expect(healthImportSummary({ added: 12, updated: 2, ignored: 0, invalid: 0 })).toBe(
+      'De Salud: 12 registros nuevos y 2 al día.',
+    )
+    expect(healthImportSummary({ added: 0, updated: 1, ignored: 5, invalid: 0 })).toBe(
+      'De Salud: 1 al día.',
+    )
+    expect(healthImportSummary({ added: 1, updated: 1, ignored: 0, invalid: 0 })).toBe(
+      'De Salud: 1 registro nuevo y 1 al día.',
+    )
+  })
+
+  it('says honestly when there was nothing new, mentioning skipped samples', () => {
+    expect(healthImportSummary({ added: 0, updated: 0, ignored: 8, invalid: 0 })).toBe(
+      'Nada nuevo: esos datos ya estaban en tu diario.',
+    )
+    expect(healthImportSummary({ added: 0, updated: 0, ignored: 0, invalid: 3 })).toBe(
+      'No he podido entender esas muestras (3 descartadas).',
+    )
+  })
+})

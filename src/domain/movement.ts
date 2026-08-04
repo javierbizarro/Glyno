@@ -1,4 +1,5 @@
 import type { Entry, Profile } from './types'
+import { thousands } from './number'
 import { daysAgo } from './time'
 import { needsHypoCare } from './glucose'
 import { computeStats } from './stats'
@@ -6,9 +7,15 @@ import { computeStats } from './stats'
 export interface MovementState {
   activeDays: number
   minutesToday: number
+  /** already moved today, by logged exercise or by the steps threshold */
+  movedToday: boolean
   /** suggestion for right now; null when nothing should be suggested */
   nudge: string | null
 }
+
+/** a day counts as active from this many automatic steps; below it, walking to the
+    fridge is not "moving". Deliberately high — the goal is movement, not the button */
+export const STEP_ACTIVE_THRESHOLD = 8000
 
 /**
  * Movement as a lever on glucose, never as compensation for what was eaten:
@@ -17,14 +24,18 @@ export interface MovementState {
 export function movementState(p: Profile, entries: Entry[], now = Date.now()): MovementState {
   const dayKey = (ts: number) => new Date(ts).toDateString()
   const week = entries.filter(e => e.ts >= daysAgo(6, now))
-  const activeDays = new Set(week.filter(e => e.kind === 'exercise').map(e => dayKey(e.ts))).size
+  const active = (e: Entry) =>
+    e.kind === 'exercise' || (e.kind === 'steps' && (e.value ?? 0) >= STEP_ACTIVE_THRESHOLD)
+  const activeDays = new Set(week.filter(active).map(e => dayKey(e.ts))).size
 
   const today = entries.filter(e => e.ts >= daysAgo(0, now))
   const minutesToday = today
     .filter(e => e.kind === 'exercise')
     .reduce((sum, e) => sum + (e.value ?? 0), 0)
+  const stepsToday = Math.max(0, ...today.filter(e => e.kind === 'steps').map(e => e.value ?? 0))
+  const movedToday = minutesToday > 0 || stepsToday >= STEP_ACTIVE_THRESHOLD
 
-  const base = { activeDays, minutesToday }
+  const base = { activeDays, minutesToday, movedToday }
 
   const glucose = entries.filter(e => e.kind === 'glucose' && e.value != null)
   const last = glucose[glucose.length - 1]
@@ -40,6 +51,9 @@ export function movementState(p: Profile, entries: Entry[], now = Date.now()): M
   const pattern = drop ? ` Los días que te mueves tu media baja ${drop} mg/dl.` : ''
 
   if (minutesToday > 0) return { ...base, nudge: `Ya te has movido hoy, ${minutesToday} min.${pattern}` }
+
+  if (stepsToday >= STEP_ACTIVE_THRESHOLD)
+    return { ...base, nudge: `Hoy ya llevas ${thousands(stepsToday)} pasos.${pattern}` }
 
   // a short walk after eating is what trims the postprandial spike the most; the
   // 15-90 min window is about digestion, so a dinner before midnight still counts
