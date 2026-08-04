@@ -194,8 +194,15 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
     iOS 15, pero firmados «para cualquiera» sí. Fuente legible en
     `docs/glyno-salud.shortcut.plist` (plist XML escrito a mano: comment + 2× Buscar muestras
     de salud + 2× Estadísticas Suma + Texto con attachments `{18,1}`/`{26,1}` (U+FFFC) + Copiar
-    al portapapeles); firmado en `public/glyno-salud.shortcut` (la web lo sirve) y botón
-    «⬇️ Añadir el atajo» en Ajustes (solo iOS, `import.meta.env.BASE_URL + 'glyno-salud.shortcut'`).
+    al portapapeles); firmado en `public/Glyno Salud.shortcut` (la web lo sirve) y botón
+    «⬇️ Añadir el atajo» en Ajustes (solo iOS, `BASE_URL + 'Glyno%20Salud.shortcut'`).
+    OJO: EL NOMBRE DEL FICHERO ES EL NOMBRE DEL ATAJO al importar (el plist no lleva nombre) —
+    debe ser exactamente «Glyno Salud» porque `run-shortcut?name=` lo lanza por nombre. La
+    primera importación de Javier salió como «glyno-salud (1)» por esto; renombrado el fichero
+    el 2026-08-04. VALIDADO en el Mac de Javier: el fichero firmado IMPORTA y la estructura
+    llega entera (texto con las dos variables Suma bien cableadas); las acciones de salud
+    muestran «no compatible con Mac» (normal, HealthKit no existe en macOS) — los parámetros
+    Pasos/Sueño se comprueban en el iPhone (Atajos sincroniza por iCloud al aceptar en el Mac).
     Comando de regeneración documentado al pie de `docs/atajo-salud.md`.
     VERIFICADO EN LA WEB (2026-08-04): el mecanismo sigue vivo en iOS moderno — la firma es
     obligatoria desde iOS 15 y `shortcuts sign --mode anyone` es la vía oficial; la comunidad
@@ -215,6 +222,14 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
     `shortcuts://import-shortcut?url=<url-codificada>` — abre la app Atajos y es ella quien
     descarga el fichero, así que funciona desde la PWA instalada sin tocar Safari. REGLA:
     cualquier fichero descargable futuro en public/ debe añadirse a esa denylist.
+    SEGUNDA LECCIÓN (0.5.2, probado por Javier en su iPhone): `shortcuts://import-shortcut`
+    RECHAZA URLs que no sean de iCloud («la dirección URL del atajo proporcionada no es
+    válida») — solo acepta `icloud.com/shortcuts/…`. Por eso todo el ecosistema distribuye
+    con enlaces de iCloud. El botón volvió a la descarga directa (href + target _blank) como
+    interino, con TODO en el código: sustituirlo por el ENLACE DE ICLOUD que Javier compartirá
+    cuando valide el atajo (Atajos → compartir → «Copiar enlace de iCloud»). Desbloqueo sin
+    botón: AirDrop del fichero desde el Mac (se abre directo en Atajos) o URL en pestaña
+    privada de Safari (sin service worker de por medio).
     ADVERTENCIA HONESTA pendiente de validar en iPhone real: los parámetros de las acciones de
     salud (`WFHealthSampleType: Steps / Sleep Analysis`) van de memoria y los filtros de fecha
     van vacíos a propósito — al instalar hay que revisar las dos acciones «Buscar muestras de

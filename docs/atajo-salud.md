@@ -7,12 +7,21 @@ Nada sale de tu iPhone.
 
 ## Instalarlo: un toque
 
-En el iPhone, **Ajustes → Salud del iPhone → «⬇️ Añadir el atajo “Glyno Salud”»**: el botón usa
-el esquema `shortcuts://import-shortcut?url=…`, así que se abre la app Atajos directamente con
-la vista previa → «Añadir atajo». (Alternativa: descargar
-<https://javierbizarro.github.io/Glyno/glyno-salud.shortcut> en Safari y tocar la descarga.)
-El fichero está firmado con la herramienta oficial de Apple (`shortcuts sign`) para que se
-pueda importar.
+En el iPhone, **Ajustes → Salud del iPhone → «⬇️ Añadir el atajo “Glyno Salud”»**: descarga el
+fichero (firmado con la herramienta oficial de Apple, `shortcuts sign`) y, al tocar la
+descarga en Safari, se abre la vista previa de Atajos → «Añadir atajo».
+
+Si en vez de descargarse se abre la propia app, actualiza Glyno primero (Ajustes → «Buscar
+actualización») o abre la URL en una **pestaña privada** de Safari:
+<https://javierbizarro.github.io/Glyno/Glyno%20Salud.shortcut>. Otra vía rápida con un Mac a
+mano: AirDrop del fichero `public/Glyno Salud.shortcut` — se abre directo en Atajos.
+
+El nombre del fichero es el nombre con el que se importa, y debe quedarse **«Glyno Salud»**
+tal cual: el botón «Traer datos de Salud» lo lanza por ese nombre exacto.
+
+> Nota técnica: el esquema `shortcuts://import-shortcut?url=…` NO sirve aquí — solo acepta
+> enlaces de iCloud (`icloud.com/shortcuts/…`). Cuando el atajo esté validado y compartido por
+> iCloud, ese enlace será el botón definitivo (vista previa en un solo toque).
 
 Tras añadirlo, ábrelo una vez en Atajos y **revisa las dos acciones de «Buscar muestras de
 salud»** (el propio atajo lo recuerda en su primer paso): la primera debe ser *Pasos* de
@@ -127,11 +136,12 @@ distribuir) cuando llegue — ver `.claude/plan-datos-automaticos.md`.
 
 ---
 
-**Para mantenedores**: el fichero instalable `public/glyno-salud.shortcut` se genera firmando
-la fuente [`docs/glyno-salud.shortcut.plist`](glyno-salud.shortcut.plist) en un Mac:
+**Para mantenedores**: el fichero instalable `public/Glyno Salud.shortcut` se genera firmando
+la fuente [`docs/glyno-salud.shortcut.plist`](glyno-salud.shortcut.plist) en un Mac (el nombre
+del fichero de salida ES el nombre del atajo al importarlo — no cambiarlo):
 
 ```
-shortcuts sign --mode anyone --input docs/glyno-salud.shortcut.plist --output public/glyno-salud.shortcut
+shortcuts sign --mode anyone --input docs/glyno-salud.shortcut.plist --output "public/Glyno Salud.shortcut"
 ```
 
 Si se cambia la fuente (acciones, textos), hay que volver a firmar y probar la importación en

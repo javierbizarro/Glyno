@@ -345,11 +345,13 @@ function HealthCard() {
       {isIos() && (
         <a
           className="btn ghost small"
-          // official scheme: Shortcuts itself fetches the file, so the link works from
-          // the installed PWA too (a plain href would be swallowed by the SPA fallback)
-          href={`shortcuts://import-shortcut?url=${encodeURIComponent(
-            location.origin + import.meta.env.BASE_URL + 'glyno-salud.shortcut',
-          )}`}
+          // direct download opened outside the app shell; the shortcuts://import-shortcut
+          // scheme is NOT an option here — it only accepts icloud.com/shortcuts links.
+          // The filename IS the imported shortcut's name, and «Traer datos de Salud»
+          // launches it by that exact name. TODO: swap for the iCloud link once published.
+          href={`${import.meta.env.BASE_URL}Glyno%20Salud.shortcut`}
+          target="_blank"
+          rel="noopener noreferrer"
         >
           ⬇️ Añadir el atajo «Glyno Salud»
         </a>

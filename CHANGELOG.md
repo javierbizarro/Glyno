@@ -3,6 +3,15 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.5.2 — 4 de agosto de 2026
+
+### Corregido
+
+- «Añadir el atajo» daba «la importación ha fallado»: el mecanismo de importación directa de
+  Atajos solo acepta enlaces de iCloud. El botón vuelve a la descarga del fichero (con la app
+  ya fuera del medio), y la guía explica las alternativas mientras publicamos el enlace de
+  iCloud definitivo.
+
 ## 0.5.1 — 4 de agosto de 2026
 
 ### Corregido
