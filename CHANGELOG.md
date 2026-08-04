@@ -3,6 +3,15 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.5.3 — 4 de agosto de 2026
+
+### Añadido
+
+- El atajo «Glyno Salud» ya está **publicado en iCloud**: el botón de Ajustes abre la vista
+  previa de Atajos en un solo toque, también desde la app instalada.
+- El importador entiende los formatos que Atajos imprime tal cual: «8.734 pasos»,
+  «6 h 52 min», «412 min», «92,1 kg».
+
 ## 0.5.2 — 4 de agosto de 2026
 
 ### Corregido

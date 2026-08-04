@@ -306,6 +306,10 @@ export function Settings({
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 
+// the published «Glyno Salud» shortcut (Javier's iCloud share, validated on device).
+// If the shortcut changes, share it again and update this link — iCloud links are frozen snapshots.
+const SHORTCUT_ICLOUD_URL = 'https://www.icloud.com/shortcuts/533f34e58cfb47938b4158c6927d29af'
+
 function HealthCard() {
   const [msg, setMsg] = useState('')
 
@@ -345,13 +349,10 @@ function HealthCard() {
       {isIos() && (
         <a
           className="btn ghost small"
-          // direct download opened outside the app shell; the shortcuts://import-shortcut
-          // scheme is NOT an option here — it only accepts icloud.com/shortcuts links.
-          // The filename IS the imported shortcut's name, and «Traer datos de Salud»
-          // launches it by that exact name. TODO: swap for the iCloud link once published.
-          href={`${import.meta.env.BASE_URL}Glyno%20Salud.shortcut`}
-          target="_blank"
-          rel="noopener noreferrer"
+          // import-shortcut only accepts icloud.com/shortcuts links (a self-hosted file
+          // URL fails with "not valid"); with the iCloud link it opens the Shortcuts
+          // preview in one tap, even from the installed PWA
+          href={`shortcuts://import-shortcut?url=${encodeURIComponent(SHORTCUT_ICLOUD_URL)}`}
         >
           ⬇️ Añadir el atajo «Glyno Salud»
         </a>

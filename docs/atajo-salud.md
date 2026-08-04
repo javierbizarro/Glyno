@@ -7,21 +7,20 @@ Nada sale de tu iPhone.
 
 ## Instalarlo: un toque
 
-En el iPhone, **Ajustes → Salud del iPhone → «⬇️ Añadir el atajo “Glyno Salud”»**: descarga el
-fichero (firmado con la herramienta oficial de Apple, `shortcuts sign`) y, al tocar la
-descarga en Safari, se abre la vista previa de Atajos → «Añadir atajo».
+En el iPhone, **Ajustes → Salud del iPhone → «⬇️ Añadir el atajo “Glyno Salud”»**: se abre la
+app Atajos con la vista previa → «Añadir atajo». Hecho. El botón usa el atajo publicado en
+iCloud: <https://www.icloud.com/shortcuts/533f34e58cfb47938b4158c6927d29af>.
 
-Si en vez de descargarse se abre la propia app, actualiza Glyno primero (Ajustes → «Buscar
-actualización») o abre la URL en una **pestaña privada** de Safari:
-<https://javierbizarro.github.io/Glyno/Glyno%20Salud.shortcut>. Otra vía rápida con un Mac a
-mano: AirDrop del fichero `public/Glyno Salud.shortcut` — se abre directo en Atajos.
+Alternativas: el fichero firmado
+<https://javierbizarro.github.io/Glyno/Glyno%20Salud.shortcut> (descarga en Safari y toca la
+descarga; firmado con `shortcuts sign` de Apple) o AirDrop de `public/Glyno Salud.shortcut`
+desde un Mac. El atajo debe llamarse **«Glyno Salud»** tal cual: el botón «Traer datos de
+Salud» lo lanza por ese nombre exacto.
 
-El nombre del fichero es el nombre con el que se importa, y debe quedarse **«Glyno Salud»**
-tal cual: el botón «Traer datos de Salud» lo lanza por ese nombre exacto.
-
-> Nota técnica: el esquema `shortcuts://import-shortcut?url=…` NO sirve aquí — solo acepta
-> enlaces de iCloud (`icloud.com/shortcuts/…`). Cuando el atajo esté validado y compartido por
-> iCloud, ese enlace será el botón definitivo (vista previa en un solo toque).
+> Nota técnica: el esquema `shortcuts://import-shortcut?url=…` solo acepta enlaces de iCloud
+> (`icloud.com/shortcuts/…`); con una URL propia falla con «la dirección URL del atajo
+> proporcionada no es válida». Los enlaces de iCloud son fotos fijas: si el atajo cambia, hay
+> que compartirlo de nuevo y actualizar el enlace en `Settings.tsx` y aquí.
 
 Tras añadirlo, ábrelo una vez en Atajos y **revisa las dos acciones de «Buscar muestras de
 salud»** (el propio atajo lo recuerda en su primer paso): la primera debe ser *Pasos* de

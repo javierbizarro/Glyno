@@ -96,9 +96,11 @@ function parseLine(line: string, today: string): RawSample | null {
   if (keyword === 'pasos' && /^[\d.]+$/.test(tokens[0] ?? ''))
     return { kind: 'steps', date, value: Number(tokens[0].replace(/\./g, '')) }
 
-  if (keyword === 'sueno' && tokens[0]) {
-    const hm = tokens[0].match(/^(\d{1,2})h(\d{1,2})?$/)
-    const mins = tokens[0].match(/^(\d+)min$/)
+  if (keyword === 'sueno' && tokens.length) {
+    // tolerate how Shortcuts prints durations: '6h35', '7h', '395min', '6 h 52 min', '412 min'
+    const rest = tokens.join(' ')
+    const hm = rest.match(/^(\d{1,2})\s*h(?:\s*(\d{1,2}))?\s*(?:min)?$/)
+    const mins = rest.match(/^(\d+)\s*min$/)
     if (hm) return { kind: 'sleep', date, minutes: Number(hm[1]) * 60 + Number(hm[2] ?? 0) }
     if (mins) return { kind: 'sleep', date, minutes: Number(mins[1]) }
     return null

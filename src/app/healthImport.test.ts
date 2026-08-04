@@ -203,6 +203,19 @@ describe('importHealthPayload · plain-text format (what a simple Shortcut can b
     expect(rows[1]).toMatchObject({ kind: 'steps', value: 8734 })
   })
 
+  it('tolerates what Shortcuts magic variables actually print: units and spaces', async () => {
+    const r = await importHealthPayload(
+      asText('pasos 8.734 pasos', 'sueño 6 h 52 min', 'sueño 2026-08-03 412 min', 'peso 92,1 kg'),
+      NOW,
+    )
+    expect(r.added).toBe(4)
+    const rows = bulkAdd.mock.calls[0][0] as Entry[]
+    expect(rows[0]).toMatchObject({ kind: 'steps', value: 8734 })
+    expect(rows[1]).toMatchObject({ kind: 'sleep', value: 412 })
+    expect(rows[2]).toMatchObject({ kind: 'sleep', value: 412, extId: 'health:sleep:2026-08-03' })
+    expect(rows[3]).toMatchObject({ kind: 'weight', value: 92.1 })
+  })
+
   it('parses glucose with time (date optional) and workouts with label, minutes and optional km', async () => {
     const r = await importHealthPayload(
       asText('glucosa 08:10 118', 'glucosa 2026-08-03 22:15 141', 'ejercicio 18:30 Bici estática 40min 3,2km'),

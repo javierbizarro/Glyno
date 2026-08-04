@@ -225,11 +225,15 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
     SEGUNDA LECCIÓN (0.5.2, probado por Javier en su iPhone): `shortcuts://import-shortcut`
     RECHAZA URLs que no sean de iCloud («la dirección URL del atajo proporcionada no es
     válida») — solo acepta `icloud.com/shortcuts/…`. Por eso todo el ecosistema distribuye
-    con enlaces de iCloud. El botón volvió a la descarga directa (href + target _blank) como
-    interino, con TODO en el código: sustituirlo por el ENLACE DE ICLOUD que Javier compartirá
-    cuando valide el atajo (Atajos → compartir → «Copiar enlace de iCloud»). Desbloqueo sin
-    botón: AirDrop del fichero desde el Mac (se abre directo en Atajos) o URL en pestaña
-    privada de Safari (sin service worker de por medio).
+    con enlaces de iCloud.
+    ✅ CERRADO (0.5.3): Javier validó el atajo en su iPhone y lo publicó por iCloud:
+    https://www.icloud.com/shortcuts/533f34e58cfb47938b4158c6927d29af (verificado vía la API
+    de iCloud: nombre exacto «Glyno Salud», firmado y aprobado). El botón de Ajustes usa
+    `shortcuts://import-shortcut?url=<ese enlace codificado>` (constante `SHORTCUT_ICLOUD_URL`
+    en Settings.tsx) → vista previa de Atajos en un toque, también desde la PWA instalada.
+    Los enlaces de iCloud son FOTOS FIJAS: si el atajo cambia (v2 con glucosa/entrenos), hay
+    que volver a compartir y actualizar la constante y la doc. El fichero firmado en public/
+    y el AirDrop quedan como alternativas documentadas.
     ADVERTENCIA HONESTA pendiente de validar en iPhone real: los parámetros de las acciones de
     salud (`WFHealthSampleType: Steps / Sleep Analysis`) van de memoria y los filtros de fecha
     van vacíos a propósito — al instalar hay que revisar las dos acciones «Buscar muestras de
