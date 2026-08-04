@@ -212,7 +212,7 @@ export function Coach({ profile }: { profile: Profile }) {
       </div>
 
       {/* trailing gap: without it, the last bubble ends up under the fixed input box */}
-      <div style={{ height: 32, flex: 'none' }} />
+      <div className="chat-end" />
     </>
   )
 }

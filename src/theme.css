@@ -385,6 +385,14 @@ button.entry-row:active { opacity: .6; }
   gap: 10px;
 }
 
+/* trailing gap after the thread: the dock is fixed, so the flow must reserve its space or
+   the last bubble slides under it. Height = keyboard + measured tab bar + dock (~65px) +
+   12px of breathing, minus the 96px the .screen bottom padding already provides */
+.chat-end {
+  flex: none;
+  height: max(0px, calc(var(--kb, 0px) + var(--tabbar, 66px) + 77px - 96px));
+}
+
 /* ---- guided tour ---- */
 .tour { position: fixed; inset: 0; z-index: 70; } /* blocks the app while touring */
 .tour-hole {
@@ -420,6 +428,7 @@ button.entry-row:active { opacity: .6; }
    so it still looks intentional and not broken */
 @media (orientation: landscape) and (max-height: 520px) {
   .screen { padding: 12px 20px 82px; gap: 12px; }
+  .chat-end { height: max(0px, calc(var(--kb, 0px) + var(--tabbar, 66px) + 77px - 82px)); }
   h1 { font-size: 21px; }
   .bignum { font-size: 42px; }
   .tabbar { padding: 2px 0 max(6px, env(safe-area-inset-bottom)); }
