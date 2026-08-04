@@ -91,21 +91,23 @@ sin que tú lo pidas, y es deliberado.
 
 ## Más datos: glucosa, entrenamientos y peso
 
-Cuando el atajo mínimo funcione, puedes añadir líneas (estas sí requieren un «Repetir con
-cada» en Atajos para recorrer las muestras):
+El atajo publicado ya incluye estas líneas (glucosa y entrenamientos con un «Repetir con
+cada» por muestra; el peso, la última pesada del día):
 
 ```
 glucosa 08:10 118
 glucosa 2026-08-03 22:15 141
-ejercicio 18:30 Caminar 40min 3,2km
+ejercicio 18:30 Caminar 40 min 3,2 km
 peso 92,1
 ```
 
 - **Glucosa**: hora y valor. La que vuelca tu app del sensor en Salud (LibreLink y Dexcom lo
   hacen) — ojo, Salud va **por detrás del sensor**, con retraso variable; para el minuto a
   minuto, tu app del sensor.
-- **Ejercicio**: hora, nombre, minutos (`40min`) y distancia opcional (`3,2km`). Las calorías
-  quemadas no se importan a propósito: en Glyno el movimiento no compensa comida.
+- **Ejercicio**: hora, nombre, duración y distancia opcional. Glyno tolera los formatos que
+  Atajos imprima («42 min», «2.520 s», «0:42:15»). Las calorías quemadas no se importan a
+  propósito: en Glyno el movimiento no compensa comida.
+- Sin datos de un tipo, su línea sale vacía y simplemente se descarta al pegar.
 
 ## Formato avanzado (JSON)
 

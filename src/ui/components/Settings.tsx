@@ -306,9 +306,10 @@ export function Settings({
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 
-// the published «Glyno Salud» shortcut (Javier's iCloud share, validated on device).
+// the published «Glyno Salud» shortcut (Javier's iCloud share).
 // If the shortcut changes, share it again and update this link — iCloud links are frozen snapshots.
-const SHORTCUT_ICLOUD_URL = 'https://www.icloud.com/shortcuts/533f34e58cfb47938b4158c6927d29af'
+// TODO: replace with the re-shared link of the patched version (fixed sleep sum + 1-day steps).
+const SHORTCUT_ICLOUD_URL = 'https://www.icloud.com/shortcuts/3275a6302b4b44ecb59dbcde5a37906d'
 
 function HealthCard() {
   const [msg, setMsg] = useState('')

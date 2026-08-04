@@ -100,9 +100,14 @@ function parseLine(line: string, today: string): RawSample | null {
     // tolerate how Shortcuts prints durations: '6h35', '7h', '395min', '6 h 52 min', '412 min'
     const rest = tokens.join(' ')
     const hm = rest.match(/^(\d{1,2})\s*h(?:\s*(\d{1,2}))?\s*(?:min)?$/)
-    const mins = rest.match(/^(\d+)\s*min$/)
+    const mins = rest.match(/^([\d.]+)\s*min$/)
     if (hm) return { kind: 'sleep', date, minutes: Number(hm[1]) * 60 + Number(hm[2] ?? 0) }
-    if (mins) return { kind: 'sleep', date, minutes: Number(mins[1]) }
+    if (mins) {
+      let minutes = Number(mins[1].replace(/\./g, ''))
+      // HealthKit durations often arrive as raw seconds; no night has 960+ minutes
+      if (minutes > 960) minutes = Math.round(minutes / 60)
+      return { kind: 'sleep', date, minutes }
+    }
     return null
   }
 
@@ -114,15 +119,32 @@ function parseLine(line: string, today: string): RawSample | null {
 
   if (keyword === 'ejercicio' && TIME.test(tokens[0] ?? '')) {
     const time = tokens.shift()!
-    const minAt = tokens.findIndex(t => /^\d+min$/.test(t))
-    if (minAt < 0) return null
-    const km = tokens[minAt + 1]?.match(/^(\d+([.,]\d+)?)km$/)
+    let rest = tokens.join(' ')
+
+    const kmMatch = rest.match(/(\d+(?:[.,]\d+)?)\s*km\b/)
+    if (kmMatch) rest = rest.replace(kmMatch[0], ' ')
+
+    // duration in any of Shortcuts' habits: '40min', '42 min', '1 h 10 min', '0:42:15', '2.520 s'
+    let minutes: number | null = null
+    const grab = (re: RegExp, toMin: (m: RegExpMatchArray) => number) => {
+      const m = rest.match(re)
+      if (m && minutes == null) {
+        minutes = Math.round(toMin(m))
+        rest = rest.replace(m[0], ' ')
+      }
+    }
+    grab(/(\d+):(\d{2}):(\d{2})/, m => Number(m[1]) * 60 + Number(m[2]) + Number(m[3]) / 60)
+    grab(/(\d+)\s*h(?:\s*(\d+)\s*min)?/, m => Number(m[1]) * 60 + Number(m[2] ?? 0))
+    grab(/(\d+)\s*min\b/, m => Number(m[1]))
+    grab(/([\d.]+)\s*s\b/, m => Number(m[1].replace(/\./g, '')) / 60)
+    if (minutes == null) return null
+
     return {
       kind: 'exercise',
       ts: `${date}T${time.padStart(5, '0')}:00`,
-      minutes: Number(tokens[minAt].slice(0, -3)),
-      label: tokens.slice(0, minAt).join(' ') || undefined,
-      ...(km ? { km: num(km[1]) } : {}),
+      minutes,
+      label: rest.replace(/\s+/g, ' ').trim() || undefined,
+      ...(kmMatch ? { km: num(kmMatch[1]) } : {}),
     }
   }
 

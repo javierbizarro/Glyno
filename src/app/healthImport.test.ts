@@ -203,6 +203,15 @@ describe('importHealthPayload · plain-text format (what a simple Shortcut can b
     expect(rows[1]).toMatchObject({ kind: 'steps', value: 8734 })
   })
 
+  it('detects sleep durations that arrive in seconds and converts them', async () => {
+    // HealthKit durations often print as raw seconds: 24.780 s = 413 min
+    const r = await importHealthPayload(asText('sueño 24780 min', 'sueño 2026-08-03 24.780 min'), NOW)
+    expect(r.added).toBe(2)
+    const rows = bulkAdd.mock.calls[0][0] as Entry[]
+    expect(rows[0]).toMatchObject({ kind: 'sleep', value: 413 })
+    expect(rows[1]).toMatchObject({ kind: 'sleep', value: 413 })
+  })
+
   it('tolerates what Shortcuts magic variables actually print: units and spaces', async () => {
     const r = await importHealthPayload(
       asText('pasos 8.734 pasos', 'sueño 6 h 52 min', 'sueño 2026-08-03 412 min', 'peso 92,1 kg'),
@@ -214,6 +223,23 @@ describe('importHealthPayload · plain-text format (what a simple Shortcut can b
     expect(rows[1]).toMatchObject({ kind: 'sleep', value: 412 })
     expect(rows[2]).toMatchObject({ kind: 'sleep', value: 412, extId: 'health:sleep:2026-08-03' })
     expect(rows[3]).toMatchObject({ kind: 'weight', value: 92.1 })
+  })
+
+  it('parses workouts however Shortcuts prints durations: spaced min, raw seconds or H:MM:SS', async () => {
+    const r = await importHealthPayload(
+      asText(
+        'ejercicio 18:30 Caminata 42 min 3,42 km',
+        'ejercicio 2026-08-03 07:15 Bici estática 2.520 s',
+        'ejercicio 09:00 Correr 0:42:15 5,1 km',
+      ),
+      NOW,
+    )
+    expect(r.added).toBe(3)
+    const rows = bulkAdd.mock.calls[0][0] as Entry[]
+    expect(rows[0]).toMatchObject({ value: 42, label: 'Caminata', distanceKm: 3.4 })
+    expect(rows[1]).toMatchObject({ ts: at('2026-08-03T07:15:00'), value: 42, label: 'Bici estática' })
+    expect(rows[1].distanceKm).toBeUndefined()
+    expect(rows[2]).toMatchObject({ value: 42, label: 'Correr', distanceKm: 5.1 })
   })
 
   it('parses glucose with time (date optional) and workouts with label, minutes and optional km', async () => {

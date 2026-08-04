@@ -226,9 +226,45 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
     RECHAZA URLs que no sean de iCloud («la dirección URL del atajo proporcionada no es
     válida») — solo acepta `icloud.com/shortcuts/…`. Por eso todo el ecosistema distribuye
     con enlaces de iCloud.
-    ✅ CERRADO (0.5.3): Javier validó el atajo en su iPhone y lo publicó por iCloud:
-    https://www.icloud.com/shortcuts/533f34e58cfb47938b4158c6927d29af (verificado vía la API
-    de iCloud: nombre exacto «Glyno Salud», firmado y aprobado). El botón de Ajustes usa
+    ITERACIÓN EN EL DISPOSITIVO (2026-08-04, tarde): las sumas salían VACÍAS. Causas reales,
+    depuradas DESCARGANDO el atajo desde el enlace de iCloud (API pública:
+    `icloud.com/shortcuts/api/records/<id>` → `fields.shortcut.value.downloadURL` con
+    `${f}`→nombre → plist binario SIN firmar → `plutil`/`plistlib`) — se puede leer, PARCHEAR
+    y volver a firmar, iterando sin tocar el iPhone:
+    1. Javier había cableado la Suma a «Entrada de atajo» (vacía al ejecutar a mano) — el
+       token correcto es la variable «Muestras de salud» de la búsqueda de arriba.
+    2. El sueño NO se puede sumar directo: las muestras son de CATEGORÍA («variable no
+       disponible») — hace falta «Obtener detalles de muestras de salud» → Duración → Suma.
+    3. En su v2 el token del texto apuntaba a la LISTA de duraciones (no a la Suma), faltaba
+       el espacio tras `sueño`, y el filtro de pasos quedó en «últimos 7 días» (con
+       agrupar-por-día + Suma = pasos de la semana). Parcheado por código (v3): offsets de
+       attachments recalculados {18,1}/{26,1}, filtro a 1 día (Operator 1001/Unit 16/Number 1).
+    4. OJO `shortcuts sign`: rechaza la entrada si la extensión es `.plist` («isn't in the
+       correct format») — renombrar a `.shortcut` antes de firmar.
+    5. El parser tolera ahora duración en SEGUNDOS (sueño >960 min → /60; HealthKit suele
+       imprimir segundos) además de «6 h 52 min»/«412 min»/«8.734 pasos».
+    6. Sin datos de sueño en Salud no hay nada que sumar: se pueden EMULAR a mano en
+       Salud → Explorar → Sueño → «Agregar datos» (si el filtro «Valor es Dormido» no los ve,
+       quitarlo: las entradas manuales a veces llevan otro valor).
+    La fuente de docs/ es ahora la v3 (la v2 de Javier parcheada), firmada en public/.
+    V4/V5 (2026-08-04, noche — pedido «añade los datos que faltan» + «entrenamiento ya»):
+    generadas por código sobre la v3. V4 añade PESO (filter Weight, último 1 día, sort
+    descendente + límite 1, sin bucle) y GLUCOSA (filter Blood Glucose último día → repeat.each
+    → gettext por muestra `glucosa ￼ ￼` con Repeat Item {Type:'Variable',
+    VariableName:'Repeat Item'} + Aggrandizements [property Start Date + date format HH:mm] →
+    appendvariable 'glucosas' → text.combine con separador New Lines). V5 añade ENTRENAMIENTOS:
+    descubierto en la dyld shared cache del Mac (segmentos .05/.09, grep de
+    `is.workflow.actions.*`) que NO existe una acción filter.workouts — «Buscar entrenamientos»
+    es filter.health.quantity con WFHealthSampleType 'Workouts'; línea por entreno
+    `ejercicio ￼ ￼ ￼ ￼` (Start Date HH:mm · Workout Type · Duration · Distance). El parser de
+    `ejercicio` se hizo tolerante (TDD): duración como '40min', '42 min', '1 h 10 min',
+    '0:42:15' o '2.520 s' (segundos → /60), distancia 'N,N km' opcional en cualquier posición,
+    y la etiqueta es lo que queda. Texto final: pasos/sueño/peso/bloque glucosas/bloque
+    entrenos (offsets 18/26/37/39/41). PENDIENTE DE VALIDAR EN EL IPHONE: nombres de propiedad
+    'Workout Type'/'Duration'/'Distance' y el formato real que imprimen.
+    Enlace de iCloud publicado (v2, PENDIENTE de re-compartir la v3 buena):
+    https://www.icloud.com/shortcuts/3275a6302b4b44ecb59dbcde5a37906d (v2; la v1 fue
+    533f34e58cfb47938b4158c6927d29af). El botón de Ajustes usa
     `shortcuts://import-shortcut?url=<ese enlace codificado>` (constante `SHORTCUT_ICLOUD_URL`
     en Settings.tsx) → vista previa de Atajos en un toque, también desde la PWA instalada.
     Los enlaces de iCloud son FOTOS FIJAS: si el atajo cambia (v2 con glucosa/entrenos), hay
