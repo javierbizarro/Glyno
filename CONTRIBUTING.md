@@ -83,8 +83,8 @@ No es por gusto, es por seguridad de quien la usa:
 - Traducciones de la interfaz.
 - Recordatorio de la medicación semanal (los GLP-1 tipo Ozempic se ponen un día fijo y se olvida).
 
-Hay más contexto y decisiones ya tomadas en `.claude/memoria.md` y en
-`.claude/plan-datos-automaticos.md`.
+Si quieres proponer algo gordo, abre antes un issue y lo hablamos: muchas decisiones de
+producto ya están tomadas y razonadas (y algunas son líneas rojas deliberadas).
 
 ## Condiciones de tu aportación
 

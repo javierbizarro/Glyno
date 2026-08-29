@@ -3,3 +3,6 @@ dist
 dev-dist
 *.local
 .DS_Store
+
+# internal notes and product decisions live outside the public repo
+.claude/

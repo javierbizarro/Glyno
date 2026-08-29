@@ -148,7 +148,7 @@ equivocado» — la recomendada es el portapapeles.
 
 No hay equivalente preinstalado a Atajos. **Tasker** (~3,5 €) puede leer Health Connect y
 producir este mismo texto, pero la vía buena en Android será la app nativa (gratuita de
-distribuir) cuando llegue — ver `.claude/plan-datos-automaticos.md`.
+distribuir) cuando llegue.
 
 ---
 
