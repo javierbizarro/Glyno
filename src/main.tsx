@@ -30,18 +30,6 @@ window.addEventListener('beforeinstallprompt', e => {
   window.dispatchEvent(new Event('glyno:installable'))
 })
 
-// health data may arrive in the URL FRAGMENT (#import=…) from the iOS Shortcut.
-// Fragment on purpose, never a query string: the fragment stays in the browser,
-// a query would leave glucose readings in the server logs of GitHub Pages.
-if (location.hash.startsWith('#import=')) {
-  try {
-    sessionStorage.setItem('glyno.pendingHealthImport', decodeURIComponent(location.hash.slice(8)))
-  } catch {
-    // malformed percent-escape: nothing usable, drop it
-  }
-  history.replaceState(null, '', location.pathname + location.search)
-}
-
 // "make reset" opens /?reset: wipes profile and diary, leaving the app as freshly installed
 if (new URLSearchParams(location.search).has('reset')) {
   resetAll().finally(() => location.replace(import.meta.env.BASE_URL))

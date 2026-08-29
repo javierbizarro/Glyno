@@ -3,6 +3,17 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.8.0 — 29 de agosto de 2026
+
+### Retirado
+
+- **El atajo de Salud «Glyno Salud» se retira.** Resultó demasiado frágil (dependía de textos
+  según el idioma, ventanas de fechas y avisos de iOS que rompían la ejecución) y daba números
+  que no siempre eran de fiar — y un dato erróneo es peor que no tener el dato. Los datos
+  automáticos de Apple Salud volverán con la **app nativa**, leyendo HealthKit directamente:
+  sin atajos, sin portapapeles y con los entrenamientos incluidos. El diario manual, como
+  siempre, no cambia.
+
 ## 0.7.0 — 29 de agosto de 2026
 
 ### Añadido

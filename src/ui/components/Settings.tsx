@@ -3,7 +3,6 @@ import { TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, t
 import { WEEKDAY_LABEL } from '../../domain/medication'
 import { seedDemo } from '../../app/demo'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
-import { healthImportSummary, importHealthPayload } from '../../app/healthImport'
 import { download } from '../format'
 import { InstallHint } from './InstallHint'
 
@@ -186,8 +185,6 @@ export function Settings({
         </p>
       </div>
 
-      <HealthCard />
-
       <div className="card stack">
         <span className="label">Glyno IA</span>
         <p className="muted small">
@@ -301,80 +298,6 @@ export function Settings({
         </button>
       </div>
     </>
-  )
-}
-
-const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
-
-// the published «Glyno Salud» shortcut (Javier's iCloud share).
-// If the shortcut changes, share it again and update this link — iCloud links are frozen snapshots.
-const SHORTCUT_ICLOUD_URL = 'https://www.icloud.com/shortcuts/a4140a650d7140c7b247ce0f96e708f7'
-
-function HealthCard() {
-  const [msg, setMsg] = useState('')
-
-  const paste = async () => {
-    let text: string
-    try {
-      text = await navigator.clipboard.readText()
-    } catch {
-      // the browser's raw permission error is English noise: say it in ours
-      setMsg('No he podido leer el portapapeles. Dale permiso al navegador y vuelve a intentarlo.')
-      return
-    }
-    try {
-      setMsg(healthImportSummary(await importHealthPayload(text)))
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : String(e))
-    }
-  }
-
-  return (
-    <div className="card stack">
-      <span className="label">Salud del iPhone</span>
-      <p className="muted small">
-        Con el atajo «Glyno Salud», Glyno importa de Apple Salud tu sueño, pasos, entrenamientos
-        y la glucosa que vuelque tu sensor — sin que nada salga del dispositivo. Instálalo con un
-        toque, ejecútalo y pega aquí lo que deja copiado.{' '}
-        <a
-          href="https://github.com/javierbizarro/Glyno/blob/main/docs/atajo-salud.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: 'var(--green)', fontWeight: 600 }}
-        >
-          Guía completa
-        </a>
-        .
-      </p>
-      {isIos() && (
-        <a
-          className="btn ghost small"
-          // import-shortcut only accepts icloud.com/shortcuts links (a self-hosted file
-          // URL fails with "not valid"); with the iCloud link it opens the Shortcuts
-          // preview in one tap, even from the installed PWA
-          href={`shortcuts://import-shortcut?url=${encodeURIComponent(SHORTCUT_ICLOUD_URL)}`}
-        >
-          ⬇️ Añadir el atajo «Glyno Salud»
-        </a>
-      )}
-      <div className="row">
-        {isIos() && (
-          <button
-            className="btn ghost small"
-            style={{ flex: 1 }}
-            onClick={() => {
-              location.href = 'shortcuts://run-shortcut?name=Glyno%20Salud'
-            }}
-          >
-            Traer datos de Salud
-          </button>
-        )}
-        <button className="btn small" style={{ flex: 1 }} onClick={paste}>
-          📋 Pegar datos de Salud
-        </button>
-      </div>
-      {msg && <p className="small">{msg}</p>}
-    </div>
   )
 }
 

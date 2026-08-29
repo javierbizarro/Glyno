@@ -1,9 +1,14 @@
 import type { Entry } from '../domain/types'
 import { entries } from './container'
 
-// Contract of the payload the iOS Shortcut (or any future bridge) builds.
-// JSON keys are English (they are code); sample kinds match EntryKind.
-// Daily kinds carry a `date` (YYYY-MM-DD); point kinds carry a `ts` (ISO local).
+// STAGED PLUMBING — no UI feeds this module today. The iOS Shortcut route was retired
+// (2026-08-29) in favour of the upcoming native HealthKit sync, which will reuse this
+// tested pipeline: sample validation, extId dedupe, daily-refresh semantics and the
+// Spanish import summary. The text/JSON contracts stay as documentation of the format.
+//
+// Contract of the payload any bridge builds. JSON keys are English (they are code);
+// sample kinds match EntryKind. Daily kinds carry a `date` (YYYY-MM-DD); point kinds
+// carry a `ts` (ISO local).
 interface RawSample {
   kind?: string
   ts?: string
