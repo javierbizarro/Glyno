@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { MOMENTS, PRESET_TAGS, type Entry, type Profile } from '../../domain/types'
 import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
@@ -195,6 +195,31 @@ function QuickSheet({
   )
   const [extra, setExtra] = useState(kind === 'glucose' ? suggestMoment(recent) : '')
   const [label, setLabel] = useState('')
+  // logging something late must not stamp it with "now": the diary time drives every
+  // pattern (meal moments, post-meal walk, day tables), so the hour is editable
+  const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5))
+  const autoMoment = useRef(kind === 'glucose' ? suggestMoment(recent) : '')
+
+  const stamp = () => {
+    const [h, m] = time.split(':').map(Number)
+    const d = new Date()
+    if (Number.isFinite(h) && Number.isFinite(m)) d.setHours(h, m, 0, 0)
+    // a future hour today makes no sense: it was a typo, clamp to now
+    return Math.min(d.getTime(), Date.now())
+  }
+
+  const changeTime = (t: string) => {
+    setTime(t)
+    if (kind !== 'glucose') return
+    // the pre-selected moment follows the corrected hour, but never overrides a manual pick
+    const [h, m] = t.split(':').map(Number)
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return
+    const d = new Date()
+    d.setHours(h, m, 0, 0)
+    const suggested = suggestMoment(recent, Math.min(d.getTime(), Date.now()))
+    if (extra === autoMoment.current) setExtra(suggested)
+    autoMoment.current = suggested
+  }
 
   const add = async (e: Entry) => {
     await entries.add(e)
@@ -204,7 +229,7 @@ function QuickSheet({
   const num = Number(value)
 
   const save = () => {
-    const ts = Date.now()
+    const ts = stamp()
     if (kind === 'glucose' && num > 20 && num < 600) add({ ts, kind, value: num, note: extra || undefined })
     if (kind === 'bp' && num > 60 && Number(extra) > 30) add({ ts, kind, sys: num, dia: Number(extra) })
     if (kind === 'insulin' && num > 0 && num < 100) add({ ts, kind, value: num, label: 'bolo' })
@@ -276,7 +301,7 @@ function QuickSheet({
                   <button
                     key={d.value}
                     className="chip"
-                    onClick={() => add({ ts: Date.now(), kind: 'insulin', value: d.value, label: 'bolo' })}
+                    onClick={() => add({ ts: stamp(), kind: 'insulin', value: d.value, label: 'bolo' })}
                   >
                     {d.value} U
                   </button>
@@ -307,7 +332,7 @@ function QuickSheet({
                       key={m.label}
                       className="chip"
                       onClick={() =>
-                        add({ ts: Date.now(), kind: 'meal', label: m.label, carbs: m.carbs ?? undefined })
+                        add({ ts: stamp(), kind: 'meal', label: m.label, carbs: m.carbs ?? undefined })
                       }
                     >
                       {m.label}
@@ -336,7 +361,7 @@ function QuickSheet({
                     key={x.label}
                     className="chip"
                     onClick={() =>
-                      add({ ts: Date.now(), kind: 'exercise', value: x.minutes, label: x.label })
+                      add({ ts: stamp(), kind: 'exercise', value: x.minutes, label: x.label })
                     }
                   >
                     {x.label} · {x.minutes} min
@@ -377,7 +402,7 @@ function QuickSheet({
             </p>
             <div className="wrap">
               {PRESET_TAGS.map(t => (
-                <button key={t} className="chip" onClick={() => add({ ts: Date.now(), kind: 'tag', label: t })}>
+                <button key={t} className="chip" onClick={() => add({ ts: stamp(), kind: 'tag', label: t })}>
                   {t}
                 </button>
               ))}
@@ -387,13 +412,24 @@ function QuickSheet({
               <button
                 className="btn small"
                 disabled={!label.trim()}
-                onClick={() => add({ ts: Date.now(), kind: 'tag', label: label.trim() })}
+                onClick={() => add({ ts: stamp(), kind: 'tag', label: label.trim() })}
               >
                 Añadir
               </button>
             </div>
           </>
         )}
+
+        {/* logging late? correct the hour and the entry lands where it really happened */}
+        <div className="row between">
+          <span className="muted small">¿Fue antes? Ajusta la hora</span>
+          <input
+            type="time"
+            value={time}
+            onChange={e => changeTime(e.target.value)}
+            style={{ width: 'auto' }}
+          />
+        </div>
 
         {kind !== 'tag' && (
           <div className="row">

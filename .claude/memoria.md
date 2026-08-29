@@ -309,6 +309,23 @@ Repo: `~/Projects/glyno` (git init hecho, SIN commits — Javier decide cuándo)
        conceder permiso de lectura a esos tipos aunque estén vacíos, o quitar del atajo los
        tipos sin datos para el usuario (versión «lite»), o investigar un parámetro de la
        acción que tolere el vacío.
+    DOS BUGS MÁS, ARREGLADOS (0.7.0, 2026-08-29, reportados por Javier tras uso real):
+    1. **Apuntar tarde sellaba con la hora de ahora**: las hojas de registro usaban
+       Date.now() siempre. Ahora QuickSheet tiene fila «¿Fue antes? Ajusta la hora» (input
+       time precargado con ahora, `stamp()` con clamp a ahora si ponen hora futura) que usan
+       TAMBIÉN los chips de un toque; en glucemia, el momento sugerido se recalcula con la
+       hora corregida pero solo si el usuario no había elegido momento a mano (ref
+       `autoMoment`). Verificado: 08:00 → salta a «ayunas» y el diario lo archiva a las 8.
+       Límite consciente: solo horas de HOY (ayer, pendiente si alguien lo pide).
+    2. **Pasos >20k (contaba también los de ayer)**: el patrón «últimos 1 día + agrupar por
+       día + SUMA» devuelve DOS grupos (resto de ayer + hoy) y la suma los junta — el fallo
+       que se temía. Arreglo en el atajo (v9, generada sobre la última de Javier): la Suma de
+       Steps/Move Time/Cycling Distance se sustituye por **getitemfromlist «Last Item»** (los
+       grupos llegan de viejo a nuevo ⇒ el último es hoy), manteniendo el MISMO UUID para no
+       recablear el texto. El Sum del sueño se queda (suma tramos, correcto). Verificado que
+       los tres filtros de su versión llevan groupBy=Day. v9 firmada y servida en public/ +
+       fuente en docs/. PENDIENTE: Javier la instala, prueba, y re-comparte enlace de iCloud
+       (el botón aún apunta a su versión con el bug de la suma).
     La ÚLTIMA versión compartida por Javier
     (https://www.icloud.com/shortcuts/a4140a650d7140c7b247ce0f96e708f7, 20 acciones: steps +
     sleep(Detalles→Suma) + weight + glucosa con bucle + Move Time + Cycling Distance) quedó

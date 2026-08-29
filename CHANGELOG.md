@@ -3,6 +3,20 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.7.0 — 29 de agosto de 2026
+
+### Añadido
+
+- **Apuntar con la hora real**: si registras algo tarde (la comida de las 14:00 apuntada a
+  las 17:00), la hoja de registro deja ajustar la hora — «¿Fue antes? Ajusta la hora» — y el
+  registro cae donde de verdad ocurrió. El momento sugerido de la glucemia se recalcula con
+  esa hora.
+
+### Corregido
+
+- El atajo contaba los pasos de ayer junto a los de hoy (salían más de 20.000): ahora toma
+  solo el día en curso, también en minutos de actividad y distancia en bici.
+
 ## 0.6.0 — 4 de agosto de 2026
 
 ### Añadido
