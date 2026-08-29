@@ -6,7 +6,8 @@ import { needsHypoCare } from '../../domain/glucose'
 import { entries as repo } from '../../app/container'
 import { analyzeMeal, logMeal, saveMeal, suggestMeal, type MealAnalysis, type MealSuggestion } from '../../app/meals'
 import type { AiImage } from '../../ports/ai'
-import { useWatch } from '../hooks'
+import { resolveAiSource } from '../../domain/aiKey'
+import { useDeviceAi, useWatch } from '../hooks'
 import { fmtDayShort, fmtTime } from '../format'
 
 const LIGHT_COLOR: Record<MealAnalysis['traffic_light'], string> = {
@@ -51,13 +52,14 @@ async function shrink(file: File): Promise<Photo> {
   return { mimeType: 'image/jpeg', base64: dataUrl.split(',')[1], preview: dataUrl }
 }
 
-export function Meals({ profile }: { profile: Profile }) {
+export function Meals({ profile, onSetupAi }: { profile: Profile; onSetupAi: () => void }) {
   const [mode, setMode] = useState<'suggest' | 'analyze'>('suggest')
   const recent = useWatch(() => repo.watchSince(daysAgo(29)), [])
   const lastGlucose = useWatch(() => repo.watchLastByKind('glucose'), [])
   const weights = useWatch(() => repo.watchByKind('weight'), [])
   const meals = recent?.filter(e => e.kind === 'meal').reverse().slice(0, 8)
-  const hasKey = !!profile.geminiKey
+  const device = useDeviceAi()
+  const aiOn = resolveAiSource(profile, device.text) !== null
 
   return (
     <>
@@ -71,12 +73,14 @@ export function Meals({ profile }: { profile: Profile }) {
         </button>
       </div>
 
-      {!hasKey && (
-        <div className="card">
+      {!aiOn && (
+        <div className="card stack">
           <p className="muted">
-            Para esto necesito la clave gratuita de Gemini — se pone una vez en{' '}
-            <b>Ajustes → Glyno IA</b>.
+            Para esto me falta activar la IA. Es gratis y se hace una sola vez, paso a paso.
           </p>
+          <button className="btn" onClick={onSetupAi}>
+            Activar la IA paso a paso
+          </button>
         </div>
       )}
 
@@ -86,10 +90,10 @@ export function Meals({ profile }: { profile: Profile }) {
           recent={recent}
           lastGlucose={lastGlucose}
           weights={weights}
-          hasKey={hasKey}
+          aiOn={aiOn}
         />
       ) : (
-        <Analyze profile={profile} lastGlucose={lastGlucose} hasKey={hasKey} />
+        <Analyze profile={profile} lastGlucose={lastGlucose} aiOn={aiOn} />
       )}
 
       {(meals?.length ?? 0) > 0 && (
@@ -120,13 +124,13 @@ function Suggest({
   recent,
   lastGlucose,
   weights,
-  hasKey,
+  aiOn,
 }: {
   profile: Profile
   recent: Parameters<typeof suggestMeal>[1] | undefined
   lastGlucose: Parameters<typeof suggestMeal>[2]
   weights: Parameters<typeof suggestMeal>[3]
-  hasKey: boolean
+  aiOn: boolean
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -182,7 +186,7 @@ function Suggest({
             en casa.
           </p>
         )}
-        <button className="btn" disabled={!hasKey || busy || !recent} onClick={ask}>
+        <button className="btn" disabled={!aiOn || busy || !recent} onClick={ask}>
           {busy ? 'Pensando…' : result ? 'Dame otras ideas' : `Pídeme ideas para ${moment}`}
         </button>
       </div>
@@ -236,11 +240,11 @@ function Suggest({
 function Analyze({
   profile,
   lastGlucose,
-  hasKey,
+  aiOn,
 }: {
   profile: Profile
   lastGlucose: Parameters<typeof analyzeMeal>[2]
-  hasKey: boolean
+  aiOn: boolean
 }) {
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [desc, setDesc] = useState('')
@@ -249,7 +253,7 @@ function Analyze({
   const [result, setResult] = useState<MealAnalysis | null>(null)
   const [saved, setSaved] = useState(false)
 
-  const canAnalyze = hasKey && !busy && (photo || desc.trim())
+  const canAnalyze = aiOn && !busy && (photo || desc.trim())
 
   const analyze = async () => {
     setBusy(true)

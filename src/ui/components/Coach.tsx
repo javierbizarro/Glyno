@@ -5,13 +5,16 @@ import { findGaps } from '../../domain/gaps'
 import { daysAgo } from '../../domain/time'
 import { entries as repo } from '../../app/container'
 import { askCoach, generateReview, type ChatMsg } from '../../app/coach'
-import { useWatch } from '../hooks'
+import { resolveAiSource } from '../../domain/aiKey'
+import { useDeviceAi, useWatch } from '../hooks'
 import { Mascot3D } from './Mascot3D'
 
 const CHAT_KEY = 'glyno.chat'
 const REVIEW_KEY = 'glyno.review'
 
-export function Coach({ profile }: { profile: Profile }) {
+export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () => void }) {
+  // hooks stay above the early return below: this one must not depend on the diary being ready
+  const device = useDeviceAi()
   const entries = useWatch(() => repo.watchSince(daysAgo(13)), [])
   // the whole weight history: the AI reads the weekly trend, not just the last number
   const weights = useWatch(() => repo.watchByKind('weight'), [])
@@ -79,7 +82,7 @@ export function Coach({ profile }: { profile: Profile }) {
   if (!entries) return null
   const stats = computeStats(entries, profile)
   const gaps = findGaps(profile, entries, weights?.[weights.length - 1])
-  const hasKey = !!profile.geminiKey
+  const aiOn = resolveAiSource(profile, device.text) !== null
 
   const doReview = async () => {
     setBusy('review')
@@ -129,15 +132,15 @@ export function Coach({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      {!hasKey && (
-        <div className="card">
+      {!aiOn && (
+        <div className="card stack">
           <p className="muted">
-            Para que pueda hablar necesito la clave gratuita de Gemini: créala en{' '}
-            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--green)', fontWeight: 600 }}>
-              aistudio.google.com/apikey
-            </a>{' '}
-            (sin tarjeta) y pégala una sola vez en <b>Ajustes → Glyno IA</b>.
+            Para poder hablar contigo me falta activar la IA. Es gratis y se hace una vez: te
+            acompaño paso a paso, no tardamos ni dos minutos.
           </p>
+          <button className="btn" onClick={onSetupAi}>
+            Activar la IA paso a paso
+          </button>
         </div>
       )}
 
@@ -168,7 +171,7 @@ export function Coach({ profile }: { profile: Profile }) {
             Le doy una lectura a tus últimos 14 días: cómo vas, qué patrones veo y qué puedes probar.
           </p>
         )}
-        <button className="btn" disabled={!hasKey || busy !== null || stats.n < 5} onClick={doReview}>
+        <button className="btn" disabled={!aiOn || busy !== null || stats.n < 5} onClick={doReview}>
           {busy === 'review' ? 'Leyendo tus datos…' : review ? 'Actualizar valoración' : 'Pídeme la valoración'}
         </button>
         {stats.n < 5 && <p className="muted small">Necesito al menos unos días de glucemias.</p>}
@@ -206,7 +209,7 @@ export function Coach({ profile }: { profile: Profile }) {
             onKeyDown={e => e.key === 'Enter' && !busy && ask()}
             onFocus={() => setTimeout(() => stick.current && scrollToEnd('auto'), 350)}
           />
-          <button className="btn small" disabled={!hasKey || busy !== null || !question.trim()} onClick={ask}>
+          <button className="btn small" disabled={!aiOn || busy !== null || !question.trim()} onClick={ask}>
             Enviar
           </button>
         </div>

@@ -424,6 +424,16 @@ button.entry-row:active { opacity: .6; }
 .onb-progress span { width: 26px; height: 3.5px; border-radius: 2px; background: var(--line); }
 .onb-progress span.on { background: var(--green); }
 
+/* ---- AI setup wizard: bigger type and targets, it has to work for anyone ---- */
+.wiz { display: flex; flex-direction: column; gap: 16px; }
+.wiz p { font-size: 16.5px; line-height: 1.55; }
+.wiz p.muted, .wiz p.small { font-size: 14.5px; }
+.btn.big { padding: 18px 22px; font-size: 18px; }
+a.btn { display: block; text-align: center; text-decoration: none; }
+/* drawings of the Google page: illustrations, not screenshots that go stale */
+.shot { width: 100%; height: auto; display: block; }
+.shot text { font-family: var(--sans); }
+
 /* phone in landscape: not blocked (that would be an accessibility problem), but compacted
    so it still looks intentional and not broken */
 @media (orientation: landscape) and (max-height: 520px) {

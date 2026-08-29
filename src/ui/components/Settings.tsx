@@ -1,10 +1,15 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
 import { WEEKDAY_LABEL } from '../../domain/medication'
+import { resolveAiSource } from '../../domain/aiKey'
 import { seedDemo } from '../../app/demo'
+import { checkKey } from '../../app/aiKey'
+import { prepareDeviceAi, probeDeviceAi } from '../../app/container'
+import type { DeviceAiState } from '../../ports/deviceAi'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
 import { download } from '../format'
 import { InstallHint } from './InstallHint'
+import { AiSetup } from './AiSetup'
 
 const KIND_LABEL: Record<Med['kind'], string> = {
   pill: 'Otra medicación',
@@ -18,15 +23,25 @@ export function Settings({
   profile,
   onSave,
   onReplayTour,
+  openAi,
+  onAiOpened,
 }: {
   profile: Profile
   onSave: (p: Profile) => void
   onReplayTour: () => void
+  /** arriving from "activar la IA" elsewhere in the app: the wizard opens by itself */
+  openAi?: boolean
+  onAiOpened?: () => void
 }) {
   const p = profile
   const set = (patch: Partial<Profile>) => onSave({ ...p, ...patch })
   const fileRef = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState('')
+  const [wizard, setWizard] = useState(!!openAi)
+  useEffect(() => {
+    if (openAi) onAiOpened?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const flash = (m: string) => {
     setMsg(m)
@@ -78,6 +93,8 @@ export function Settings({
       flash(e instanceof Error ? e.message : 'No se pudo leer el fichero.')
     }
   }
+
+  if (wizard) return <AiSetup profile={p} onSave={onSave} onClose={() => setWizard(false)} />
 
   return (
     <>
@@ -185,23 +202,7 @@ export function Settings({
         </p>
       </div>
 
-      <div className="card stack">
-        <span className="label">Glyno IA</span>
-        <p className="muted small">
-          Consigue tu clave gratuita en{' '}
-          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--green)', fontWeight: 600 }}>
-            aistudio.google.com/apikey
-          </a>{' '}
-          (botón «Create API key», sin tarjeta). Se guarda solo en tu dispositivo y se usa únicamente
-          para las valoraciones y la foto del plato.
-        </p>
-        <input
-          type="password"
-          placeholder="Clave de la API de Gemini"
-          value={p.geminiKey}
-          onChange={e => set({ geminiKey: e.target.value.trim() })}
-        />
-      </div>
+      <AiCard p={p} set={set} onWizard={() => setWizard(true)} flash={flash} />
 
       <div className="card stack">
         <span className="label">Tus datos</span>
@@ -391,6 +392,148 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
           Añadir al botiquín
         </button>
       </div>
+    </div>
+  )
+}
+
+/** the one place the user meets the AI: what is on, and how to turn it on */
+function AiCard({
+  p,
+  set,
+  onWizard,
+  flash,
+}: {
+  p: Profile
+  set: (patch: Partial<Profile>) => void
+  onWizard: () => void
+  flash: (m: string) => void
+}) {
+  const [dev, setDev] = useState<DeviceAiState>('unsupported')
+  // null while no download is running; 0..1 during it
+  const [progress, setProgress] = useState<number | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    probeDeviceAi().then(setDev)
+  }, [])
+
+  const deviceReady = dev === 'available'
+  const canDownload = dev === 'downloadable' || dev === 'downloading'
+  const off = resolveAiSource(p, deviceReady) === null
+
+  const verify = async () => {
+    setBusy(true)
+    const r = await checkKey(p.geminiKey)
+    setBusy(false)
+    flash(r.message)
+  }
+
+  const getModel = async () => {
+    setProgress(0)
+    try {
+      setDev(await prepareDeviceAi(setProgress))
+    } catch {
+      flash('No se ha podido preparar la IA de este dispositivo. Prueba con la clave de Google.')
+    } finally {
+      setProgress(null)
+    }
+  }
+
+  const downloadButton = (
+    <button className="btn" disabled={progress !== null} onClick={getModel}>
+      {progress === null
+        ? 'Usar la IA de este dispositivo (sin clave)'
+        : `Descargando… ${Math.round(progress * 100)} %`}
+    </button>
+  )
+
+  return (
+    <div className="card stack">
+      <span className="label">Glyno IA</span>
+
+      {off && (
+        <>
+          <p className="muted">
+            Con la IA puedo valorar cómo vas y mirar la foto de tus platos. Hay dos maneras y las dos
+            son gratis.
+          </p>
+          {canDownload ? (
+            <>
+              {downloadButton}
+              <p className="muted small">
+                Se descarga una vez (ocupa varios GB, mejor con wifi) y luego responde sin internet:
+                no sale nada de este dispositivo. Escribe más sencillo que la de Google.
+              </p>
+              <button className="btn ghost" onClick={onWizard}>
+                Prefiero la clave de Google, paso a paso
+              </button>
+            </>
+          ) : (
+            <button className="btn" onClick={onWizard}>
+              Activar la IA paso a paso
+            </button>
+          )}
+        </>
+      )}
+
+      {!!p.geminiKey && (
+        <>
+          <p className="muted">
+            ✅ Clave guardada: {p.geminiKey.slice(0, 8)}…{p.geminiKey.slice(-4)} · solo en este
+            dispositivo.
+          </p>
+          <div className="wrap">
+            <button className="chip" onClick={verify} disabled={busy}>
+              {busy ? 'Comprobando…' : 'Comprobar que funciona'}
+            </button>
+            <button className="chip" onClick={onWizard}>
+              Cambiar la clave
+            </button>
+            <button
+              className="chip"
+              onClick={() => confirm('¿Quito la clave? Me quedo sin valoraciones ni análisis de platos.') && set({ geminiKey: '' })}
+            >
+              Quitar
+            </button>
+          </div>
+          {canDownload && (
+            <>
+              <p className="muted small">
+                Este dispositivo también puede llevar su propia IA y responder sin clave ni internet.
+                Se descarga una vez y ocupa varios GB.
+              </p>
+              {downloadButton}
+            </>
+          )}
+        </>
+      )}
+
+      {deviceReady && (
+        <div className="card stack" style={{ borderColor: 'var(--green)', background: 'var(--green-soft)' }}>
+          <p className="muted">
+            ✅ Este dispositivo trae su propia IA{p.geminiKey ? '.' : ': no necesitas ninguna clave.'}
+          </p>
+          {!!p.geminiKey && (
+            <>
+              <span className="label">¿Cuál uso?</span>
+              <div className="wrap">
+                <button className={`chip ${!p.preferDevice ? 'on' : ''}`} onClick={() => set({ preferDevice: false })}>
+                  La de Google
+                </button>
+                <button className={`chip ${p.preferDevice ? 'on' : ''}`} onClick={() => set({ preferDevice: true })}>
+                  La de este dispositivo
+                </button>
+              </div>
+              <p className="muted small">
+                La de este dispositivo no envía nada a internet; la de Google escribe mejor y mira
+                fotos sin fallar.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
+      <p className="muted small">Con IA o sin ella, Glyno nunca propone dosis ni cambios de medicación.</p>
     </div>
   )
 }

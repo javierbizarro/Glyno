@@ -3,9 +3,14 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { version } from './package.json'
 
+// NATIVE=1 builds the assets that Capacitor packs inside the app: served from the root of
+// capacitor://localhost and with no service worker — the files are already local, and the SW
+// only gets in the way of updating them.
+const native = !!process.env.NATIVE
+
 export default defineConfig({
-  // on GitHub Pages the app lives at /Glyno/; locally, at the root
-  base: process.env.DEPLOY_BASE ?? '/',
+  // on GitHub Pages the app lives at /Glyno/; locally and inside the native app, at the root
+  base: native ? '/' : (process.env.DEPLOY_BASE ?? '/'),
   // build stamp: makes it possible to tell if the phone is serving a cached version.
   // Pinned to Madrid time because GitHub Actions builds in UTC, which is disorienting.
   define: {
@@ -24,7 +29,7 @@ export default defineConfig({
   optimizeDeps: { include: ['dexie', 'dexie-react-hooks'] },
   plugins: [
     react(),
-    VitePWA({
+    ...(native ? [] : [VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       workbox: {
@@ -46,7 +51,7 @@ export default defineConfig({
           { src: 'apple-touch-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' }
         ]
       }
-    })
+    })]),
   ],
   server: { port: 5173, strictPort: true }
 })

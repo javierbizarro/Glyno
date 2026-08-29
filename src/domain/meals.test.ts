@@ -3,11 +3,14 @@ import type { Entry } from './types'
 import {
   MEAL_MOMENT_LABEL,
   mealMoment,
+  normalizeAnalysis,
+  normalizeSuggestion,
   suggestMoment,
   usualDoses,
   usualExercises,
   usualMeals,
 } from './meals'
+import { ReplyFormatError } from './jsonReply'
 
 // timestamps are built and read back in local time, so tests are TZ-independent
 const at = (time: string, day = '2026-08-03') => new Date(`${day}T${time}:00`).getTime()
@@ -259,5 +262,103 @@ describe('suggestMoment', () => {
       // faked clock says 12:00 and no breakfast is logged
       expect(suggestMoment([])).toBe('')
     })
+  })
+})
+
+describe('normalizeAnalysis', () => {
+  const good = {
+    dish: 'Lentejas con arroz',
+    carbs_g: 75,
+    fiber_g: 12,
+    calories_kcal: 520,
+    processing: 'homemade',
+    glycemic_index: 'medium',
+    traffic_light: 'amber',
+    advice: 'Empieza por la ensalada.',
+    better_avoid: ['el plátano'],
+  }
+
+  it('keeps a well formed answer as it is', () => {
+    expect(normalizeAnalysis(good)).toEqual(good)
+  })
+
+  it('accepts the labels in Spanish that a small model returns', () => {
+    const r = normalizeAnalysis({ ...good, traffic_light: 'Verde', glycemic_index: 'BAJO', processing: 'ultraprocesado' })
+    expect(r.traffic_light).toBe('green')
+    expect(r.glycemic_index).toBe('low')
+    expect(r.processing).toBe('ultraprocessed')
+  })
+
+  it('falls back to the middle when the light makes no sense: neither alarms nor reassures', () => {
+    expect(normalizeAnalysis({ ...good, traffic_light: 'naranja fosforito' }).traffic_light).toBe('amber')
+    expect(normalizeAnalysis({ ...good, glycemic_index: '???' }).glycemic_index).toBe('medium')
+  })
+
+  it('reads the carbohydrates when they come as text', () => {
+    expect(normalizeAnalysis({ ...good, carbs_g: '75 g' }).carbs_g).toBe(75)
+    expect(normalizeAnalysis({ ...good, carbs_g: '75,4' }).carbs_g).toBe(75)
+  })
+
+  it('refuses to invent the carbohydrates: they are the number the user reads', () => {
+    expect(() => normalizeAnalysis({ ...good, carbs_g: undefined })).toThrow(ReplyFormatError)
+    expect(() => normalizeAnalysis({ ...good, carbs_g: 'un montón' })).toThrow(ReplyFormatError)
+    expect(() => normalizeAnalysis({ ...good, carbs_g: 900 })).toThrow(ReplyFormatError)
+  })
+
+  it('tidies up the list of what to avoid', () => {
+    expect(normalizeAnalysis({ ...good, better_avoid: 'el pan' }).better_avoid).toEqual(['el pan'])
+    expect(normalizeAnalysis({ ...good, better_avoid: ['a', 2, 'b', 'c', 'd'] }).better_avoid).toEqual(['a', 'b', 'c'])
+    expect(normalizeAnalysis({ ...good, better_avoid: undefined }).better_avoid).toEqual([])
+  })
+
+  it('drops the extras when they are not numbers, instead of showing nonsense', () => {
+    const r = normalizeAnalysis({ ...good, fiber_g: 'bastante', calories_kcal: null, processing: 'ni idea' })
+    expect(r.fiber_g).toBeUndefined()
+    expect(r.calories_kcal).toBeUndefined()
+    expect(r.processing).toBeUndefined()
+  })
+
+  it('complains when there is no answer to normalise', () => {
+    expect(() => normalizeAnalysis('lentejas')).toThrow(ReplyFormatError)
+    expect(() => normalizeAnalysis(null)).toThrow(ReplyFormatError)
+  })
+})
+
+describe('normalizeSuggestion', () => {
+  const good = {
+    options: [
+      { dish: 'Tortilla francesa', carbs_g: 5, why: 'Vienes de una glucemia alta.' },
+      { dish: 'Sopa de verduras', carbs_g: 15, why: 'Ligera para la cena.' },
+    ],
+    avoid: ['el pan blanco'],
+    note: 'Lo que elijas, sin prisa.',
+  }
+
+  it('keeps a well formed answer as it is', () => {
+    expect(normalizeSuggestion(good)).toEqual(good)
+  })
+
+  it('drops the ideas it cannot read, instead of showing empty grams', () => {
+    const r = normalizeSuggestion({
+      ...good,
+      options: [...good.options, { dish: 'Algo', why: 'sin hidratos' }, { carbs_g: 10 }],
+    })
+    expect(r.options).toEqual(good.options)
+  })
+
+  it('keeps at most three ideas', () => {
+    const many = Array.from({ length: 5 }, (_, i) => ({ dish: `Plato ${i}`, carbs_g: i, why: 'x' }))
+    expect(normalizeSuggestion({ ...good, options: many }).options).toHaveLength(3)
+  })
+
+  it('complains when no idea survives: better to ask again than to show a blank card', () => {
+    expect(() => normalizeSuggestion({ ...good, options: [] })).toThrow(ReplyFormatError)
+    expect(() => normalizeSuggestion({ options: 'tortilla' })).toThrow(ReplyFormatError)
+  })
+
+  it('survives without the trimmings', () => {
+    const r = normalizeSuggestion({ options: good.options })
+    expect(r.avoid).toEqual([])
+    expect(r.note).toBe('')
   })
 })

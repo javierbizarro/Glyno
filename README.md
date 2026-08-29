@@ -54,7 +54,9 @@ No hay servidor ni cuentas. Tus datos de salud viven en el almacenamiento de tu 
 
 - **La IA, si tú la activas**: el texto de tus datos recientes y las fotos que hagas viajan a la
   API de Google Gemini usando **tu propia clave gratuita**, que se guarda solo en tu dispositivo.
-  Sin clave, la app funciona igual sin las funciones de IA.
+  Sin clave, la app funciona igual sin las funciones de IA. Si tu navegador trae **IA en el
+  propio dispositivo** (Chrome con el Prompt API), Glyno la usa y entonces no sale nada: ni clave,
+  ni petición a Google.
 - **Un contador anónimo de aperturas** ([GoatCounter](https://www.goatcounter.com)): al abrir la
   app se envía un único «alguien ha abierto Glyno». La petición no lleva ningún dato tuyo — ni
   cookies ni identificadores — y no se ejecuta ningún script de terceros: es una línea que puedes
@@ -71,8 +73,10 @@ para no perder el diario si cambias de móvil o borras los datos del navegador.
 2. Instálala para tenerla como una app: en **iPhone** con Safari → Compartir → *Añadir a pantalla de
    inicio*; en **Android** aparece un botón *Instalar*; en escritorio, el icono de la barra de
    direcciones.
-3. Opcional: crea tu clave gratuita en [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-   y pégala en **Ajustes → Glyno IA** para activar las funciones de IA.
+3. Opcional: activa la IA en **Ajustes → Glyno IA**. Si tu navegador trae IA propia, se activa
+   con un botón y sin clave; si no, el asistente te lleva paso a paso a crear tu clave gratuita en
+   [aistudio.google.com/apikey](https://aistudio.google.com/apikey), la pegas y Glyno comprueba
+   sola que funciona.
 
 Sin datos propios todavía, en *Tendencias* puedes cargar 14 días de ejemplo para ver cómo funciona.
 
@@ -88,7 +92,7 @@ sueño desde Apple Salud / Health Connect) solo haya que escribir adaptadores:
 |---|---|
 | `src/domain/` | Lógica pura: rangos, estadísticas, patrones, momentos del día. Sin dependencias. |
 | `src/ports/` | Interfaces: repositorios, asistente de IA, fuente reactiva. |
-| `src/adapters/` | Implementaciones concretas: Dexie, localStorage, Gemini. |
+| `src/adapters/` | Implementaciones concretas: Dexie, localStorage, Gemini y la IA del propio dispositivo. |
 | `src/app/` | Casos de uso y `container.ts`, donde se eligen los adaptadores. |
 | `src/ui/` | Componentes React. Nunca importan de `adapters/`. |
 

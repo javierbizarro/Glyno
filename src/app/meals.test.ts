@@ -88,7 +88,19 @@ describe('analyzeMeal', () => {
 
   it('throws in Spanish when the response has no JSON object', async () => {
     complete.mockResolvedValue('No puedo analizar esa comida.')
-    await expect(analyzeMeal(p, { desc: 'lentejas' })).rejects.toThrow('La respuesta no contiene JSON.')
+    await expect(analyzeMeal(p, { desc: 'lentejas' })).rejects.toThrow('No he podido leer la respuesta. Inténtalo otra vez.')
+  })
+
+  it('asks again when the answer comes garbled: small models fail at the format, not the task', async () => {
+    complete.mockResolvedValueOnce('Mmm, a ver...').mockResolvedValueOnce(JSON.stringify(ANALYSIS))
+    expect(await analyzeMeal(p, { desc: 'lentejas' })).toEqual(ANALYSIS)
+    expect(complete).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not ask again when the network or the quota is the problem', async () => {
+    complete.mockRejectedValue(new Error('Se agotó la cuota gratuita de hoy.'))
+    await expect(analyzeMeal(p, { desc: 'lentejas' })).rejects.toThrow('cuota')
+    expect(complete).toHaveBeenCalledTimes(1)
   })
 
   it('activates the hypo safeguard in the prompt for a recent below-range reading', async () => {

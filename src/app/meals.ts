@@ -1,28 +1,34 @@
 import type { Entry, Profile } from '../domain/types'
 import { computeStats } from '../domain/stats'
 import { lastGlucoseText, needsHypoCare } from '../domain/glucose'
-import { mealMoment, MEAL_MOMENT_LABEL, usualMeals } from '../domain/meals'
+import {
+  mealMoment,
+  MEAL_MOMENT_LABEL,
+  normalizeAnalysis,
+  normalizeSuggestion,
+  usualMeals,
+  type MealAnalysis,
+  type MealSuggestion,
+} from '../domain/meals'
+import { parseJsonReply, ReplyFormatError } from '../domain/jsonReply'
 import type { AiImage } from '../ports/ai'
 import { ai, entries } from './container'
 import { buildContext, mealPrompt, suggestMealPrompt } from './prompts'
 
-export interface MealAnalysis {
-  dish: string
-  carbs_g: number
-  glycemic_index: 'low' | 'medium' | 'high'
-  traffic_light: 'green' | 'amber' | 'red'
-  advice: string
-  better_avoid: string[]
-  // informative extras: the traffic light is NEVER decided by calories
-  fiber_g?: number
-  calories_kcal?: number
-  processing?: 'homemade' | 'processed' | 'ultraprocessed'
-}
+export type { MealAnalysis, MealSuggestion } from '../domain/meals'
 
-function extractJson<T>(s: string): T {
-  const m = s.match(/\{[\s\S]*\}/)
-  if (!m) throw new Error('La respuesta no contiene JSON.')
-  return JSON.parse(m[0]) as T
+/**
+ * Asks and reads the answer. A garbled answer earns one second attempt — small models
+ * fail at the format, not at the task — but a network or quota error does not: it would
+ * only burn another call and make the user wait twice.
+ */
+async function askJson<T>(ask: () => Promise<string>, shape: (raw: unknown) => T): Promise<T> {
+  try {
+    return shape(parseJsonReply(await ask()))
+  } catch (e) {
+    if (!(e instanceof ReplyFormatError)) throw e
+    return shape(parseJsonReply(await ask()))
+  }
 }
 
 export async function analyzeMeal(
@@ -34,8 +40,10 @@ export async function analyzeMeal(
     lastReading: lastGlucoseText(lastGlucose),
     hypo: needsHypoCare(p, lastGlucose),
   })
-  const raw = input.image ? await ai.completeWithImage(prompt, input.image) : await ai.complete(prompt)
-  return extractJson<MealAnalysis>(raw)
+  return askJson(
+    () => (input.image ? ai.completeWithImage(prompt, input.image) : ai.complete(prompt)),
+    normalizeAnalysis,
+  )
 }
 
 export async function logMeal(label: string, carbs?: number, note?: string): Promise<void> {
@@ -44,12 +52,6 @@ export async function logMeal(label: string, carbs?: number, note?: string): Pro
 
 export async function saveMeal(analysis: MealAnalysis): Promise<void> {
   await logMeal(analysis.dish, analysis.carbs_g, 'analizada por Glyno')
-}
-
-export interface MealSuggestion {
-  options: { dish: string; carbs_g: number; why: string }[]
-  avoid: string[]
-  note: string
 }
 
 export async function suggestMeal(
@@ -73,6 +75,8 @@ export async function suggestMeal(
   const lastReading = lastGlucoseText(lastGlucose)
   const ctx = buildContext(p, computeStats(recent, p), recent, weights)
   const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  const raw = await ai.complete(suggestMealPrompt(ctx, { moment, time, lastReading, usual, others }))
-  return extractJson<MealSuggestion>(raw)
+  return askJson(
+    () => ai.complete(suggestMealPrompt(ctx, { moment, time, lastReading, usual, others })),
+    normalizeSuggestion,
+  )
 }

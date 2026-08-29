@@ -1,7 +1,7 @@
 PORT := 5173
 URL  := http://localhost:$(PORT)
 
-.PHONY: help up down restart logs status reset clean test hooks
+.PHONY: help up down restart logs status reset clean test hooks native
 
 help: ## List the available commands
 	@grep -E "^[a-z]+:.*##" $(MAKEFILE_LIST) | awk -F ":.*## " "{printf \"  make %-10s %s\\n\", \$$1, \$$2}"
@@ -34,6 +34,10 @@ reset: ## Wipe profile and diary (browser data) and open the app as freshly inst
 clean: down ## Stop and also remove the Docker environment (node_modules volume)
 	docker compose down -v
 	@echo "Docker environment clean. \"make up\" rebuilds it (the first time takes a while)."
+
+native: ## Build the web assets for the native app (Capacitor webDir: dist)
+	docker compose exec -T -e NATIVE=1 web npm run build
+	@echo "dist/ built for the native app: root paths, no service worker."
 
 prod: ## Build and serve the production version (PWA with service worker) at http://localhost:4173
 	docker compose exec web npm run build

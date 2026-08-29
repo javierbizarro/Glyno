@@ -1,5 +1,6 @@
 import type { Entry } from './types'
 import { daysAgo } from './time'
+import { ReplyFormatError } from './jsonReply'
 
 export type MealMoment = 'breakfast' | 'between-meals' | 'lunch' | 'afternoon-snack' | 'dinner'
 
@@ -121,4 +122,112 @@ export function suggestMoment(entries: Entry[], now = Date.now()): string {
   if (h < 19) return 'después de comer'
   if (h < 21.5) return ate('dinner') ? 'después de cenar' : 'antes de cenar'
   return ate('dinner') ? 'después de cenar' : 'antes de dormir'
+}
+
+// ---- what the AI answers about a meal ----
+// The shape is ours, not the model's: a small model gets the labels wrong, answers in Spanish
+// or runs out of room. Everything here is repaired quietly, EXCEPT the numbers the user reads
+// as health data — those are never invented.
+
+export interface MealAnalysis {
+  dish: string
+  carbs_g: number
+  glycemic_index: 'low' | 'medium' | 'high'
+  traffic_light: 'green' | 'amber' | 'red'
+  advice: string
+  better_avoid: string[]
+  // informative extras: the traffic light is NEVER decided by calories
+  fiber_g?: number
+  calories_kcal?: number
+  processing?: 'homemade' | 'processed' | 'ultraprocessed'
+}
+
+export interface MealSuggestion {
+  options: { dish: string; carbs_g: number; why: string }[]
+  avoid: string[]
+  note: string
+}
+
+const LIGHT: Record<string, MealAnalysis['traffic_light']> = {
+  green: 'green', verde: 'green',
+  amber: 'amber', ambar: 'amber', amarillo: 'amber', naranja: 'amber',
+  red: 'red', rojo: 'red',
+}
+const INDEX: Record<string, MealAnalysis['glycemic_index']> = {
+  low: 'low', bajo: 'low',
+  medium: 'medium', medio: 'medium', moderado: 'medium',
+  high: 'high', alto: 'high',
+}
+const PROCESSING: Record<string, NonNullable<MealAnalysis['processing']>> = {
+  homemade: 'homemade', casero: 'homemade',
+  processed: 'processed', procesado: 'processed',
+  ultraprocessed: 'ultraprocessed', ultraprocesado: 'ultraprocessed',
+}
+
+const record = (x: unknown): Record<string, unknown> => {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) throw new ReplyFormatError()
+  return x as Record<string, unknown>
+}
+
+/** accents and case out of the way, so "Ámbar" and "amber" land in the same bucket */
+const key = (x: unknown): string =>
+  typeof x === 'string' ? x.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : ''
+
+const text = (x: unknown): string => (typeof x === 'string' ? x.trim() : '')
+
+/** "75 g" and "75,4" are still numbers; anything else is not */
+function num(x: unknown): number | null {
+  if (typeof x === 'number' && Number.isFinite(x)) return x
+  if (typeof x === 'string') {
+    const m = x.replace(',', '.').match(/-?\d+(\.\d+)?/)
+    if (m) return Number(m[0])
+  }
+  return null
+}
+
+const grams = (x: unknown, max: number): number | null => {
+  const n = num(x)
+  return n == null || n < 0 || n > max ? null : Math.round(n)
+}
+
+const list = (x: unknown, limit: number): string[] =>
+  (typeof x === 'string' ? [x] : Array.isArray(x) ? x : [])
+    .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
+    .map(s => s.trim())
+    .slice(0, limit)
+
+export function normalizeAnalysis(raw: unknown): MealAnalysis {
+  const r = record(raw)
+  // the grams of carbohydrate are the headline number of the card: a wrong or invented one
+  // is worse than asking again
+  const carbs = grams(r.carbs_g, 400)
+  if (carbs == null) throw new ReplyFormatError()
+  return {
+    dish: text(r.dish) || 'Plato',
+    carbs_g: carbs,
+    glycemic_index: INDEX[key(r.glycemic_index)] ?? 'medium',
+    traffic_light: LIGHT[key(r.traffic_light)] ?? 'amber',
+    advice: text(r.advice),
+    better_avoid: list(r.better_avoid, 3),
+    fiber_g: grams(r.fiber_g, 200) ?? undefined,
+    calories_kcal: grams(r.calories_kcal, 5000) ?? undefined,
+    processing: PROCESSING[key(r.processing)],
+  }
+}
+
+export function normalizeSuggestion(raw: unknown): MealSuggestion {
+  const r = record(raw)
+  const options = (Array.isArray(r.options) ? r.options : [])
+    .map(o => {
+      if (!o || typeof o !== 'object') return null
+      const opt = o as Record<string, unknown>
+      const dish = text(opt.dish)
+      const carbs = grams(opt.carbs_g, 400)
+      // an idea without its grams would show "· g HC" on the card
+      return dish && carbs != null ? { dish, carbs_g: carbs, why: text(opt.why) } : null
+    })
+    .filter((o): o is MealSuggestion['options'][number] => o != null)
+    .slice(0, 3)
+  if (!options.length) throw new ReplyFormatError()
+  return { options, avoid: list(r.avoid, 2), note: text(r.note) }
 }

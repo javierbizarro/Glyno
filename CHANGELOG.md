@@ -3,6 +3,34 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.9.0 — 29 de agosto de 2026
+
+### Añadido
+
+- **Asistente de clave de IA**: activar la IA ya no es «vete a una página de Google y apáñatelas».
+  En **Ajustes → Glyno IA** (y desde el aviso de Glyno o Comida) hay un asistente de **tres pasos**
+  con dibujos de lo que vas a ver: abrir la página, crear la clave y copiarla, y pegarla aquí con
+  un botón **«📋 Pegar la clave»**. Glyno comprueba sola que la clave funciona antes de guardarla y,
+  si algo falla, lo dice en castellano («Google no acepta esa clave», «no hay conexión», «las claves
+  empiezan por AIza»).
+- **IA del propio dispositivo, sin clave**: si el navegador trae su propia IA (Chrome en Android y
+  escritorio), Glyno la detecta y la usa — el texto no sale del dispositivo y no hace falta ninguna
+  clave. Si hace falta descargar el modelo, hay un botón que lo prepara con su barra de progreso.
+  Con clave *y* IA del dispositivo, tú eliges cuál manda. En el iPhone todavía no existe esa
+  puerta para las apps web: llegará con la app nativa.
+- En Ajustes, la clave guardada se ve enmascarada, con botones para **comprobar que funciona**,
+  cambiarla o quitarla.
+
+### Mejorado
+
+- **Las respuestas de la IA se leen aunque vengan torcidas.** Antes, si el modelo envolvía el
+  análisis en markdown, se dejaba una coma de más o se quedaba a medias, salía un error. Ahora
+  se repara lo reparable y, si aun así no hay manera, Glyno lo pregunta **una segunda vez** por
+  su cuenta (solo cuando el fallo es del formato: si es la cuota o la conexión, no insiste).
+  Las etiquetas en castellano que devuelven algunos modelos («verde», «alto», «casero») también
+  se entienden. Lo único que nunca se inventa son los gramos de hidratos: si no se pueden leer,
+  se vuelve a preguntar.
+
 ## 0.8.0 — 29 de agosto de 2026
 
 ### Retirado

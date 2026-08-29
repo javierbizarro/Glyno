@@ -38,7 +38,7 @@ const STEPS: Step[] = [
     tab: 'glyno',
     target: '[data-tour="coach"]',
     title: 'Pregúntame',
-    text: 'Chateamos sobre tus datos y cada dos semanas te doy una valoración. Para hablar necesito una clave gratuita de Gemini — se pone una vez en Ajustes.',
+    text: 'Chateamos sobre tus datos y cada dos semanas te doy una valoración. Para hablar necesito activar la IA: es gratis, se hace una vez y en Ajustes te llevo paso a paso.',
   },
   {
     tab: 'settings',

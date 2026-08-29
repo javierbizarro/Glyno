@@ -62,6 +62,8 @@ const TAB_LABEL: Record<Tab, string> = {
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => profiles.load())
   const [tab, setTab] = useState<Tab>('today')
+  // "activar la IA" from Glyno or Comida: lands on Ajustes with the wizard already open
+  const [aiSetup, setAiSetup] = useState(false)
   const [touring, setTouring] = useState(false)
   const tabbar = useRef<HTMLElement>(null)
 
@@ -89,6 +91,11 @@ export default function App() {
     return () => ro.disconnect()
   }, [profile?.onboarded])
 
+  const openAiSetup = () => {
+    setAiSetup(true)
+    setTab('settings')
+  }
+
   const save = (p: Profile) => {
     profiles.save(p)
     setProfile(p)
@@ -101,9 +108,17 @@ export default function App() {
       <div className="screen">
         {tab === 'today' && <Today profile={profile} />}
         {tab === 'trends' && <Trends profile={profile} />}
-        {tab === 'meals' && <Meals profile={profile} />}
-        {tab === 'glyno' && <Coach profile={profile} />}
-        {tab === 'settings' && <Settings profile={profile} onSave={save} onReplayTour={() => setTouring(true)} />}
+        {tab === 'meals' && <Meals profile={profile} onSetupAi={openAiSetup} />}
+        {tab === 'glyno' && <Coach profile={profile} onSetupAi={openAiSetup} />}
+        {tab === 'settings' && (
+          <Settings
+            profile={profile}
+            onSave={save}
+            onReplayTour={() => setTouring(true)}
+            openAi={aiSetup}
+            onAiOpened={() => setAiSetup(false)}
+          />
+        )}
       </div>
 
       {touring && <Tour go={setTab} onClose={endTour} />}

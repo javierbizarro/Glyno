@@ -26,6 +26,8 @@ export interface Profile {
   /** agreed with their healthcare team; the app draws it, never proposes it */
   targetWeightKg?: number
   geminiKey: string
+  /** on-device AI available and chosen over the key: nothing leaves the phone, at the cost of a smaller model */
+  preferDevice?: boolean
   onboarded: boolean
 }
 
