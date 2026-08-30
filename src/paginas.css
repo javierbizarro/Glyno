@@ -1,0 +1,163 @@
+/* Reading layout for the static pages. Same paper and same type as the app: whoever lands
+   here from a link has to recognise it as the same thing. */
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.pagina {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 5rem;
+}
+
+.pagina-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+
+.pagina-nav img { width: 34px; height: 34px; }
+
+.pagina-nav a {
+  font-family: var(--display);
+  font-weight: var(--w-display);
+  font-size: 1.25rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+h1 {
+  font-family: var(--display);
+  font-weight: var(--w-display);
+  font-size: clamp(1.9rem, 6vw, 2.5rem);
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+h2 {
+  font-family: var(--display);
+  font-weight: var(--w-display);
+  font-size: 1.35rem;
+  line-height: 1.25;
+  margin: 2.75rem 0 0.75rem;
+}
+
+h3 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 1.02rem;
+  margin: 1.75rem 0 0.4rem;
+}
+
+p, li { margin: 0 0 1rem; }
+ul, ol { padding-left: 1.2rem; }
+li { margin-bottom: 0.5rem; }
+
+a { color: var(--green); text-underline-offset: 3px; }
+
+strong { font-weight: 600; }
+
+.entradilla {
+  font-size: 1.12rem;
+  color: var(--ink-2);
+  margin-bottom: 2rem;
+}
+
+.fecha {
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  margin-bottom: 2.5rem;
+}
+
+/* the one thing a reader must not miss on a health page */
+.aviso {
+  background: var(--red-soft);
+  border-left: 3px solid var(--red);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+  padding: 1rem 1.15rem;
+  margin: 2rem 0;
+}
+
+.aviso p:last-child { margin-bottom: 0; }
+
+.nota {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 1rem 1.15rem;
+  margin: 2rem 0;
+}
+
+.nota p:last-child { margin-bottom: 0; }
+
+.fuente {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  padding-left: 1rem;
+  border-left: 2px solid var(--line);
+  margin: 0 0 1.5rem;
+}
+
+.btn-pagina {
+  display: inline-block;
+  background: var(--green);
+  color: var(--paper);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+}
+
+.pie {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+
+.pie a { display: inline-block; margin-right: 1.1rem; }
+
+/* Screenshot strip: real captures from the iPhone app, scrolled sideways so four phone-shaped
+   images never squash the reading column on a narrow screen. */
+.capturas {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0 1rem;
+  margin: 2rem 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.capturas figure {
+  flex: 0 0 auto;
+  width: 15rem;
+  margin: 0;
+  scroll-snap-align: center;
+}
+
+.capturas img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--card);
+}
+
+.capturas figcaption {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  margin-top: 0.6rem;
+  line-height: 1.45;
+}

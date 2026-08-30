@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F7F2E9" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <meta name="description" content="Por qué Glyno no es un producto sanitario: su finalidad prevista, las líneas rojas de diseño y qué hace en su lugar." />
+    <title>Por qué Glyno no es un producto sanitario · Glyno</title>
+    <script type="module" src="/src/paginas.ts"></script>
+  </head>
+  <body>
+    <div class="pagina">
+      <nav class="pagina-nav">
+        <img src="/icon.svg" alt="" />
+        <a href="./">Glyno</a>
+      </nav>
+
+      <h1>Por qué Glyno no es un producto sanitario</h1>
+      <p class="entradilla">
+        Esta página existe porque si eres profesional sanitario —o simplemente cuidadoso— es la
+        primera pregunta razonable. La respuesta corta: Glyno es un diario, no un instrumento
+        clínico, y está diseñada a propósito para no cruzar esa línea.
+      </p>
+      <p class="fecha">Última actualización: 30 de agosto de 2026</p>
+
+      <h2>La finalidad prevista, dicha en una frase</h2>
+      <p>
+        <strong>Glyno sirve para que una persona con diabetes anote lo suyo, lo vea ordenado y se
+        lo pueda enseñar a su equipo sanitario.</strong> Nada más. No está destinada al
+        diagnóstico, la prevención, el seguimiento clínico, la predicción, el pronóstico ni el
+        tratamiento de ninguna enfermedad.
+      </p>
+      <p>
+        Esto no es un detalle de redacción: en el
+        <strong>Reglamento (UE) 2017/745 de productos sanitarios</strong> es la
+        <em>finalidad prevista</em> declarada por el fabricante la que determina si un software
+        entra o no en su ámbito. Un programa que registra, almacena y muestra lo que el usuario
+        introduce no es un producto sanitario; lo es aquel destinado a producir información que
+        fundamente decisiones diagnósticas o terapéuticas sobre un paciente concreto. Glyno está
+        construida para quedarse, deliberadamente, en el primer grupo.
+      </p>
+
+      <h2>Las cuatro líneas rojas que lo garantizan</h2>
+      <p>
+        No son promesas: son restricciones escritas en el diseño y verificadas con pruebas
+        automáticas en cada cambio del código.
+      </p>
+      <ol>
+        <li>
+          <strong>Glyno nunca calcula ni sugiere una dosis.</strong> Ni de insulina ni de nada. Si
+          se lo preguntas directamente, contesta que eso no lo decide ella y te remite a tu equipo
+          sanitario. La valoración que escribe sin conexión no puede decir una dosis
+          <em>por construcción</em>: no existe ninguna frase capaz de contenerla.
+        </li>
+        <li>
+          <strong>No diagnostica ni clasifica.</strong> Tu tipo de diabetes lo eliges tú en el
+          perfil porque te lo ha dicho un médico; Glyno no lo deduce ni lo cuestiona.
+        </li>
+        <li>
+          <strong>No predice ni alerta en tiempo real.</strong> No anticipa hipoglucemias, no
+          proyecta valores futuros y no funciona como sistema de alarma. Si tu última glucemia
+          está baja y es reciente, lo único que hace es apartarse: deja de sugerir comidas y de
+          hacer valoraciones, y te dice que primero trates la hipoglucemia.
+        </li>
+        <li>
+          <strong>No modifica ni interpreta el dato de origen.</strong> Los valores que llegan de
+          tu sensor o de la app Salud se muestran tal cual llegan. Glyno no los recalibra, no los
+          corrige y no los sustituye por estimaciones propias.
+        </li>
+      </ol>
+
+      <h2>Entonces, ¿qué hace exactamente?</h2>
+      <ul>
+        <li><strong>Registra</strong> lo que tú apuntas, o lo que ya está en la app Salud de tu iPhone.</li>
+        <li><strong>Calcula estadística descriptiva</strong> de tus propios datos: medias, tiempo
+          en rango, número de registros, diferencias entre días con y sin una etiqueta. Aritmética
+          sobre lo que ya tienes, no inferencia clínica.</li>
+        <li><strong>Escribe una valoración</strong> con consejos de estilo de vida de carácter
+          general —moverse, dormir, el orden de los alimentos— del mismo tipo que los de cualquier
+          material educativo sobre diabetes, y te dice en qué se basan.</li>
+        <li><strong>Imprime un informe</strong> en A4 para que se lo lleves a tu consulta. La
+          decisión clínica la toma quien lo lee, con su criterio y sus medios.</li>
+      </ul>
+
+      <div class="nota">
+        <p>
+          <strong>Sobre la parte de inteligencia artificial.</strong> Cuando la activas, la IA solo
+          <em>redacta</em>. Los números y los patrones los calcula Glyno antes, con aritmética
+          normal, y a la IA se le entrega ya masticado junto con una estructura fija y la
+          prohibición explícita de hablar de dosis. No se le pide un juicio clínico y no se le
+          deja tomar ninguna decisión. Si no hay IA activada, Glyno escribe la misma valoración
+          ella sola.
+        </p>
+      </div>
+
+      <h2>Qué haría falta para que sí lo fuera</h2>
+      <p>
+        Lo decimos abierto para que se vea dónde está la frontera. Glyno pasaría a ser un producto
+        sanitario —y necesitaría marcado CE, organismo notificado y todo lo que eso arrastra— en
+        cuanto hiciera cualquiera de estas cosas:
+      </p>
+      <ul>
+        <li>Calcular un bolo, una corrección o un ajuste de la pauta.</li>
+        <li>Predecir hipoglucemias o proyectar la glucosa a futuro.</li>
+        <li>Emitir alarmas clínicas destinadas a que actúes en el momento.</li>
+        <li>Proponer un diagnóstico o interpretar los datos para decidir un tratamiento.</li>
+      </ul>
+      <p>
+        <strong>Ninguna de esas cuatro entra en la hoja de ruta.</strong> Están escritas como
+        exclusiones permanentes en la documentación del proyecto, no como funciones pendientes.
+      </p>
+
+      <div class="aviso">
+        <p>
+          <strong>Honestidad sobre esta página.</strong> Es la valoración razonada de quien hace la
+          app, publicada para que puedas juzgarla tú. No es un dictamen jurídico, ni una
+          certificación, ni una evaluación de la AEMPS o de ningún organismo notificado: nadie ha
+          evaluado Glyno oficialmente, porque precisamente no está en el ámbito que exige esa
+          evaluación. Si eres profesional y crees que algún detalle cruza la línea, escríbeme a
+          <a href="mailto:idhan86@gmail.com">idhan86@gmail.com</a>. Es exactamente el tipo de
+          mensaje que quiero recibir.
+        </p>
+      </div>
+
+      <p>
+        Y lo de siempre, que no sobra repetir: <strong>Glyno no sustituye a tu médico ni a tu
+        enfermera educadora.</strong> Es la libreta que les llevas, no quien decide.
+      </p>
+
+      <div class="pie">
+        <a href="./">Qué es Glyno</a>
+        <a href="./privacidad.html">Privacidad</a>
+        <a href="./en-que-se-basa.html">En qué se basa</a>
+        <a href="./quien-hay-detras.html">Quién hay detrás</a>
+      </div>
+    </div>
+  </body>
+</html>

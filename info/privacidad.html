@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F7F2E9" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <meta name="description" content="Política de privacidad de Glyno: tus datos de salud no salen de tu dispositivo. Sin cuentas, sin servidor, sin publicidad." />
+    <title>Privacidad · Glyno</title>
+    <script type="module" src="/src/paginas.ts"></script>
+  </head>
+  <body>
+    <div class="pagina">
+      <nav class="pagina-nav">
+        <img src="/icon.svg" alt="" />
+        <a href="./">Glyno</a>
+      </nav>
+
+      <h1>Política de privacidad</h1>
+      <p class="entradilla">
+        La versión corta: Glyno no tiene servidor, no tiene cuentas y no recibe tus datos de
+        salud. Se quedan en tu móvil. Debajo está la versión larga, con las dos únicas
+        excepciones y por qué existen.
+      </p>
+      <p class="fecha">Última actualización: 30 de agosto de 2026</p>
+
+      <h2>Quién es responsable</h2>
+      <p>
+        Glyno la hace y la mantiene <strong>Javier Romero Bizarro</strong>, a título personal.
+        Puedes escribirme a <a href="mailto:idhan86@gmail.com">idhan86@gmail.com</a> para
+        cualquier cosa relacionada con esta página, o abrir un asunto en
+        <a href="https://github.com/javierbizarro/Glyno">el repositorio público</a>.
+        Hay más sobre quién está detrás en <a href="./quien-hay-detras.html">esta otra página</a>.
+      </p>
+
+      <h2>Qué datos trata Glyno y dónde viven</h2>
+      <p>
+        Todo lo que apuntas —glucemias, tensión, comidas, ejercicio, peso, medicación, contexto
+        y tu perfil— se guarda <strong>en el almacenamiento del propio navegador o de la app</strong>
+        de tu dispositivo (IndexedDB y localStorage). No se envía a ningún servidor mío, porque no
+        hay ningún servidor mío: la versión web es un puñado de ficheros estáticos y la app de
+        iPhone funciona entera sin conexión.
+      </p>
+      <p>
+        Consecuencia importante, y conviene que la leas dos veces: <strong>si borras los datos del
+        navegador, desinstalas la app o pierdes el móvil, esos datos se pierden</strong>. No tengo
+        copia. Por eso Glyno lleva un botón de copia de seguridad en Ajustes que te descarga todo
+        en un fichero que controlas tú.
+      </p>
+
+      <h2>Las dos excepciones</h2>
+
+      <h3>1. La IA, si tú la activas y con tu propia clave</h3>
+      <p>
+        La valoración quincenal, el chat y el análisis de la foto del plato pueden usar Gemini, de
+        Google. Cuando eso pasa, sale de tu dispositivo un <strong>resumen ya agregado</strong> de
+        tus datos (medias, tiempo en rango, patrones, tu perfil y tu medicación si la has
+        apuntado) o la foto del plato: no se envía tu diario en crudo. Va con
+        <strong>tu propia clave</strong> de Google AI Studio, directamente de tu dispositivo a
+        Google, sin pasar por mí. Lo que Google haga con ello se rige por las condiciones que
+        aceptas al crear esa clave, no por esta página.
+      </p>
+      <p>
+        Es opcional y reversible: sin clave, Glyno escribe la valoración ella misma en tu propio
+        dispositivo, sin internet. Y en un iPhone con Apple Intelligence puede usar el modelo del
+        sistema, con lo que ni siquiera esa excepción existe.
+      </p>
+
+      <h3>2. Un recuento anónimo de aperturas (solo en la web)</h3>
+      <p>
+        La versión web avisa a <strong>GoatCounter</strong> de que alguien la ha abierto. La
+        petición no lleva cookies, ni identificadores, ni un solo dato tuyo: solo «alguien ha
+        abierto Glyno». Como cualquier servidor de internet, GoatCounter ve tu IP al recibirla,
+        pero no la almacena. Si tu navegador manda «Do Not Track» o Global Privacy Control, ni
+        eso se envía. Puedes leer las cuarenta líneas que lo hacen
+        <a href="https://github.com/javierbizarro/Glyno/blob/main/src/app/analytics.ts">en el
+        código</a>.
+      </p>
+      <p>
+        <strong>La app de iPhone no hace ni eso.</strong> Ahí no hay ningún recuento: las aperturas
+        me las da la App Store ya agregadas, sin recoger nada.
+      </p>
+
+      <h2>Los datos de la app Salud (iPhone)</h2>
+      <p>
+        Si le das permiso, Glyno <strong>lee</strong> de la app Salud tu glucosa, pasos, sueño,
+        peso, tensión y entrenamientos para rellenar el diario sola. Tres cosas al respecto:
+        Glyno solo lee y <strong>nunca escribe</strong> nada en Salud; lo leído se guarda en el
+        mismo sitio que lo que apuntas a mano, en tu iPhone; y <strong>no se comparte con nadie</strong>,
+        ni conmigo ni con terceros. Puedes revocar el permiso cuando quieras desde Ajustes del
+        iPhone → Salud, y Glyno se queda con lo que ya tenía sin traer nada nuevo.
+      </p>
+
+      <h2>Lo que Glyno no hace</h2>
+      <ul>
+        <li>No pide registro, cuenta, email ni contraseña.</li>
+        <li>No usa cookies.</li>
+        <li>No lleva publicidad ni ningún SDK de terceros. La app de iPhone solo empaqueta
+          Capacitor, que es la capa que la hace nativa.</li>
+        <li>No hay perfilado, ni analítica de comportamiento, ni eventos, ni sesiones. El único
+          recuento es el de arriba, y es un número.</li>
+        <li>No vendo ni cedo nada, entre otras cosas porque no tengo nada que vender ni ceder.</li>
+      </ul>
+
+      <h2>Tus derechos</h2>
+      <p>
+        El Reglamento General de Protección de Datos te da derecho a acceder a tus datos,
+        rectificarlos, borrarlos y llevártelos. En Glyno los ejerces tú directamente y sin
+        pedirme permiso, porque los datos están en tu poder: se ven y se editan en la app, se
+        exportan con la copia de seguridad de Ajustes y se borran con «Borrar todo» o
+        desinstalando. Si aun así quieres escribirme, la dirección está arriba.
+      </p>
+
+      <h2>Cambios en esta página</h2>
+      <p>
+        Si cambia, cambia con fecha. Y como Glyno es de código abierto a la vista, el historial
+        completo de esta página —qué decía antes y cuándo se modificó— está en
+        <a href="https://github.com/javierbizarro/Glyno">el repositorio</a>, que es una forma de
+        transparencia difícil de fingir.
+      </p>
+
+      <div class="aviso">
+        <p>
+          Glyno no da consejo médico ni pautas de medicación, y nunca calcula ni sugiere dosis.
+          Para eso, siempre tu equipo sanitario. Hay una página entera explicando
+          <a href="./no-es-producto-sanitario.html">por qué Glyno no es un producto sanitario</a>.
+        </p>
+      </div>
+
+      <div class="pie">
+        <a href="./">Qué es Glyno</a>
+        <a href="./no-es-producto-sanitario.html">No es un producto sanitario</a>
+        <a href="./en-que-se-basa.html">En qué se basa</a>
+        <a href="./quien-hay-detras.html">Quién hay detrás</a>
+      </div>
+    </div>
+  </body>
+</html>

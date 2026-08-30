@@ -282,6 +282,22 @@ export function Settings({
             envía «Do Not Track» o Global Privacy Control, ni eso.
           </p>
         )}
+        {/* the pages ship with the build, so inside the app they open offline and must not be
+            handed to an external browser: capacitor://localhost means nothing to Safari */}
+        <p className="muted small">
+          {PAGINAS.map(([file, label], i) => (
+            <span key={file}>
+              {i > 0 && ' · '}
+              <a
+                href={`${import.meta.env.BASE_URL}info/${file}.html`}
+                target={isNative() ? undefined : '_blank'}
+                rel="noreferrer"
+              >
+                {label}
+              </a>
+            </span>
+          ))}
+        </p>
         <p className="muted small">
           El personaje de Glyno lo dibujó una niña de 8 años. 💛
         </p>
@@ -302,6 +318,13 @@ export function Settings({
     </>
   )
 }
+
+const PAGINAS: [string, string][] = [
+  ['privacidad', 'Privacidad'],
+  ['no-es-producto-sanitario', 'No es un producto sanitario'],
+  ['en-que-se-basa', 'En qué se basa'],
+  ['quien-hay-detras', 'Quién hay detrás'],
+]
 
 function MedsEditor({
   p,
