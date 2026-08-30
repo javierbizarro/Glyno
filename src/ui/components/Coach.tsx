@@ -4,13 +4,24 @@ import { computeStats } from '../../domain/stats'
 import { findGaps } from '../../domain/gaps'
 import { daysAgo } from '../../domain/time'
 import { entries as repo } from '../../app/container'
-import { askCoach, generateReview, type ChatMsg } from '../../app/coach'
+import { askCoach, generateReview } from '../../app/coach'
+import { addMessage, currentOf, loadChats, pruneChats, startNewChat, type Chat } from '../../domain/chat'
 import { resolveAiSource } from '../../domain/aiKey'
 import { useDeviceAi, useWatch } from '../hooks'
+import { fmtDayLong } from '../format'
 import { Mascot3D } from './Mascot3D'
 
-const CHAT_KEY = 'glyno.chat'
+const CHATS_KEY = 'glyno.chats'
+/** the single thread of versions before conversations existed; migrated on first load */
+const LEGACY_CHAT_KEY = 'glyno.chat'
 const REVIEW_KEY = 'glyno.review'
+
+const dayLabel = (ts: number): string => {
+  const day = new Date(ts).toDateString()
+  if (day === new Date().toDateString()) return 'Hoy'
+  if (day === new Date(Date.now() - 864e5).toDateString()) return 'Ayer'
+  return fmtDayLong(ts)
+}
 
 export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () => void }) {
   // hooks stay above the early return below: this one must not depend on the diary being ready
@@ -26,16 +37,32 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
       return null
     }
   })
-  const [msgs, setMsgs] = useState<ChatMsg[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(CHAT_KEY) ?? '[]')
-    } catch {
-      return []
-    }
-  })
+  const [chats, setChats] = useState<Chat[]>(() =>
+    pruneChats(loadChats(localStorage.getItem(CHATS_KEY), localStorage.getItem(LEGACY_CHAT_KEY), Date.now()), Date.now()),
+  )
+  // reading a previous conversation: its index, or null while writing in today's
+  const [reading, setReading] = useState<number | null>(null)
+  const [showOld, setShowOld] = useState(false)
   const [question, setQuestion] = useState('')
+  const msgs = (reading != null ? chats[reading] : currentOf(chats))?.msgs ?? []
+  // everything readable that is not the one being written in
+  const previous = chats.map((c, i) => ({ c, i })).filter(({ c, i }) => c.msgs.length && i !== chats.length - 1)
+  const save = (next: Chat[]) => {
+    const pruned = pruneChats(next, Date.now())
+    setChats(pruned)
+    localStorage.setItem(CHATS_KEY, JSON.stringify(pruned))
+    // only once the new shape is safely stored does the old single thread go
+    localStorage.removeItem(LEGACY_CHAT_KEY)
+  }
   const [busy, setBusy] = useState<'review' | 'chat' | null>(null)
   const [error, setError] = useState('')
+
+  // the rescued thread is written in its new shape right away: waiting for the next message
+  // would leave it hanging on a key that future versions no longer read
+  useEffect(() => {
+    if (localStorage.getItem(LEGACY_CHAT_KEY)) save(chats)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // like a real chat: pinned to the bottom unless the user scrolled up to read,
   // in which case a new reply must not drag them back down
@@ -103,19 +130,19 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
     const q = question.trim()
     if (!q) return
     stick.current = true // your own message always scrolls the conversation down
-    const withMine = [...msgs, { role: 'me' as const, text: q }]
-    setMsgs(withMine)
+    const now = Date.now()
+    const withMine = addMessage(chats, { role: 'me', text: q }, now)
+    save(withMine)
     setQuestion('')
     setBusy('chat')
     setError('')
     try {
-      const text = await askCoach(profile, entries, withMine, weights)
-      const all = [...withMine, { role: 'glyno' as const, text }].slice(-20)
-      setMsgs(all)
-      localStorage.setItem(CHAT_KEY, JSON.stringify(all))
+      // only the conversation in progress travels: yesterday's questions are another subject
+      const text = await askCoach(profile, entries, currentOf(withMine)!.msgs, weights)
+      save(addMessage(withMine, { role: 'glyno', text }, Date.now()))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
-      setMsgs(withMine.slice(0, -1))
+      save(chats)
       setQuestion(q)
     } finally {
       setBusy(null)
@@ -179,6 +206,46 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
 
       {/* the conversation hangs from the bottom of the screen, stuck to the input box;
           everything else (review, notices) stays above, like in any chat */}
+      {(previous.length > 0 || reading != null) && (
+        <div className="stack" style={{ gap: 8 }}>
+          {reading == null ? (
+            <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => setShowOld(!showOld)}>
+              {showOld ? 'Cerrar' : `Conversaciones anteriores (${previous.length})`}
+            </button>
+          ) : (
+            <div className="row between">
+              <span className="muted small">Estás leyendo la conversación de {dayLabel(chats[reading].startedAt).toLowerCase()}</span>
+              <button className="btn ghost small" onClick={() => setReading(null)}>
+                Volver a hoy
+              </button>
+            </div>
+          )}
+          {showOld && reading == null && (
+            <div className="card stack" style={{ padding: '4px 16px' }}>
+              {[...previous].reverse().map(({ c, i }) => (
+                  <button
+                    key={i}
+                    className="entry-row"
+                    style={{ background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', width: '100%' }}
+                    onClick={() => {
+                      setReading(i)
+                      setShowOld(false)
+                    }}
+                  >
+                    <span className="entry-ico">💬</span>
+                    <span style={{ flex: 1, fontSize: 14.5 }}>
+                      {dayLabel(c.startedAt)}
+                      <span className="muted small" style={{ display: 'block' }}>
+                        {c.msgs.find(m => m.role === 'me')?.text.slice(0, 60) ?? ''}
+                      </span>
+                    </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="chat-thread">
         <p className="chat-notice">
           Glyno no da consejo médico ni pautas de medicación. Ante cualquier duda de tratamiento,
@@ -199,7 +266,20 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
         )}
       </div>
 
-      <div className="chat-dock">
+      {reading == null && msgs.length > 0 && busy !== 'chat' && (
+        <button
+          className="btn ghost small"
+          style={{ alignSelf: 'center' }}
+          onClick={() => {
+            stick.current = true
+            save(startNewChat(chats, Date.now()))
+          }}
+        >
+          Empezar una conversación nueva
+        </button>
+      )}
+
+      <div className="chat-dock" style={reading != null ? { display: 'none' } : undefined}>
         <div className="inner">
           <input
             type="text"

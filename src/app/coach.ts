@@ -1,12 +1,10 @@
 import type { Entry, Profile } from '../domain/types'
 import { computeStats } from '../domain/stats'
 import { ai } from './container'
+import type { ChatMsg } from '../domain/chat'
 import { buildContext, chatPrompt, reviewPrompt } from './prompts'
 
-export interface ChatMsg {
-  role: 'me' | 'glyno'
-  text: string
-}
+export type { ChatMsg } from '../domain/chat'
 
 export async function generateReview(p: Profile, entries: Entry[], weights: Entry[] = []): Promise<string> {
   const ctx = buildContext(p, computeStats(entries, p), entries, weights)

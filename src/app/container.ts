@@ -48,6 +48,7 @@ export const assistantWithKey = (key: string): AiAssistant => new GeminiAssistan
 export async function resetAll() {
   profiles.clear()
   localStorage.removeItem('glyno.chat')
+  localStorage.removeItem('glyno.chats')
   localStorage.removeItem('glyno.review')
   await entries.deleteDatabase()
 }

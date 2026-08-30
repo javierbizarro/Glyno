@@ -20,6 +20,13 @@ Ajustes → «Acerca de Glyno».
   puerta para las apps web: llegará con la app nativa.
 - En Ajustes, la clave guardada se ve enmascarada, con botones para **comprobar que funciona**,
   cambiarla o quitarla.
+- **Las conversaciones con Glyno se separan solas, por día.** Antes había un único hilo que
+  además **se comía en silencio los mensajes viejos** (guardaba solo los 20 últimos). Ahora la
+  pestaña de Glyno enseña la conversación de hoy y, arriba, un discreto «Conversaciones
+  anteriores» donde están las de días pasados por fecha, con la primera pregunta de cada una para
+  reconocerlas de un vistazo. Si cambias de tema el mismo día, «Empezar una conversación nueva»
+  corta el hilo. Nada que nombrar ni que ordenar. Se guardan las de los últimos 30 días, y a
+  Glyno solo le llega la conversación en curso: contesta más centrado y gasta menos cuota.
 - **El contexto se apunta con el dato, no aparte.** Al registrar una glucemia, una tensión o una
   comida puedes marcar ahí mismo «Mal sueño», «Estrés», «Alcohol»… y queda pegado al número:
   el diario lee **«212 mg/dl · ayunas · Mal sueño»** y el CSV para el médico lleva su columna
