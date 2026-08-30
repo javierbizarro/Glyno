@@ -2,8 +2,20 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
 // Procedural Glyno, no external models: works offline.
-// Original design on paper: layered heart with a crown, little arms holding two
-// heart balloons on strings, and a string hanging from below.
+// The face is the one drawn on paper: big eyes with two highlights and a wide smile.
+// The body is rounded on purpose — a heart in a health app reads as blood pressure, and
+// the app already uses one for that — and what grows on its head is a sprout, not a crown:
+// a crown is the universal badge for "premium", which is the opposite of what Glyno is.
+
+function bodyShape(): THREE.Shape {
+  const s = new THREE.Shape()
+  s.moveTo(0, 1.135)
+  s.bezierCurveTo(0.62, 1.135, 1.02, 0.72, 1.02, 0.18)
+  s.bezierCurveTo(1.02, -0.62, 0.58, -1.135, 0, -1.135)
+  s.bezierCurveTo(-0.58, -1.135, -1.02, -0.62, -1.02, 0.18)
+  s.bezierCurveTo(-1.02, 0.72, -0.62, 1.135, 0, 1.135)
+  return s
+}
 
 function heartShape(): THREE.Shape {
   const s = new THREE.Shape()
@@ -15,11 +27,20 @@ function heartShape(): THREE.Shape {
   return s
 }
 
-/** the centered heart is ~2.27 tall; its tip sits at -1.135 * scale from the center */
-const HEART_HALF = 1.135
+/** a leaf pointing up and outwards; mirrored for the other side */
+function leafShape(): THREE.Shape {
+  const s = new THREE.Shape()
+  s.moveTo(0, 0)
+  s.bezierCurveTo(0.16, 0.26, 0.46, 0.44, 0.68, 0.36)
+  s.bezierCurveTo(0.6, 0.08, 0.3, -0.1, 0, 0)
+  return s
+}
 
-function heartMesh(scale: number, depth: number, material: THREE.Material): THREE.Mesh {
-  const geo = new THREE.ExtrudeGeometry(heartShape(), {
+/** every extruded shape here is 2.27 tall once centered: half of that is 1.135 */
+const HALF = 1.135
+
+function extrude(shape: THREE.Shape, scale: number, depth: number, material: THREE.Material): THREE.Mesh {
+  const geo = new THREE.ExtrudeGeometry(shape, {
     depth,
     bevelEnabled: true,
     bevelThickness: 0.16,
@@ -32,6 +53,9 @@ function heartMesh(scale: number, depth: number, material: THREE.Material): THRE
   mesh.scale.setScalar(scale)
   return mesh
 }
+
+const bodyMesh = (scale: number, depth: number, m: THREE.Material) => extrude(bodyShape(), scale, depth, m)
+const heartMesh = (scale: number, depth: number, m: THREE.Material) => extrude(heartShape(), scale, depth, m)
 
 export function Mascot3D({ size = 96 }: { size?: number }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -64,8 +88,8 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     const rose = new THREE.MeshStandardMaterial({ color: '#DE7A90', roughness: 0.5 })
     const ink = new THREE.MeshStandardMaterial({ color: '#232743', roughness: 0.35 })
     const white = new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.25 })
-    const gold = new THREE.MeshStandardMaterial({ color: '#D99A3C', roughness: 0.4, metalness: 0.3 })
-    const goldLight = new THREE.MeshStandardMaterial({ color: '#F5D77E', roughness: 0.35, metalness: 0.3 })
+    const leaf = new THREE.MeshStandardMaterial({ color: '#3D8A5C', roughness: 0.5 })
+    const stem = new THREE.MeshStandardMaterial({ color: '#2F7A50', roughness: 0.5 })
 
     const glyno = new THREE.Group()
     glyno.scale.setScalar(0.82)
@@ -73,34 +97,29 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
 
     // body: three concentric layers, as in the drawing
     const body = new THREE.Group()
-    body.add(heartMesh(1.2, 0.5, outline))
-    const mid = heartMesh(1.08, 0.56, lilac)
+    body.add(bodyMesh(1.2, 0.5, outline))
+    const mid = bodyMesh(1.08, 0.56, lilac)
     mid.position.z = 0.12
     body.add(mid)
-    const front = heartMesh(0.9, 0.6, rose)
+    const front = bodyMesh(0.9, 0.6, rose)
     front.position.z = 0.24
     body.add(front)
     glyno.add(body)
 
-    // crown RESTING on the lobes (they reach y≈1.31): nothing above can cover it,
-    // which was why it used to end up hidden between them
-    const crown = new THREE.Group()
-    crown.position.set(0, HEART_HALF * 1.2 - 0.06, 0.28)
-    crown.rotation.x = -0.16
-    crown.add(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.44, 0.19, 26, 1, true), gold))
-    crown.add(new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.032, 8, 26), gold))
-    for (let i = 0; i < 5; i++) {
-      const a = (-0.5 + i / 4) * Math.PI * 0.78
-      const x = Math.sin(a) * 0.42
-      const z = Math.cos(a) * 0.42
-      const tall = i === 2 ? 0.42 : 0.3
-      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.09, tall, 8), gold)
-      spike.position.set(x, 0.1 + tall / 2, z)
-      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 12), goldLight)
-      ball.position.set(x, 0.12 + tall, z)
-      crown.add(spike, ball)
+    // the sprout grows from the top of the head, tilted forward so it reads from the front
+    const sprout = new THREE.Group()
+    sprout.position.set(0, HALF * 1.2 - 0.08, 0.22)
+    sprout.rotation.x = -0.18
+    const stalk = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.46, 6, 12), stem)
+    stalk.position.y = 0.28
+    sprout.add(stalk)
+    for (const side of [1, -1]) {
+      const l = extrude(leafShape(), side === 1 ? 0.62 : 0.5, 0.09, leaf)
+      l.position.set(side * 0.26, side === 1 ? 0.56 : 0.42, 0)
+      l.rotation.set(0, 0, side === 1 ? 0.2 : Math.PI - 0.2)
+      sprout.add(l)
     }
-    glyno.add(crown)
+    glyno.add(sprout)
 
     // big eyes with two highlights, as originally drawn
     const eyes: THREE.Group[] = []
@@ -125,7 +144,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
 
     // little arms with a hand each, and a balloon string comes out of each hand.
     // The shoulder sits low and the arm opens wide so the hand lands OUTSIDE the
-    // heart's silhouette (max half-width ≈ 1.36): inside it wouldn't be visible.
+    // body's silhouette (max half-width ≈ 1.22): inside it wouldn't be visible.
     const HAND_LEN = 0.62
     const balloons: THREE.Group[] = []
     for (const side of [-1, 1]) {
@@ -167,7 +186,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
       knot.position.copy(end)
       // the heart hangs by its tip, which is where the string is tied
       const heart = heartMesh(0.3, 0.16, rose)
-      heart.position.set(end.x, end.y + HEART_HALF * 0.3, end.z)
+      heart.position.set(end.x, end.y + HALF * 0.3, end.z)
       balloon.add(knot, heart)
 
       balloons.push(balloon)
@@ -176,7 +195,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
 
     // string hanging from below
     const tailCurve = new THREE.CubicBezierCurve3(
-      new THREE.Vector3(0.03, -HEART_HALF * 1.2 + 0.05, 0),
+      new THREE.Vector3(0.03, -HALF * 1.2 + 0.05, 0),
       new THREE.Vector3(0.3, -1.62, 0),
       new THREE.Vector3(-0.22, -1.78, 0),
       new THREE.Vector3(0.14, -2.02, 0),

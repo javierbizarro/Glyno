@@ -1,59 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <path id="glyno-heart" d="M50 76 C36 64 26 55 26 45 C26 37 32 32 39 32 C44 32 48 35 50 39 C52 35 56 32 61 32 C68 32 74 37 74 45 C74 55 64 64 50 76 Z"/>
-    <radialGradient id="glyno-rose" cx="38%" cy="28%" r="80%">
-      <stop offset="0" stop-color="#EE9AAD"/>
-      <stop offset="60%" stop-color="#DE7A90"/>
-      <stop offset="1" stop-color="#BC5470"/>
-    </radialGradient>
-    <linearGradient id="glyno-lilac" x1="0" y1="0" x2="0.4" y2="1">
-      <stop offset="0" stop-color="#C9A6D1"/>
-      <stop offset="1" stop-color="#A87FB4"/>
-    </linearGradient>
-    <linearGradient id="glyno-gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F5D77E"/>
-      <stop offset="1" stop-color="#D99A3C"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="100" height="100" rx="22" fill="#F7F2E9"/>
-
-  <!-- balloons: string from the hand, heart at the tip -->
-  <path d="M24 58 C18 50 15 43 14.5 35" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <path d="M76 58 C82 50 85 43 85.5 35" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <use href="#glyno-heart" transform="translate(14.5 27) scale(0.2) translate(-50 -52)" fill="#DE7A90" stroke="#2F3757" stroke-width="8"/>
-  <use href="#glyno-heart" transform="translate(85.5 27) scale(0.2) translate(-50 -52)" fill="#DE7A90" stroke="#2F3757" stroke-width="8"/>
-
-  <!-- little arms with their hand -->
-  <path d="M34 65 L25 58.5" stroke="#9B76A8" stroke-width="5" fill="none" stroke-linecap="round"/>
-  <path d="M66 65 L75 58.5" stroke="#9B76A8" stroke-width="5" fill="none" stroke-linecap="round"/>
-  <circle cx="24" cy="58" r="3.4" fill="#9B76A8"/>
-  <circle cx="76" cy="58" r="3.4" fill="#9B76A8"/>
-
-  <!-- crown resting on the lobes -->
-  <g stroke="#2F3757" stroke-width="1.5" stroke-linejoin="round" fill="url(#glyno-gold)">
-    <path d="M38.5 29.5 L43 20.5 L47.5 29.5 Z"/>
-    <path d="M45.5 29.5 L50 17.5 L54.5 29.5 Z"/>
-    <path d="M52.5 29.5 L57 20.5 L61.5 29.5 Z"/>
-    <rect x="37.5" y="28.5" width="25" height="5" rx="1.6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Glyno">
+  <title>Glyno</title>
+  <rect width="100" height="100" fill="#F7F2E9"/>
+  <g transform="translate(50 55) scale(1.02) translate(-50 -55)">
+    <path d="M50 24 C65 24 76 35 76 49 C76 65 64 80 50 80 C36 80 24 65 24 49 C24 35 35 24 50 24 Z"
+          fill="#B792C0" stroke="#232743" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M50 24 C65 24 76 35 76 49 C76 65 64 80 50 80 C36 80 24 65 24 49 C24 35 35 24 50 24 Z"
+          transform="translate(50 54) scale(0.74) translate(-50 -54)" fill="#DE7A90"/>
+    <g transform="translate(50 54) scale(1.18) translate(-50 -50)">
+      <ellipse cx="43" cy="48" rx="4" ry="4.6" fill="#232743"/>
+      <ellipse cx="57" cy="48" rx="4" ry="4.6" fill="#232743"/>
+      <circle cx="44.6" cy="46.3" r="1.6" fill="#fff"/>
+      <circle cx="58.6" cy="46.3" r="1.6" fill="#fff"/>
+      <path d="M45 56.5 Q50 61.5 55 56.5" stroke="#232743" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    </g>
+    <path d="M50 29 L50 12" stroke="#232743" stroke-width="8.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 17 C56 6 70 8 70 8 C70 8 66 22 53 21 Z" fill="#3D8A5C" stroke="#232743" stroke-width="4.5" stroke-linejoin="round"/>
+    <path d="M50 25 C44 14 32 17 32 17 C32 17 36 29 47 27 Z" fill="#2F7A50" stroke="#232743" stroke-width="4.5" stroke-linejoin="round"/>
+    <path d="M50 28 L50 13.5" stroke="#3D8A5C" stroke-width="4" stroke-linecap="round" fill="none"/>
   </g>
-  <circle cx="43" cy="19" r="1.7" fill="#F5D77E"/>
-  <circle cx="50" cy="16" r="1.9" fill="#F5D77E"/>
-  <circle cx="57" cy="19" r="1.7" fill="#F5D77E"/>
-
-  <!-- bottom string -->
-  <path d="M50 77 C54 82 46 86 50 92" stroke="#2F3757" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-
-  <!-- body: outline, lilac ring and pink center -->
-  <use href="#glyno-heart" fill="url(#glyno-lilac)" stroke="#2F3757" stroke-width="5" stroke-linejoin="round"/>
-  <use href="#glyno-heart" transform="translate(50 52) scale(0.74) translate(-50 -52)" fill="url(#glyno-rose)"/>
-
-  <!-- face -->
-  <ellipse cx="43" cy="49" rx="3.4" ry="4" fill="#232743"/>
-  <ellipse cx="57" cy="49" rx="3.4" ry="4" fill="#232743"/>
-  <circle cx="44.3" cy="47.6" r="1.3" fill="#fff"/>
-  <circle cx="58.3" cy="47.6" r="1.3" fill="#fff"/>
-  <circle cx="41.9" cy="50.6" r="0.7" fill="#fff"/>
-  <circle cx="55.9" cy="50.6" r="0.7" fill="#fff"/>
-  <path d="M46.5 56.5 Q50 60 53.5 56.5" stroke="#232743" stroke-width="1.9" fill="none" stroke-linecap="round"/>
 </svg>

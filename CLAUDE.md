@@ -28,8 +28,12 @@ mascota 3D (Glyno) y valoraciones con IA (Gemini free tier). Objetivo: coste 0 r
 - Papel cálido `#F7F2E9`, tinta `#23271F`, verde `#3D6B4F`, ámbar `#96721B` (alta), rojo `#A63D2A` (baja).
 - Tipografías (fontsource, empaquetadas, sin CDN): **Lora** titulares, **Fraunces** SOLO numerales
   grandes (su J descendente parece deformada en titulares — ya mordimos esa piedra), **Inter** UI.
-- Glyno 3D: procedural con three.js en `src/components/Mascot3D.tsx` (pera + brazos + brote).
-  Saluda cada 5 s, parpadea, respira. Sin modelos externos.
+- Glyno 3D: procedural con three.js en `src/ui/components/Mascot3D.tsx` — cuerpo redondeado,
+  brazos con globos y **brote** en la cabeza. La CARA (ojos grandes con dos brillos y sonrisa
+  ancha) es la que dibujó la hija de Javier: no se toca. Late, parpadea y respira. Sin modelos
+  externos. NO usar un corazón como cuerpo (se lee como app de tensión, y la app ya usa 🫀 para
+  eso) ni una corona (es la insignia universal de «premium», justo lo contrario de Glyno).
+  El mismo dibujo alimenta `Mascot.tsx` (plano, barra de pestañas) y `public/icon.svg`.
 
 ## Líneas rojas de producto
 

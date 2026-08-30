@@ -20,6 +20,14 @@ Ajustes → «Acerca de Glyno».
   puerta para las apps web: llegará con la app nativa.
 - En Ajustes, la clave guardada se ve enmascarada, con botones para **comprobar que funciona**,
   cambiarla o quitarla.
+- **Glyno cambia de cuerpo (y de sombrero).** Su cara —los ojos grandes y la sonrisa que dibujó
+  una niña de 8 años— es exactamente la misma. Lo que cambia es el cuerpo, que era un corazón y
+  ahora es redondeado, y lo que le crece en la cabeza, que era una corona y ahora es un brote.
+  Dos motivos: un corazón en una app de salud se lee como tensión (y la app ya usa uno para eso),
+  y una corona es el icono universal de «premium», que es justo lo que Glyno no es. Un brote,
+  además, dice lo que sí hace: cuidarse poco a poco.
+  El icono de la app, el personaje pequeño de la barra de pestañas y el Glyno grande salen ahora
+  del **mismo dibujo**, que antes eran tres hechos por separado.
 - **El botiquín se puede rellenar con una foto.** En Ajustes → Botiquín, «📷 Leer mi medicación
   de una foto»: haces una foto a las cajas y Glyno saca el nombre, la dosis tal como está impresa
   y si es una pastilla, una insulina lenta o una rápida. **Nada se guarda sin que tú lo
