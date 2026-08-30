@@ -63,7 +63,10 @@ export function localReview(name: string, p: Profile, s: Stats): string {
 function opening(name: string, p: Profile, s: Stats, band: string): string {
   const mean = s.mean != null ? round(s.mean) : null
   const n = s.n
-  const readings = n === 1 ? 'una medición' : `${n} mediciones`
+  // a sensor is read in time, not in punctures: "tus 1.314 mediciones" is a number nobody
+  // wearing one thinks in, and counting them makes Glyno sound like she misunderstood
+  const sensor = p.measurement === 'sensor'
+  const readings = sensor ? 'del tiempo' : n === 1 ? 'una medición' : `${n} mediciones`
 
   // with a handful of readings a percentage swings wildly: the mean is all that holds up
   if (n < MIN_FOR_PERCENT) {
@@ -74,13 +77,18 @@ function opening(name: string, p: Profile, s: Stats, band: string): string {
   const fasting = s.fasting != null ? ` En ayunas te has movido por ${round(s.fasting)}.` : ''
 
   if (band === 'lows') {
-    return `${name}, lo primero: un ${round(s.pctLow)} % de tus ${readings} se fue por debajo de rango, y eso pesa más que cualquier otra cosa de esta quincena. La media quedó en ${mean} y el ${tir} % dentro de rango.${fasting}`
+    const below = sensor ? `un ${round(s.pctLow)} % del tiempo lo has pasado` : `un ${round(s.pctLow)} % de tus ${readings} se fue`
+    return `${name}, lo primero: ${below} por debajo de rango, y eso pesa más que cualquier otra cosa de esta quincena. La media quedó en ${mean} y el ${tir} % dentro de rango.${fasting}`
   }
   if (band === 'good') {
     return pick(
       [
-        `Buena quincena, ${name}: de tus ${readings}, el ${tir} % cayó dentro de rango y la media se quedó en ${mean}.${fasting}`,
-        `${name}, esta quincena te ha salido redonda: ${tir} % del tiempo en rango sobre ${readings}, con la media en ${mean}.${fasting}`,
+        sensor
+          ? `Buena quincena, ${name}: has pasado el ${tir} % del tiempo en rango, con la media en ${mean}.${fasting}`
+          : `Buena quincena, ${name}: de tus ${readings}, el ${tir} % cayó dentro de rango y la media se quedó en ${mean}.${fasting}`,
+        sensor
+          ? `${name}, esta quincena te ha salido redonda: ${tir} % del tiempo en rango y la media en ${mean}.${fasting}`
+          : `${name}, esta quincena te ha salido redonda: ${tir} % del tiempo en rango sobre ${readings}, con la media en ${mean}.${fasting}`,
       ],
       n,
     )
@@ -88,13 +96,20 @@ function opening(name: string, p: Profile, s: Stats, band: string): string {
   if (band === 'mixed') {
     return pick(
       [
-        `${name}, quincena de claros y sombras: ${readings}, media ${mean} y un ${tir} % en rango.${fasting}`,
-        `${name}, esta quincena se queda a medio camino: ${tir} % en rango de ${readings}, con la media en ${mean}.${fasting}`,
+        sensor
+          ? `${name}, quincena de claros y sombras: ${tir} % del tiempo en rango y la media en ${mean}.${fasting}`
+          : `${name}, quincena de claros y sombras: ${readings}, media ${mean} y un ${tir} % en rango.${fasting}`,
+        sensor
+          ? `${name}, esta quincena se queda a medio camino: ${tir} % del tiempo en rango, con la media en ${mean}.${fasting}`
+          : `${name}, esta quincena se queda a medio camino: ${tir} % en rango de ${readings}, con la media en ${mean}.${fasting}`,
       ],
       n,
     )
   }
-  return `${name}, ha sido una quincena cuesta arriba: ${readings} con la media en ${mean} y un ${tir} % en rango.${fasting} Lo importante es que lo has seguido apuntando, que es lo que permite verlo.`
+  const rough = sensor
+    ? `solo un ${tir} % del tiempo en rango y la media en ${mean}`
+    : `${readings} con la media en ${mean} y un ${tir} % en rango`
+  return `${name}, ha sido una quincena cuesta arriba: ${rough}.${fasting} Lo importante es que lo has seguido apuntando, que es lo que permite verlo.`
 }
 
 /** the context tags whose effect is big enough to be worth a sentence */
@@ -158,7 +173,7 @@ function advice(p: Profile, s: Stats, lows: boolean): string {
     tips.push(
       'Marcar el contexto (estrés, comida fuera, mala noche) cuando toque: es lo que convierte un número raro en una explicación.',
     )
-    if (p.measurement !== 'none')
+    if (p.measurement === 'meter')
       tips.push('Un par de medidas en ayunas esta semana: son la mejor foto de cómo amaneces.')
   }
 

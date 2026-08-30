@@ -111,3 +111,31 @@ describe('findGaps', () => {
     expect(findGaps(complete, diary({ extra: 13 }), recentWeight())).toEqual([])
   })
 })
+
+describe('findGaps · someone wearing a sensor is not someone pricking a finger', () => {
+  const sensor = { ...complete, measurement: 'sensor' as const }
+  const weighed: Entry = { ts: Date.now(), kind: 'weight', value: 92 }
+  const cgm = (n: number): Entry[] =>
+    Array.from({ length: n }, (_, i) => ({ ts: Date.now() - i * 300_000, kind: 'glucose' as const, value: 120 }))
+
+  it('never asks a sensor user to measure more often: it already reads 288 times a day', () => {
+    const gaps = findGaps(sensor, [...cgm(300), { ts: Date.now(), kind: 'tag', label: 'Estrés' }], weighed)
+    expect(gaps.map(g => g.text).join(' ')).not.toMatch(/par de mediciones|en ayunas/i)
+  })
+
+  it('still asks a finger-prick user for the fasting readings it cannot get any other way', () => {
+    const meter = { ...complete, measurement: 'meter' as const }
+    const gaps = findGaps(meter, [...cgm(20), { ts: Date.now(), kind: 'tag', label: 'Estrés' }], weighed)
+    expect(gaps.map(g => g.text).join(' ')).toMatch(/en ayunas/i)
+  })
+
+  it('tells a sensor user when nothing is actually arriving, which is their real gap', () => {
+    const gaps = findGaps(sensor, [{ ts: Date.now(), kind: 'tag', label: 'Estrés' }], weighed)
+    expect(gaps.map(g => g.text).join(' ')).toMatch(/Salud/)
+  })
+
+  it('says nothing about the sensor once the readings are flowing', () => {
+    const gaps = findGaps(sensor, [...cgm(300), { ts: Date.now(), kind: 'tag', label: 'Estrés' }], weighed)
+    expect(gaps.map(g => g.text).join(' ')).not.toMatch(/Salud/)
+  })
+})

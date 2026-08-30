@@ -157,3 +157,23 @@ describe('localReview · no flattery on thin data', () => {
     expect(text.split('\n\n')[3]).toMatch(/fundamento|adivinar/i)
   })
 })
+
+describe('localReview · a sensor is read in time, not in punctures', () => {
+  const sensor = { ...p, measurement: 'sensor' as const }
+  const dense = stats({ n: 1314, mean: 154, tir: 87, pctHigh: 13 })
+
+  it('talks about time in range, not about how many times you measured', () => {
+    const text = localReview('Javier', sensor, dense)
+    expect(text).toMatch(/tiempo en rango/i)
+    expect(text).not.toMatch(/1314 mediciones|de tus 1314/)
+  })
+
+  it('never suggests finger pricks to someone wearing a sensor', () => {
+    const text = localReview('Javier', sensor, stats({ n: 1314, mean: 154, tir: 87 }))
+    expect(text).not.toMatch(/medidas en ayunas|un par de medidas/i)
+  })
+
+  it('still counts the readings for someone who pricks a finger', () => {
+    expect(localReview('Javier', { ...p, measurement: 'meter' }, stats())).toMatch(/28 mediciones/)
+  })
+})

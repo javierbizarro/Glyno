@@ -232,9 +232,10 @@ describe('chatPrompt', () => {
   })
 
   it('redirects medical or dose questions to the healthcare team', () => {
-    expect(chatPrompt('ctx', '', 'Javier')).toContain(
-      'Si la pregunta pide consejo médico o de dosis, recuérdale con cariño que eso es de su equipo sanitario.',
-    )
+    const prompt = chatPrompt('ctx', '', 'Javier')
+    expect(prompt).toMatch(/dosis o un cambio de medicación/i)
+    expect(prompt).toMatch(/no eres tú quien decide/i)
+    expect(prompt).toMatch(/equipo sanitario/i)
   })
 })
 
@@ -432,5 +433,25 @@ describe('medsPhotoPrompt · a prescription is not only medication', () => {
     expect(prompt).toMatch(/receta u hoja de tratamiento/i)
     expect(prompt).toMatch(/NO copies nada de eso/)
     expect(prompt).toMatch(/tarjeta sanitaria/)
+  })
+})
+
+describe('chatPrompt · written so a small model cannot waffle', () => {
+  const prompt = () => chatPrompt('CONTEXTO', 'Javier: ¿me subo la Lantus a 26 U?', 'Javier')
+
+  it('orders a plain refusal on doses, not a wall of encouragement', () => {
+    // the on-device model answered the trap question with cheer and never said no: someone
+    // could read that as a yes. It has to be told to answer the question first.
+    expect(prompt()).toMatch(/no eres tú quien decide/i)
+    expect(prompt()).toMatch(/primera frase|lo primero/i)
+  })
+
+  it('bans the filler that small models pad with', () => {
+    expect(prompt()).toMatch(/hidrat|genérico|relleno/i)
+    expect(prompt()).toMatch(/exclamaci/i)
+  })
+
+  it('demands their own numbers instead of vague advice', () => {
+    expect(prompt()).toMatch(/números|cifras/i)
   })
 })

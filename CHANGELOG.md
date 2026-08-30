@@ -46,6 +46,11 @@ Ajustes → «Acerca de Glyno».
   con cuánto te baila. Es como se leen los sensores en la consulta. Con mediciones de dedo no
   aparece, porque con cuatro pinchazos al día esos porcentajes no significarían nada.
 
+- **Si llevas sensor, Glyno deja de hablarte como si te pincharas el dedo.** Ya no te pide
+  glucemias en ayunas ni «un par de mediciones al día» —tienes 288—, y la valoración te habla de
+  **tiempo en rango** en vez de contarte cuántas veces mediste. Lo que sí te dirá, si hace falta,
+  es que tu sensor no le está llegando y cómo traerlo desde Salud.
+
 ### Corregido
 
 - **El informe médico no se imprimía dentro de la app.** El botón usaba el diálogo del navegador,
@@ -66,6 +71,10 @@ Ajustes → «Acerca de Glyno».
   como ya hacía la versión web.
 - **El icono de Glyno en la barra de abajo seguía siendo un corazón con corona**, el cuerpo que
   perdió hace dos versiones. Ahora es la Glyno de verdad, con su brote.
+- **Con la IA del propio iPhone, preguntarle por una dosis devolvía un mensaje de ánimo que nunca
+  respondía a la pregunta** — y de ahí alguien podía salir pensando que le habían dicho que sí.
+  Ahora lo primero que dice es que eso no lo decide ella, y sigue con tus números para que se los
+  lleves a tu equipo. Sin relleno genérico ni exclamaciones.
 - Glyno anunciaba como patrón diferencias de 1 o 2 mg/dl, que son ruido de medición y no significan
   nada. Ahora se calla por debajo de 5, y tampoco se los pasa a la IA para que los redacte.
 
