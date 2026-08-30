@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Profile } from '../../domain/types'
 import { cleanKey, looksLikeKey } from '../../domain/aiKey'
 import { checkKey } from '../../app/aiKey'
@@ -27,20 +27,30 @@ export function AiSetup({
   const [status, setStatus] = useState<Status>('idle')
   const [msg, setMsg] = useState('')
 
+  // pasting fires onPaste and onChange in the same tick, and `status` is still stale in the
+  // second one: without this the key would be checked twice
+  const busy = useRef(false)
+
   const submit = async (raw: string) => {
+    if (busy.current) return
+    busy.current = true
     setStatus('checking')
     setMsg('')
-    const r = await checkKey(raw)
-    setMsg(r.message)
-    if (r.ok) {
-      onSave({ ...profile, geminiKey: r.key })
-      setStatus('done')
-    } else {
-      setStatus('error')
-      setByHand(true)
-      // only tidy up the box when what came in really was a key: otherwise the user
-      // sees their own words mangled (spaces stripped) instead of what they wrote
-      if (looksLikeKey(r.key)) setTyped(r.key)
+    try {
+      const r = await checkKey(raw)
+      setMsg(r.message)
+      if (r.ok) {
+        onSave({ ...profile, geminiKey: r.key })
+        setStatus('done')
+      } else {
+        setStatus('error')
+        setByHand(true)
+        // only tidy up the box when what came in really was a key: otherwise the user
+        // sees their own words mangled (spaces stripped) instead of what they wrote
+        if (looksLikeKey(r.key)) setTyped(r.key)
+      }
+    } finally {
+      busy.current = false
     }
   }
 
@@ -55,10 +65,28 @@ export function AiSetup({
     }
   }
 
+  // Google opens on top of the app; coming back should not mean hunting for where you were.
+  // Leaving marks the trip, and the first time the app is visible again we jump to the paste step.
+  const away = useRef(false)
+  const leave = () => {
+    away.current = true
+    setStep(1)
+  }
+  useEffect(() => {
+    const onBack = () => {
+      if (away.current && document.visibilityState === 'visible') {
+        away.current = false
+        setStep(2)
+      }
+    }
+    document.addEventListener('visibilitychange', onBack)
+    return () => document.removeEventListener('visibilitychange', onBack)
+  }, [])
+
   // typing it out is painful: as soon as what's in the box looks like a whole key, check it
   const onTyped = (v: string) => {
     setTyped(v)
-    if (status !== 'checking' && looksLikeKey(cleanKey(v))) submit(v)
+    if (!busy.current && looksLikeKey(cleanKey(v))) submit(v)
   }
 
   if (status === 'done')
@@ -98,39 +126,59 @@ export function AiSetup({
 
       {step === 0 && (
         <>
-          <h2>1. Abre la página de Google</h2>
+          <h2>1. Antes de salir, mira lo que harás allí</h2>
           <p>
             La IA de Glyno es la de Google y es <b>gratuita</b>: solo hay que pedirle una clave. No
             piden tarjeta. Se hace una vez y no hay que volver.
           </p>
-          <ShotAccount />
-          <p className="muted">
-            Te pedirá tu cuenta de Google (la del correo del móvil) y que aceptes sus condiciones.
+          <p>Al abrir su página te pedirá, por este orden:</p>
+          <ol className="wiz-steps">
+            <li>
+              <b>Tu cuenta de Google</b>, la del correo del móvil.
+            </li>
+            <li>
+              <b>Aceptar sus condiciones</b>: marca la casilla y continúa.
+            </li>
+            <li>
+              Tocar el botón azul <b>«Create API key»</b> («Crear clave de API»).
+            </li>
+            <li>
+              Si te pregunta por un <b>proyecto</b>, acepta el que te propone o elige crear uno
+              nuevo. No tienes que configurar nada más.
+            </li>
+            <li>
+              Aparecerá un texto largo que empieza por <b className="mono">AIza</b>…: esa es la
+              clave. Tócala o toca <b>«Copiar»</b> 📋.
+            </li>
+          </ol>
+          <ShotCreate />
+          <p className="muted small">
+            Google cambia esa página de vez en cuando y algún nombre puede estar en inglés o algo
+            distinto; lo que buscas siempre es el botón de crear la clave.
           </p>
-          <a className="btn big" href={AI_STUDIO} target="_blank" rel="noopener noreferrer" onClick={() => setStep(1)}>
-            Abrir la página de Google
+          <a className="btn big" href={AI_STUDIO} target="_blank" rel="noopener noreferrer" onClick={leave}>
+            Abrir Google y crear la clave
           </a>
-          <button className="btn ghost" onClick={() => setStep(1)}>
-            Ya la tengo abierta
+          <button className="btn ghost" onClick={() => setStep(2)}>
+            Ya la tengo copiada
           </button>
         </>
       )}
 
       {step === 1 && (
         <>
-          <h2>2. Crea la clave y cópiala</h2>
+          <h2>2. Te espero aquí</h2>
           <p>
-            En esa página, toca el botón azul <b>«Create API key»</b> (o «Crear clave de API»). Si te
-            pregunta por un proyecto, acepta el que te propone.
+            Cuando tengas la clave copiada, <b>vuelve a Glyno</b>: cierra la página de Google como
+            cierras cualquier otra. En cuanto vuelvas seguimos solos, no tienes que buscar nada.
           </p>
-          <ShotCreate />
-          <p>
-            Aparecerá un texto largo que empieza por <b>AIza…</b>: es la clave. Tócala con el dedo
-            para copiarla, o toca el icono de copiar 📋.
-          </p>
+          <ShotAccount />
           <button className="btn big" onClick={() => setStep(2)}>
             Ya la he copiado
           </button>
+          <a className="btn ghost" href={AI_STUDIO} target="_blank" rel="noopener noreferrer" onClick={leave}>
+            Volver a abrir Google
+          </a>
           <button className="btn ghost" onClick={() => setStep(0)}>
             Atrás
           </button>
@@ -140,7 +188,7 @@ export function AiSetup({
       {step === 2 && (
         <>
           <h2>3. Pégala aquí</h2>
-          <p>Vuelve a Glyno y toca el botón. Yo compruebo sola que la clave funciona.</p>
+          <p>Ya estás de vuelta. Toca el botón y la pego yo: compruebo sola que funciona.</p>
           <button className="btn big" onClick={paste} disabled={status === 'checking'}>
             📋 Pegar la clave
           </button>
@@ -163,8 +211,10 @@ export function AiSetup({
                 autoCorrect="off"
                 spellCheck={false}
                 placeholder="AIza…"
+                className="mono"
                 value={typed}
                 onChange={e => onTyped(e.target.value)}
+                onPaste={e => submit(e.clipboardData.getData('text'))}
               />
               <button
                 className="btn"

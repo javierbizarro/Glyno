@@ -21,6 +21,23 @@ Ajustes → «Acerca de Glyno».
 - En Ajustes, la clave guardada se ve enmascarada, con botones para **comprobar que funciona**,
   cambiarla o quitarla.
 
+### Corregido
+
+- **El asistente rechazaba claves sin siquiera probarlas.** Si lo pegado no tenía la forma que
+  Glyno esperaba, contestaba «las claves empiezan por AIza» y ahí se quedaba. Ahora esa forma es
+  solo un consejo: salvo lo que es inútil enviar (una dirección web, algo demasiado corto), la
+  clave se prueba **contra Google**, que es quien decide. Si Google la rechaza, entonces sí se
+  añade la pista.
+- **Y esa pista era ilegible**: en la tipografía de la app «AIza» y «Alza» se dibujan igual. Ahora
+  la clave se escribe en tipografía monoespaciada (donde la i mayúscula y la ele se distinguen) y
+  el aviso lo deletrea: «empiezan por A-I-z-a, y la segunda letra es una i mayúscula, no una ele».
+- Al pegar en el recuadro, la clave se comprueba sola (y una sola vez).
+- **Faltaban pasos y sobraban viajes.** El asistente daba por hecho cosas que Google pide de
+  verdad (aceptar las condiciones, elegir un proyecto), y te hacía salir y volver tres veces.
+  Ahora **todo lo que vas a encontrar allí se explica antes de salir**, en una lista, y solo
+  sales **una vez**: en cuanto vuelves a Glyno, el asistente se planta solo en «pega la clave»,
+  sin que tengas que buscar por dónde ibas.
+
 ### Mejorado
 
 - **Las respuestas de la IA se leen aunque vengan torcidas.** Antes, si el modelo envolvía el

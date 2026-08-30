@@ -15,6 +15,8 @@
   --display: 'Lora Variable', Georgia, serif;      /* headings: conventional J */
   --serif: 'Fraunces Variable', Georgia, serif;    /* large numerals */
   --sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  /* keys and codes: in the UI font, capital i and lowercase L are the same drawing */
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
   --radius-card: 16px;
   --shadow-card: none;
   --w-display: 560;
@@ -433,6 +435,9 @@ a.btn { display: block; text-align: center; text-decoration: none; }
 /* drawings of the Google page: illustrations, not screenshots that go stale */
 .shot { width: 100%; height: auto; display: block; }
 .shot text { font-family: var(--sans); }
+.mono { font-family: var(--mono); letter-spacing: .02em; }
+.wiz-steps { padding-left: 22px; display: flex; flex-direction: column; gap: 9px; font-size: 16px; line-height: 1.5; }
+.wiz-steps::marker, .wiz-steps li::marker { color: var(--ink-3); }
 
 /* phone in landscape: not blocked (that would be an accessibility problem), but compacted
    so it still looks intentional and not broken */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanKey, keyCheckOutcome, keyProblem, looksLikeKey, resolveAiSource } from './aiKey'
+import { cleanKey, keyBlocker, keyCheckOutcome, keyHint, looksLikeKey, resolveAiSource } from './aiKey'
 
 // shape of a real Google API key: "AIza" + 35 characters
 const KEY = 'AIzaSyBn3f_kQ2vLp7RtY9wXzA4cD6eF8gH0iJk'
@@ -36,34 +36,55 @@ describe('looksLikeKey', () => {
   it('rejects anything else', () => {
     expect(looksLikeKey('')).toBe(false)
     expect(looksLikeKey('AIza123')).toBe(false)
-    expect(looksLikeKey(`${KEY}extra`)).toBe(false)
+    expect(looksLikeKey(`${KEY} y algo más`)).toBe(false)
     expect(looksLikeKey('sk-proj-0123456789abcdefghijklmnopqrstuvwxyz')).toBe(false)
+  })
+
+  it('does not care about the exact length: Google may make them longer tomorrow', () => {
+    expect(looksLikeKey(`${KEY}0123456789`)).toBe(true)
   })
 })
 
-describe('keyProblem', () => {
-  it('says nothing when the key is fine', () => {
-    expect(keyProblem(KEY)).toBeNull()
+describe('keyBlocker', () => {
+  it('lets a well formed key through', () => {
+    expect(keyBlocker(KEY)).toBeNull()
+  })
+
+  it('lets through what it does not recognise: the verdict is Google\'s, not ours', () => {
+    // a key shape we have never seen must still get its chance — Google changes formats, we do not
+    expect(keyBlocker('QWERTY-1234567890-abcdefghij')).toBeNull()
   })
 
   it('tells apart an empty paste', () => {
-    expect(keyProblem('')).toMatch(/nada/i)
+    expect(keyBlocker('')).toMatch(/nada/i)
   })
 
   it('recognises a key from another service', () => {
-    expect(keyProblem('sk-proj-0123456789abcdefghijklmnop')).toMatch(/Google/)
+    expect(keyBlocker('sk-proj-0123456789abcdefghijklmnop')).toMatch(/Google/)
   })
 
   it('recognises a pasted web address', () => {
-    expect(keyProblem('https://aistudio.google.com/apikey')).toMatch(/dirección/i)
+    expect(keyBlocker('https://aistudio.google.com/apikey')).toMatch(/dirección/i)
   })
 
-  it('complains when it does not start like a Gemini key', () => {
-    expect(keyProblem('mi-clave-secreta-1234')).toMatch(/AIza/)
+  it('stops what is too short to be worth sending', () => {
+    expect(keyBlocker('AIzaSyBn3f')).toMatch(/corto/i)
+  })
+})
+
+describe('keyHint', () => {
+  it('says nothing about a key with the usual shape', () => {
+    expect(keyHint(KEY)).toBe('')
   })
 
-  it('complains when the key is cut short', () => {
-    expect(keyProblem('AIzaSyBn3f_kQ2vLp7')).toMatch(/entera|incompleta/i)
+  it('spells the prefix out: «AIza» and «Alza» look the same on screen', () => {
+    const hint = keyHint('QWERTY-1234567890-abcdefghij')
+    expect(hint).toMatch(/A-I-z-a/)
+    expect(hint).toMatch(/i mayúscula/)
+  })
+
+  it('suspects a cut when the key is short', () => {
+    expect(keyHint('AIzaSyBn3f_kQ2vLp7RtY9wXzA4cD6')).toMatch(/media|39/i)
   })
 })
 
