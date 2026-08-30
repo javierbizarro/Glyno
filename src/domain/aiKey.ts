@@ -48,17 +48,51 @@ export function keyHint(key: string): string {
   return ' Si acabas de crearla, dale un par de minutos y prueba otra vez: a veces tardan un poco en funcionar.'
 }
 
-/** turns the error of the test call into a verdict the user understands */
-export function keyCheckOutcome(e: unknown): { ok: boolean; message: string } {
+export interface KeyVerdict {
+  /** the key works and can be saved */
+  ok: boolean
+  /** nobody could tell: the failure was Google's or the network's, not the key's */
+  unknown: boolean
+  message: string
+}
+
+/**
+ * Turns the error of the test call into a verdict. The important distinction is not
+ * ok/not ok but "the key is wrong" versus "nobody could tell": a valid key must never be
+ * thrown away because Google was busy.
+ */
+export function keyCheckOutcome(e: unknown, online = true): KeyVerdict {
   const m = e instanceof Error ? e.message : String(e)
   // the quota is spent, but the key itself works: saving it is the right thing to do
   if (/cuota|\b429\b/i.test(m))
-    return { ok: true, message: 'La clave vale, pero hoy se ha agotado la cuota gratuita. Vuelve a probar mañana.' }
+    return { ok: true, unknown: false, message: 'La clave vale, pero hoy se ha agotado la cuota gratuita. Vuelve a probar mañana.' }
+  if (/saturado|overload|unavailable|\b5\d\d\b/i.test(m))
+    return {
+      ok: false,
+      unknown: true,
+      message: 'Gemini está saturado ahora mismo. No es cosa de tu clave: vuelve a intentarlo en un rato.',
+    }
+  if (/tardado|timeout|abort/i.test(m))
+    return {
+      ok: false,
+      unknown: true,
+      message: 'Google ha tardado demasiado en contestar, seguramente por saturación. Puedes probar otra vez.',
+    }
   if (/failed to fetch|networkerror|load failed|network/i.test(m))
-    return { ok: false, message: 'No hay conexión a internet. Conéctate y vuelve a intentarlo.' }
+    return online
+      ? {
+          ok: false,
+          unknown: true,
+          message: 'No he podido hablar con Google. Puede ser tu conexión o que Google esté saturado.',
+        }
+      : { ok: false, unknown: true, message: 'No hay conexión a internet. Conéctate y vuelve a intentarlo.' }
   if (/no parece válida|api key|\b40[013]\b/i.test(m))
-    return { ok: false, message: 'Google no acepta esa clave. Vuelve a copiarla desde la página, entera y sin espacios.' }
-  return { ok: false, message: `No se ha podido comprobar la clave: ${m}` }
+    return {
+      ok: false,
+      unknown: false,
+      message: 'Google no acepta esa clave. Vuelve a copiarla desde la página, entera y sin espacios.',
+    }
+  return { ok: false, unknown: true, message: `No se ha podido comprobar la clave: ${m}` }
 }
 
 export type AiSource = 'device' | 'key'

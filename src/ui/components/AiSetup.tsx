@@ -26,6 +26,10 @@ export function AiSetup({
   const [byHand, setByHand] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
   const [msg, setMsg] = useState('')
+  // Google busy or unreachable: the key may be perfect and there is no way to tell
+  const [uncertain, setUncertain] = useState(false)
+  const [verified, setVerified] = useState(true)
+  const [lastTried, setLastTried] = useState('')
 
   // pasting fires onPaste and onChange in the same tick, and `status` is still stale in the
   // second one: without this the key would be checked twice
@@ -39,8 +43,11 @@ export function AiSetup({
     try {
       const r = await checkKey(raw)
       setMsg(r.message)
+      setUncertain(r.unknown)
+      setLastTried(r.key)
       if (r.ok) {
         onSave({ ...profile, geminiKey: r.key })
+        setVerified(true)
         setStatus('done')
       } else {
         setStatus('error')
@@ -83,25 +90,63 @@ export function AiSetup({
     return () => document.removeEventListener('visibilitychange', onBack)
   }, [])
 
-  // typing it out is painful: as soon as what's in the box looks like a whole key, check it
+  // Checking costs one of the few free requests Google allows per day, so it happens once
+  // per key and never mid-typing: firing on every keystroke burned a handful of them.
+  const checked = useRef(new Set<string>())
+  const typing = useRef(0)
+
+  const autoCheck = (raw: string, wait: number) => {
+    window.clearTimeout(typing.current)
+    const key = cleanKey(raw)
+    if (!looksLikeKey(key) || checked.current.has(key)) return
+    typing.current = window.setTimeout(() => {
+      checked.current.add(key)
+      submit(raw)
+    }, wait)
+  }
+  useEffect(() => () => window.clearTimeout(typing.current), [])
+
   const onTyped = (v: string) => {
     setTyped(v)
-    if (!busy.current && looksLikeKey(cleanKey(v))) submit(v)
+    autoCheck(v, 1200)
+  }
+
+  // saving a key nobody could check is fine; saying it works would not be
+  const saveAnyway = () => {
+    onSave({ ...profile, geminiKey: lastTried })
+    setVerified(false)
+    setStatus('done')
   }
 
   if (status === 'done')
     return (
       <div className="wiz">
         <h1>¡Ya está!</h1>
-        <div className="card stack" style={{ borderColor: 'var(--green)', background: 'var(--green-soft)' }}>
+        <div
+          className="card stack"
+          style={
+            verified
+              ? { borderColor: 'var(--green)', background: 'var(--green-soft)' }
+              : { borderColor: 'var(--amber)', background: 'var(--amber-soft)' }
+          }
+        >
           <p style={{ fontSize: 17 }}>
-            ✅ La clave funciona{profile.name ? `, ${profile.name}` : ''}. Ya puedo darte valoraciones y
-            mirar tus platos.
+            {verified ? (
+              <>
+                ✅ La clave funciona{profile.name ? `, ${profile.name}` : ''}. Ya puedo darte
+                valoraciones y mirar tus platos.
+              </>
+            ) : (
+              <>
+                Clave guardada. No he podido comprobarla porque Google no contestaba, así que
+                sabremos si va bien la primera vez que te conteste.
+              </>
+            )}
           </p>
         </div>
         <p className="muted">
           Se ha guardado en este dispositivo. No hace falta que la recuerdes ni que vuelvas a esta
-          pantalla.
+          pantalla{verified ? '' : '; si algo falla, en Ajustes tienes «Comprobar que funciona»'}.
         </p>
         <button className="btn big" onClick={onClose}>
           Terminar
@@ -147,9 +192,8 @@ export function AiSetup({
               nuevo. No tienes que configurar nada más.
             </li>
             <li>
-              Aparecerá un <b>texto largo y raro</b> (empieza por <span className="mono">AQ.</span>
-              o por <span className="mono">AIza</span>, según la cuenta): esa es la clave. Tócala o
-              toca <b>«Copiar»</b> 📋.
+              Aparecerá un <b>texto largo y raro</b>: esa es la clave. Tócala o toca{' '}
+              <b>«Copiar»</b> 📋.
             </li>
           </ol>
           <ShotCreate />
@@ -197,8 +241,25 @@ export function AiSetup({
           {status === 'checking' && <p className="muted">Comprobando la clave con Google…</p>}
 
           {status === 'error' && (
-            <div className="card" style={{ borderColor: 'var(--red)', background: 'var(--red-soft)' }}>
+            <div
+              className="card stack"
+              style={
+                uncertain
+                  ? { borderColor: 'var(--amber)', background: 'var(--amber-soft)' }
+                  : { borderColor: 'var(--red)', background: 'var(--red-soft)' }
+              }
+            >
               <p style={{ fontSize: 15.5 }}>{msg}</p>
+              {uncertain && !!lastTried && (
+                <>
+                  <button className="btn" onClick={() => submit(lastTried)}>
+                    Probar otra vez
+                  </button>
+                  <button className="btn ghost" onClick={saveAnyway}>
+                    Guardar la clave igualmente
+                  </button>
+                </>
+              )}
             </div>
           )}
 
@@ -215,7 +276,7 @@ export function AiSetup({
                 className="mono"
                 value={typed}
                 onChange={e => onTyped(e.target.value)}
-                onPaste={e => submit(e.clipboardData.getData('text'))}
+                onPaste={e => autoCheck(e.clipboardData.getData('text'), 0)}
               />
               <button
                 className="btn"
@@ -293,7 +354,7 @@ function ShotCreate() {
       <circle cx="150" cy="57" r="24" fill="none" stroke="#2A63C4" strokeOpacity="0.35" strokeWidth="2" />
       <rect x="40" y="100" width="220" height="30" rx="9" fill="var(--paper)" stroke="var(--line)" />
       <text x="54" y="119" fontSize="10" fill="var(--ink-2)">
-        AIzaSy··················
+        ••••••••••••••••••••••••
       </text>
       <rect x="228" y="108" width="11" height="13" rx="2.5" fill="none" stroke="var(--ink-2)" />
       <path d="M225 118v-13h11" fill="none" stroke="var(--ink-2)" />

@@ -102,16 +102,17 @@ describe('keyHint', () => {
 })
 
 describe('keyCheckOutcome', () => {
-  it('reads a rejected key as a failure', () => {
+  it('reads a rejected key as a failure, and one we can explain', () => {
     const out = keyCheckOutcome(new Error('La clave de la API no parece válida. Revísala en Ajustes.'))
     expect(out.ok).toBe(false)
+    expect(out.unknown).toBe(false)
     expect(out.message).toMatch(/Google no acepta/i)
   })
 
   it('reads the 401 of a malformed key as a rejection, not as a mystery', () => {
     const out = keyCheckOutcome(new Error('Error de Gemini (401): Request had invalid authentication credentials.'))
     expect(out.ok).toBe(false)
-    expect(out.message).toMatch(/Google no acepta/i)
+    expect(out.unknown).toBe(false)
   })
 
   it('reads a spent quota as a valid key', () => {
@@ -120,16 +121,36 @@ describe('keyCheckOutcome', () => {
     expect(out.message).toMatch(/cuota/i)
   })
 
-  it('reads a network failure as "no internet", not as a bad key', () => {
-    const out = keyCheckOutcome(new TypeError('Failed to fetch'))
-    expect(out.ok).toBe(false)
-    expect(out.message).toMatch(/conexión|internet/i)
+  it('an overloaded Gemini says nothing about the key', () => {
+    for (const e of [new Error('Gemini está saturado ahora mismo.'), new Error('Error de Gemini (503): the model is overloaded')]) {
+      const out = keyCheckOutcome(e)
+      expect(out.ok).toBe(false)
+      expect(out.unknown).toBe(true)
+      expect(out.message).toMatch(/saturado/i)
+    }
   })
 
-  it('falls back to the original message', () => {
-    const out = keyCheckOutcome(new Error('Error de Gemini (500): boom'))
+  it('a timeout is not a bad key either', () => {
+    const out = keyCheckOutcome(new Error('Google ha tardado demasiado en contestar.'))
+    expect(out.unknown).toBe(true)
+    expect(out.message).toMatch(/tardado/i)
+  })
+
+  it('only blames the connection when the device really is offline', () => {
+    const offline = keyCheckOutcome(new TypeError('Failed to fetch'), false)
+    expect(offline.message).toMatch(/conexión a internet/i)
+
+    // online and still unreachable: it may well be Google, so do not send the user to check the wifi
+    const online = keyCheckOutcome(new TypeError('Failed to fetch'), true)
+    expect(online.unknown).toBe(true)
+    expect(online.message).toMatch(/Google/)
+  })
+
+  it('an error nobody recognises is a "we could not tell", never a bad key', () => {
+    const out = keyCheckOutcome(new Error('algo rarísimo'))
     expect(out.ok).toBe(false)
-    expect(out.message).toMatch(/500/)
+    expect(out.unknown).toBe(true)
+    expect(out.message).toMatch(/algo rarísimo/)
   })
 })
 

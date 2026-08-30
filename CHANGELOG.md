@@ -28,6 +28,16 @@ Ajustes → «Acerca de Glyno».
   probarlas siquiera. Ahora reconoce las dos formas, rescata cualquier otra que Google invente
   mañana (de todo lo pegado, la clave es lo más largo sin espacios) y **ningún mensaje vuelve a
   decir por dónde tiene que empezar una clave**.
+- **Ya no se dice por dónde empieza una clave, en ningún sitio**: Google cambió el formato una
+  vez y volverá a hacerlo.
+- **Cuando Gemini está saturado, se dice tal cual.** Antes salía el error en crudo («the model is
+  overloaded») o, peor, «no hay conexión a internet» cuando la conexión estaba perfecta. Ahora
+  Glyno distingue tres cosas distintas: que la clave esté mal, que **no haya manera de saberlo**
+  (Google saturado o sin contestar) y que de verdad no haya internet.
+- **Y ya no se queda colgado**: si Google no contesta en 20 segundos, el asistente lo dice y te
+  deja **probar otra vez** o **guardar la clave igualmente** — una clave buena no se tira porque
+  Google esté ocupado. Si se guarda sin comprobar, la pantalla final lo dice claramente en vez de
+  prometer que funciona.
 - La clave viaja ahora en una **cabecera** y no en la dirección de la petición: las direcciones
   acaban en registros e historiales, y los formatos nuevos llevan caracteres que ahí estorban.
 - Cuando la clave está mal formada, Google responde con un error (401) que Glyno no entendía y
@@ -49,6 +59,16 @@ Ajustes → «Acerca de Glyno».
   sin que tengas que buscar por dónde ibas.
 
 ### Mejorado
+
+- **Si un modelo está saturado o sin cupo, Glyno baja al siguiente.** El plan gratuito de Google
+  se gasta **por modelo** (unas 20 peticiones al día cada uno), así que quedarse sin uno no es
+  quedarse sin IA: ahora, cuando el modelo de siempre contesta «ocupado» o «sin cupo», Glyno
+  pregunta a tu cuenta qué otros modelos tiene y va probando, del mejor al más humilde. Recuerda
+  cuál contestó, así que la siguiente pregunta ya no empieza por el agotado. Si la clave está mal,
+  no insiste: eso no cambia de un modelo a otro.
+- El recuadro de la clave **ya no la comprobaba en cada tecla**: escribiéndola a mano se gastaban
+  varias peticiones de las pocas que da el plan gratuito. Ahora se comprueba una sola vez, cuando
+  terminas.
 
 - **Las respuestas de la IA se leen aunque vengan torcidas.** Antes, si el modelo envolvía el
   análisis en markdown, se dejaba una coma de más o se quedaba a medias, salía un error. Ahora
