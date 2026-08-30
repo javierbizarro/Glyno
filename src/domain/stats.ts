@@ -23,6 +23,9 @@ export interface Stats {
 /** a night under 6 h counts as short sleep for the pattern */
 export const SHORT_SLEEP_MIN = 360
 
+/** how long a context tag is taken to colour the readings that follow it */
+const TAG_WINDOW_MS = 14 * 3600e3
+
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null)
 
 export function computeStats(entries: Entry[], p: Profile): Stats {
@@ -38,12 +41,21 @@ export function computeStats(entries: Entry[], p: Profile): Stats {
   const restAvg = avg(gl.filter(e => !exDays.has(dayKey(e.ts))).map(e => e.value!))
 
   const mean = avg(vals)
+  // context arrives two ways: as its own entry ("me he levantado fatal") or written on the
+  // reading it explains ("212 · mal sueño"). Both mark the hours that follow; only the second
+  // one also explains the reading it is written on.
   const tags = entries.filter(e => e.kind === 'tag' && e.label)
-  const tagEffects = [...new Set(tags.map(t => t.label!))]
+  const tagged = entries.filter(e => e.tags?.length)
+  const labels = [...new Set([...tags.map(t => t.label!), ...tagged.flatMap(e => e.tags!)])]
+  const tagEffects = labels
     .map(label => {
       const marks = tags.filter(t => t.label === label)
-      // glucose readings within 14 h after the tag
-      const after = gl.filter(g => marks.some(t => g.ts > t.ts && g.ts - t.ts < 14 * 3600e3))
+      const carriers = tagged.filter(e => e.tags!.includes(label))
+      const inWindow = (from: number, g: Entry, self: boolean) =>
+        (self ? g.ts >= from : g.ts > from) && g.ts - from < TAG_WINDOW_MS
+      const after = gl.filter(
+        g => marks.some(t => inWindow(t.ts, g, false)) || carriers.some(c => inWindow(c.ts, g, true)),
+      )
       return { label, delta: after.length && mean != null ? avg(after.map(e => e.value!))! - mean : 0, n: after.length }
     })
     .filter(t => t.n >= 2)

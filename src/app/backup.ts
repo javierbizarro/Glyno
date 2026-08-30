@@ -46,7 +46,7 @@ export async function buildCsv(p: Profile): Promise<{ csv: string; count: number
     return ''
   }
   const csv = [
-    'fecha;hora;tipo;valor;estado;sistolica;diastolica;etiqueta;hidratos_g;nota',
+    'fecha;hora;tipo;valor;estado;sistolica;diastolica;etiqueta;hidratos_g;nota;contexto',
     ...rows.map(e =>
       [
         new Date(e.ts).toLocaleDateString('es-ES'),
@@ -59,6 +59,7 @@ export async function buildCsv(p: Profile): Promise<{ csv: string; count: number
         esc(e.label),
         e.carbs ?? '',
         esc(e.note),
+        esc(e.tags?.join(', ')),
       ].join(';'),
     ),
   ].join('\n')

@@ -46,6 +46,8 @@ export function entryText(e: Entry): string {
       default: return ''
     }
   })()
+  // the context written on the entry travels with it: a high reading explains itself
+  const withTags = e.tags?.length ? `${base} · ${e.tags.join(' · ')}` : base
   // automatic entries say where they came from, so the diary stays trustworthy
-  return e.source === 'health' ? `${base} · Salud` : base
+  return e.source === 'health' ? `${withTags} · Salud` : withTags
 }

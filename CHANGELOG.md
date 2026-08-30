@@ -20,6 +20,16 @@ Ajustes → «Acerca de Glyno».
   puerta para las apps web: llegará con la app nativa.
 - En Ajustes, la clave guardada se ve enmascarada, con botones para **comprobar que funciona**,
   cambiarla o quitarla.
+- **El contexto se apunta con el dato, no aparte.** Al registrar una glucemia, una tensión o una
+  comida puedes marcar ahí mismo «Mal sueño», «Estrés», «Alcohol»… y queda pegado al número:
+  el diario lee **«212 mg/dl · ayunas · Mal sueño»** y el CSV para el médico lleva su columna
+  «contexto». Si el número **sale de tu rango**, Glyno lo pregunta sola —«¿Algo que lo
+  explique?»—, que es justo el momento en que sabes la respuesta; si va bien, no molesta: queda
+  como un «+ Añadir contexto» discreto.
+  El botón «Contexto» del diario se queda para lo que no acompaña a ningún número (un olvido de
+  medicación, una mala noche antes de medirte), y los patrones de Tendencias suman las dos
+  formas: una etiqueta puesta en la glucemia de las 8:00 sigue explicando el resto del día, y
+  ahora también se explica a sí misma.
 
 ### Corregido
 

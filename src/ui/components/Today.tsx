@@ -15,6 +15,9 @@ import { DeleteEntrySheet } from './DeleteEntrySheet'
 
 type Sheet = 'glucose' | 'bp' | 'insulin' | 'meal' | 'exercise' | 'tag' | 'weight' | null
 
+/** what a context tag can explain: the numbers that come out strange, and what you ate */
+const CONTEXT_KINDS: Sheet[] = ['glucose', 'bp', 'meal']
+
 export function Today({ profile }: { profile: Profile }) {
   const [sheet, setSheet] = useState<Sheet>(null)
   const [toDelete, setToDelete] = useState<Entry | null>(null)
@@ -195,6 +198,10 @@ function QuickSheet({
   )
   const [extra, setExtra] = useState(kind === 'glucose' ? suggestMoment(recent) : '')
   const [label, setLabel] = useState('')
+  // context written on the reading itself: the moment you see a strange number is the
+  // moment you know why
+  const [tags, setTags] = useState<string[]>([])
+  const [askTags, setAskTags] = useState(false)
   // logging something late must not stamp it with "now": the diary time drives every
   // pattern (meal moments, post-meal walk, day tables), so the hour is editable
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5))
@@ -230,11 +237,12 @@ function QuickSheet({
 
   const save = () => {
     const ts = stamp()
-    if (kind === 'glucose' && num > 20 && num < 600) add({ ts, kind, value: num, note: extra || undefined })
-    if (kind === 'bp' && num > 60 && Number(extra) > 30) add({ ts, kind, sys: num, dia: Number(extra) })
+    const ctx = tags.length ? tags : undefined
+    if (kind === 'glucose' && num > 20 && num < 600) add({ ts, kind, value: num, note: extra || undefined, tags: ctx })
+    if (kind === 'bp' && num > 60 && Number(extra) > 30) add({ ts, kind, sys: num, dia: Number(extra), tags: ctx })
     if (kind === 'insulin' && num > 0 && num < 100) add({ ts, kind, value: num, label: 'bolo' })
     if (kind === 'meal' && label.trim())
-      add({ ts, kind, label: label.trim(), carbs: num > 0 ? num : undefined })
+      add({ ts, kind, label: label.trim(), carbs: num > 0 ? num : undefined, tags: ctx })
     if (kind === 'exercise' && num > 0)
       add({ ts, kind, value: num, label: label.trim() || 'Ejercicio' })
     if (kind === 'weight' && num >= 30 && num <= 300) add({ ts, kind, value: num })
@@ -247,6 +255,12 @@ function QuickSheet({
     (kind === 'meal' && !!label.trim()) ||
     (kind === 'exercise' && num > 0) ||
     (kind === 'weight' && num >= 30 && num <= 300)
+
+  // a reading out of range asks for its reason by itself: that is where context is worth most
+  const odd =
+    (kind === 'glucose' && num > 20 && num < 600 && (num < profile.low || num > profile.high)) ||
+    (kind === 'bp' && (num >= 140 || Number(extra) >= 90))
+  const open = askTags || odd || tags.length > 0
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -418,6 +432,33 @@ function QuickSheet({
               </button>
             </div>
           </>
+        )}
+
+        {CONTEXT_KINDS.includes(kind) && (
+          <div className="stack" style={{ gap: 8 }}>
+            {open ? (
+              <>
+                <span className="label" style={odd ? { color: 'var(--amber)' } : undefined}>
+                  {odd ? '¿Algo que lo explique?' : 'Contexto (opcional)'}
+                </span>
+                <div className="wrap">
+                  {PRESET_TAGS.map(t => (
+                    <button
+                      key={t}
+                      className={`chip ${tags.includes(t) ? 'on' : ''}`}
+                      onClick={() => setTags(tags.includes(t) ? tags.filter(x => x !== t) : [...tags, t])}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => setAskTags(true)}>
+                + Añadir contexto
+              </button>
+            )}
+          </div>
         )}
 
         {/* logging late? correct the hour and the entry lands where it really happened */}

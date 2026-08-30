@@ -97,6 +97,8 @@ export interface Entry {
   label?: string
   carbs?: number   // grams
   note?: string
+  /** context written on the reading itself ("212 · mal sueño"), as well as being its own entry */
+  tags?: string[]
   distanceKm?: number // workouts only; speed and calories stay out on purpose
   /** stable id of the external sample (Salud/CSV); the dedupe key on re-imports */
   extId?: string

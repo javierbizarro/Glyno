@@ -291,6 +291,48 @@ describe('tagEffects', () => {
     expect(stats.tagEffects).toEqual([{ label: 'Alcohol', delta: 45, n: 2 }])
   })
 
+  it('counts the very reading a tag was written on: that is the point of writing it there', () => {
+    const stats = computeStats(
+      [
+        { ...glucose(200, '2026-07-20T08:00:00'), tags: ['Mal sueño'] },
+        glucose(160, '2026-07-20T12:00:00'), // same day, inside the 14 h window
+        glucose(100, '2026-07-23T08:00:00'),
+        glucose(100, '2026-07-23T12:00:00'),
+      ],
+      p,
+    )
+    // overall mean = 140, tagged window = (200+160)/2 = 180
+    expect(stats.tagEffects).toEqual([{ label: 'Mal sueño', delta: 40, n: 2 }])
+  })
+
+  it('a tag written on a reading still colours the hours that follow', () => {
+    const stats = computeStats(
+      [
+        { ...glucose(150, '2026-07-20T08:00:00'), tags: ['Estrés'] },
+        glucose(190, '2026-07-20T21:00:00'), // 13 h later: in
+        glucose(110, '2026-07-20T23:00:00'), // 15 h later: out
+        glucose(110, '2026-07-23T12:00:00'),
+      ],
+      p,
+    )
+    expect(stats.tagEffects[0]).toEqual({ label: 'Estrés', delta: 30, n: 2 })
+  })
+
+  it('mixes both ways of writing context into a single pattern', () => {
+    const stats = computeStats(
+      [
+        tag('Alcohol', '2026-07-20T21:00:00'),
+        glucose(180, '2026-07-21T08:00:00'), // from the standalone tag
+        { ...glucose(160, '2026-07-22T09:00:00'), tags: ['Alcohol'] }, // written on the reading
+        glucose(100, '2026-07-25T08:00:00'),
+        glucose(100, '2026-07-25T12:00:00'),
+      ],
+      p,
+    )
+    // overall mean = 135, tagged = (180+160)/2 = 170
+    expect(stats.tagEffects).toEqual([{ label: 'Alcohol', delta: 35, n: 2 }])
+  })
+
   it('merges repeated occurrences of the same label into one effect, counting each reading once', () => {
     const stats = computeStats(
       [
