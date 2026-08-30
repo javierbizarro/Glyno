@@ -5,11 +5,14 @@ import { resolveAiSource } from '../../domain/aiKey'
 import { seedDemo } from '../../app/demo'
 import { checkKey } from '../../app/aiKey'
 import { prepareDeviceAi, probeDeviceAi } from '../../app/container'
+import { isNative } from '../../app/platform'
+import { appUrl, shareApp } from '../../app/share'
 import type { DeviceAiState } from '../../ports/deviceAi'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
 import { download } from '../format'
 import { useDeviceAi } from '../hooks'
 import { InstallHint } from './InstallHint'
+import { HealthCard } from './HealthCard'
 import { AiSetup } from './AiSetup'
 import { MedsPhoto } from './MedsPhoto'
 
@@ -53,26 +56,11 @@ export function Settings({
     setTimeout(() => setMsg(''), 3500)
   }
 
-  // no fixed URL: share the address the app is being used from
-  const appUrl = location.origin + import.meta.env.BASE_URL
+  const link = appUrl()
   const share = async () => {
-    const text =
-      'Glyno, un copiloto para el día a día con diabetes: apunta tus glucemias, te busca patrones y prepara el informe para el médico. Gratis y sin cuentas.'
-    if (navigator.share) {
-      // if the user cancels the system sheet, there's nothing to tell them
-      try {
-        await navigator.share({ title: 'Glyno', text, url: appUrl })
-      } catch {
-        /* cancelled */
-      }
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(`${text}\n${appUrl}`)
-      flash('Enlace copiado al portapapeles.')
-    } catch {
-      flash('Copia el enlace de abajo y pásaselo a quien quieras.')
-    }
+    const outcome = await shareApp()
+    if (outcome === 'copied') flash('Enlace copiado al portapapeles.')
+    if (outcome === 'failed') flash('Copia el enlace de abajo y pásaselo a quien quieras.')
   }
 
   const exportCsv = async () => {
@@ -247,6 +235,8 @@ export function Settings({
         </button>
       </div>
 
+      {isNative() && <HealthCard />}
+
       <InstallHint />
 
       <div className="card stack" data-tour="guide">
@@ -268,11 +258,11 @@ export function Settings({
         </button>
         {/* keep the link always visible: if both the share sheet and the clipboard fail, this remains */}
         <a
-          href={appUrl}
+          href={link}
           className="muted small"
           style={{ wordBreak: 'break-all', color: 'var(--ink-2)' }}
         >
-          {appUrl}
+          {link}
         </a>
       </div>
 
@@ -283,25 +273,31 @@ export function Settings({
           de aquí (salvo lo que tú envíes a la IA con tu clave). Glyno no da consejo médico ni
           pautas de medicación: para eso, siempre tu equipo sanitario.
         </p>
-        <p className="muted small">
-          Contamos aperturas de la app de forma anónima (GoatCounter): la petición no lleva ningún
-          dato tuyo — ni cookies ni identificadores —, solo «alguien la ha abierto». Como en
-          cualquier web, GoatCounter ve tu IP al recibirla, pero no la guarda. Si tu navegador
-          envía «Do Not Track» o Global Privacy Control, ni eso.
-        </p>
+        {/* the app pings nobody, so it must not claim it does: the stores count opens for us */}
+        {!isNative() && (
+          <p className="muted small">
+            Contamos aperturas de la app de forma anónima (GoatCounter): la petición no lleva ningún
+            dato tuyo — ni cookies ni identificadores —, solo «alguien la ha abierto». Como en
+            cualquier web, GoatCounter ve tu IP al recibirla, pero no la guarda. Si tu navegador
+            envía «Do Not Track» o Global Privacy Control, ni eso.
+          </p>
+        )}
         <p className="muted small">
           El personaje de Glyno lo dibujó una niña de 8 años. 💛
         </p>
-        <button
-          className="btn ghost small"
-          onClick={async () => {
-            const regs = await navigator.serviceWorker?.getRegistrations()
-            await Promise.all((regs ?? []).map(r => r.update()))
-            location.reload()
-          }}
-        >
-          Buscar actualización
-        </button>
+        {/* there is no service worker inside the app: updates arrive from the store */}
+        {!isNative() && (
+          <button
+            className="btn ghost small"
+            onClick={async () => {
+              const regs = await navigator.serviceWorker?.getRegistrations()
+              await Promise.all((regs ?? []).map(r => r.update()))
+              location.reload()
+            }}
+          >
+            Buscar actualización
+          </button>
+        )}
       </div>
     </>
   )

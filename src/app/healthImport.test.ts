@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Entry } from '../domain/types'
-import { healthImportSummary, importHealthPayload } from './healthImport'
+import { healthImportSummary, importHealthPayload, importHealthSamples } from './healthImport'
 import { entries } from './container'
 
 vi.mock('./container', () => ({
-  entries: { bulkAdd: vi.fn(), byExtIds: vi.fn(), update: vi.fn() },
+  entries: { bulkAdd: vi.fn(), byExtIds: vi.fn(), update: vi.fn(), between: vi.fn() },
 }))
 
 const bulkAdd = vi.mocked(entries.bulkAdd)
 const byExtIds = vi.mocked(entries.byExtIds)
 const update = vi.mocked(entries.update)
+const between = vi.mocked(entries.between)
 
 const at = (iso: string) => new Date(iso).getTime()
 
@@ -18,6 +19,7 @@ const payload = (samples: unknown[]) => JSON.stringify({ app: 'glyno', type: 'he
 beforeEach(() => {
   vi.clearAllMocks()
   byExtIds.mockResolvedValue([])
+  between.mockResolvedValue([])
   bulkAdd.mockResolvedValue()
   update.mockResolvedValue()
 })
@@ -31,7 +33,7 @@ describe('importHealthPayload · payload shape', () => {
 
   it('accepts an empty sample list and adds nothing', async () => {
     const r = await importHealthPayload(payload([]))
-    expect(r).toEqual({ added: 0, updated: 0, ignored: 0, invalid: 0 })
+    expect(r).toEqual({ added: 0, updated: 0, merged: 0, ignored: 0, invalid: 0 })
     expect(bulkAdd).not.toHaveBeenCalled()
   })
 })
@@ -140,7 +142,7 @@ describe('importHealthPayload · dedupe by extId', () => {
       { id: 7, ts: at('2026-08-04T12:00:00'), kind: 'steps', value: 9241, extId: 'health:steps:2026-08-04' },
     ])
     const r = await importHealthPayload(payload([{ kind: 'steps', date: '2026-08-04', value: 9241 }]))
-    expect(r).toEqual({ added: 0, updated: 0, ignored: 1, invalid: 0 })
+    expect(r).toEqual({ added: 0, updated: 0, merged: 0, ignored: 1, invalid: 0 })
     expect(bulkAdd).not.toHaveBeenCalled()
     expect(update).not.toHaveBeenCalled()
   })
@@ -159,7 +161,7 @@ describe('importHealthPayload · dedupe by extId', () => {
     const ts = at('2026-08-04T08:05:00')
     byExtIds.mockResolvedValue([{ id: 3, ts, kind: 'glucose', value: 112, extId: `health:glucose:${ts}` }])
     const r = await importHealthPayload(payload([{ kind: 'glucose', ts: '2026-08-04T08:05:00', value: 108 }]))
-    expect(r).toEqual({ added: 0, updated: 0, ignored: 1, invalid: 0 })
+    expect(r).toEqual({ added: 0, updated: 0, merged: 0, ignored: 1, invalid: 0 })
     expect(update).not.toHaveBeenCalled()
   })
 
@@ -295,26 +297,151 @@ describe('importHealthPayload · plain-text format (what a simple Shortcut can b
 
 describe('healthImportSummary', () => {
   it('celebrates new and updated entries', () => {
-    expect(healthImportSummary({ added: 12, updated: 0, ignored: 3, invalid: 0 })).toBe(
+    expect(healthImportSummary({ added: 12, updated: 0, merged: 0, ignored: 3, invalid: 0 })).toBe(
       'De Salud: 12 registros nuevos.',
     )
-    expect(healthImportSummary({ added: 12, updated: 2, ignored: 0, invalid: 0 })).toBe(
+    expect(healthImportSummary({ added: 12, updated: 2, merged: 0, ignored: 0, invalid: 0 })).toBe(
       'De Salud: 12 registros nuevos y 2 al día.',
     )
-    expect(healthImportSummary({ added: 0, updated: 1, ignored: 5, invalid: 0 })).toBe(
+    expect(healthImportSummary({ added: 0, updated: 1, merged: 0, ignored: 5, invalid: 0 })).toBe(
       'De Salud: 1 al día.',
     )
-    expect(healthImportSummary({ added: 1, updated: 1, ignored: 0, invalid: 0 })).toBe(
+    expect(healthImportSummary({ added: 1, updated: 1, merged: 0, ignored: 0, invalid: 0 })).toBe(
       'De Salud: 1 registro nuevo y 1 al día.',
     )
   })
 
+  it('says out loud when Salud only confirmed what the user had already written', () => {
+    expect(healthImportSummary({ added: 0, updated: 0, merged: 2, ignored: 0, invalid: 0 })).toBe(
+      'De Salud: 2 que ya tenías apuntadas.',
+    )
+    expect(healthImportSummary({ added: 3, updated: 0, merged: 1, ignored: 0, invalid: 0 })).toBe(
+      'De Salud: 3 registros nuevos y 1 que ya tenías apuntada.',
+    )
+  })
+
   it('says honestly when there was nothing new, mentioning skipped samples', () => {
-    expect(healthImportSummary({ added: 0, updated: 0, ignored: 8, invalid: 0 })).toBe(
+    expect(healthImportSummary({ added: 0, updated: 0, merged: 0, ignored: 8, invalid: 0 })).toBe(
       'Nada nuevo: esos datos ya estaban en tu diario.',
     )
-    expect(healthImportSummary({ added: 0, updated: 0, ignored: 0, invalid: 3 })).toBe(
+    expect(healthImportSummary({ added: 0, updated: 0, merged: 0, ignored: 0, invalid: 3 })).toBe(
       'No he podido entender esas muestras (3 descartadas).',
     )
+  })
+})
+
+describe('importHealthSamples · the native bridge', () => {
+  it('takes samples straight, with no payload to parse', async () => {
+    const r = await importHealthSamples([{ kind: 'glucose', ts: '2026-08-30T08:10:00', value: 118 }])
+    expect(r.added).toBe(1)
+    expect(bulkAdd).toHaveBeenCalledWith([
+      expect.objectContaining({ kind: 'glucose', value: 118, source: 'health' }),
+    ])
+  })
+
+  it('keys a point sample on the id HealthKit gives it, not on its timestamp', async () => {
+    // two readings can share a minute, and a sample can be corrected keeping its UUID
+    await importHealthSamples([
+      { kind: 'glucose', ts: '2026-08-30T08:10:00', value: 118, id: 'UUID-A' },
+      { kind: 'glucose', ts: '2026-08-30T08:10:00', value: 142, id: 'UUID-B' },
+    ])
+    expect(bulkAdd).toHaveBeenCalledWith([
+      expect.objectContaining({ value: 118, extId: 'health:glucose:UUID-A' }),
+      expect.objectContaining({ value: 142, extId: 'health:glucose:UUID-B' }),
+    ])
+  })
+
+  it('still keys daily totals on their date: the day is the identity, the sample is not', async () => {
+    // the step count of today grows all day and must overwrite, whatever id it arrives with
+    await importHealthSamples([{ kind: 'steps', date: '2026-08-30', value: 8734, id: 'UUID-C' }])
+    expect(bulkAdd).toHaveBeenCalledWith([
+      expect.objectContaining({ kind: 'steps', extId: 'health:steps:2026-08-30' }),
+    ])
+  })
+
+  it('reads blood pressure, which the Shortcut route never could', async () => {
+    const r = await importHealthSamples([
+      { kind: 'bp', ts: '2026-08-30T09:00:00', sys: 138, dia: 84, id: 'UUID-D' },
+    ])
+    expect(r.added).toBe(1)
+    expect(bulkAdd).toHaveBeenCalledWith([
+      expect.objectContaining({
+        kind: 'bp',
+        sys: 138,
+        dia: 84,
+        source: 'health',
+        extId: 'health:bp:UUID-D',
+        ts: at('2026-08-30T09:00:00'),
+      }),
+    ])
+  })
+
+  it('discards implausible blood pressure instead of filing it', async () => {
+    const r = await importHealthSamples([
+      { kind: 'bp', ts: '2026-08-30T09:00:00', sys: 138 },
+      { kind: 'bp', ts: '2026-08-30T09:00:00', sys: 400, dia: 84 },
+      { kind: 'bp', ts: '2026-08-30T09:00:00', sys: 120, dia: 10 },
+    ])
+    expect(r).toEqual({ added: 0, updated: 0, merged: 0, ignored: 0, invalid: 3 })
+    expect(bulkAdd).not.toHaveBeenCalled()
+  })
+
+  it('dedupes against what is already in the diary, by the id HealthKit gave', async () => {
+    byExtIds.mockResolvedValue([
+      { id: 7, ts: at('2026-08-30T08:10:00'), kind: 'glucose', value: 118, extId: 'health:glucose:UUID-A' },
+    ] as Entry[])
+    const r = await importHealthSamples([
+      { kind: 'glucose', ts: '2026-08-30T08:10:00', value: 118, id: 'UUID-A' },
+    ])
+    expect(r).toEqual({ added: 0, updated: 0, merged: 0, ignored: 1, invalid: 0 })
+    expect(bulkAdd).not.toHaveBeenCalled()
+  })
+})
+
+describe('importHealthSamples · what the user already wrote down', () => {
+  const own = (e: Partial<Entry>): Entry => ({
+    id: 3,
+    ts: at('2026-08-30T08:10:00'),
+    kind: 'glucose',
+    value: 137,
+    note: 'ayunas',
+    source: 'manual',
+    ...e,
+  })
+
+  it('does not file a second row for a reading the user typed themselves', async () => {
+    between.mockResolvedValue([own({})])
+    const r = await importHealthSamples([
+      { kind: 'glucose', ts: '2026-08-30T08:22:00', value: 137, id: 'UUID-A' },
+    ])
+    expect(r).toEqual({ added: 0, updated: 0, merged: 1, ignored: 0, invalid: 0 })
+    expect(bulkAdd).not.toHaveBeenCalled()
+    // their row survives untouched but takes Salud's id, so it is never claimed twice
+    expect(update).toHaveBeenCalledWith(3, { extId: 'health:glucose:UUID-A' })
+  })
+
+  it('files a reading that is genuinely different, minutes apart or not', async () => {
+    between.mockResolvedValue([own({})])
+    const r = await importHealthSamples([
+      { kind: 'glucose', ts: '2026-08-30T08:12:00', value: 152, id: 'UUID-B' },
+    ])
+    expect(r.added).toBe(1)
+    expect(r.merged).toBe(0)
+  })
+
+  it('lets one hand-written row absorb only one sample', async () => {
+    // two real readings of the same number: the second is a reading of its own
+    between.mockResolvedValue([own({})])
+    const r = await importHealthSamples([
+      { kind: 'glucose', ts: '2026-08-30T08:11:00', value: 137, id: 'UUID-C' },
+      { kind: 'glucose', ts: '2026-08-30T08:12:00', value: 137, id: 'UUID-D' },
+    ])
+    expect(r.merged).toBe(1)
+    expect(r.added).toBe(1)
+  })
+
+  it('does not go looking through the diary when nothing could have been hand-written', async () => {
+    await importHealthSamples([{ kind: 'steps', date: '2026-08-30', value: 8734 }])
+    expect(between).not.toHaveBeenCalled()
   })
 })

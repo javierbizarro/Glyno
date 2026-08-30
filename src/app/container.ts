@@ -4,16 +4,30 @@ import { DexieEntryRepository } from '../adapters/dexieEntryRepository'
 import { LocalStorageProfileRepository } from '../adapters/localStorageProfileRepository'
 import { GeminiAssistant } from '../adapters/geminiAssistant'
 import { BrowserDeviceAi } from '../adapters/browserDeviceAi'
+import { AppleDeviceAi } from '../adapters/appleDeviceAi'
+import { AppleHealth } from '../adapters/appleHealth'
+import { NoHealth } from '../adapters/noHealth'
+import { WebPrinter } from '../adapters/webPrinter'
+import { NativePrinter } from '../adapters/nativePrinter'
+import { isNative, platform } from './platform'
 import { resolveAiSource } from '../domain/aiKey'
 import type { AiAssistant } from '../ports/ai'
 import type { DeviceAi, DeviceAiState } from '../ports/deviceAi'
+import type { HealthSource } from '../ports/health'
+import type { Printer } from '../ports/printer'
 
 export const entries = new DexieEntryRepository()
 export const profiles = new LocalStorageProfileRepository()
 
+// Apple Salud inside the app; everywhere else there is no health store to read
+export const health: HealthSource = platform() === 'ios' ? new AppleHealth() : new NoHealth()
+
+// window.print() is a no-op in a WebView: inside the app the system sheet does the job
+export const printer: Printer = isNative() ? new NativePrinter() : new WebPrinter()
+
 const gemini = new GeminiAssistant(() => profiles.load()?.geminiKey ?? '')
-// the seam for the native app: Apple's Foundation Models and Gemini Nano swap in here
-const device: DeviceAi = new BrowserDeviceAi()
+// Apple's Foundation Models inside the app; on the web, whatever the browser offers
+const device: DeviceAi = platform() === 'ios' ? new AppleDeviceAi() : new BrowserDeviceAi()
 
 /** asked fresh, for the screen that offers the download and shows its progress */
 export const probeDeviceAi = (): Promise<DeviceAiState> => device.state()

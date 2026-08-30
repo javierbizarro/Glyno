@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { cleanKey, keyBlocker, keyCheckOutcome, keyHint, looksLikeKey, resolveAiSource } from './aiKey'
 
 // the long-lived shape: "AIza" + 35 characters
-const KEY = 'AIzaSyBn3f_kQ2vLp7RtY9wXzA4cD6eF8gH0iJk'
+const KEY = 'AIzaSyEJEMPLO_FALSO_PARA_TESTS_00000000'
 // the newer one Google hands out today, dots and all
-const NEW_KEY = 'AQ.Ab8RN6Jk2mQvXpL9wZ0tY4cD7eF1gH3iJ5kM6nP8qR'
+const NEW_KEY = 'AQ.EJEMPLO_FALSO_PARA_TESTS_0000000000'
 
 describe('cleanKey', () => {
   it('keeps a clean key untouched', () => {

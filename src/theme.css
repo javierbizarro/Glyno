@@ -42,7 +42,9 @@ html, body {
 
 .screen {
   flex: 1;
-  padding: 20px 20px 96px;
+  /* inside the app the WebView reaches the very top: without this the notch or the dynamic
+     island sits on the first line. In a browser tab the inset is 0 and nothing moves. */
+  padding: max(20px, calc(env(safe-area-inset-top) + 8px)) 20px 96px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -463,10 +465,11 @@ a.btn { display: block; text-align: center; text-decoration: none; }
   position: sticky;
   top: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 16px;
+  flex-direction: column;
+  gap: 8px;
+  /* the report is a portal to body, so it misses .screen's safe area: inside the app the
+     WebView reaches the top and the notch would sit on these buttons */
+  padding: max(10px, calc(env(safe-area-inset-top) + 6px)) 16px 10px;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
 }
@@ -502,6 +505,25 @@ a.btn { display: block; text-align: center; text-decoration: none; }
 }
 .rep-metrics b { display: block; font-size: 17px; }
 .rep-metrics span { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.04em; }
+/* the daily table has a column per moment: on a phone it must scroll inside its own box,
+   never drag the whole report sideways. On paper there is width, so it scrolls nowhere. */
+.rep-scroll { overflow-x: auto; }
+
+/* On a phone the report is read on screen, not printed: the A4 margins are width we cannot
+   afford, and the daily table has to share what is left instead of running off the edge. */
+@media screen and (max-width: 560px) {
+  .report { padding: 20px 12px 40px; }
+  .rep-daily { table-layout: fixed; font-size: 10px; }
+  /* wrap between words, never inside one: "Post desa yuno" is worse than a narrow column */
+  .rep-daily th,
+  .rep-daily td { padding: 3px 2px; word-break: normal; overflow-wrap: normal; hyphens: none; }
+  /* the headings carry the longest words ("desayuno"); a notch smaller and they stop
+     spilling into the next column, while the numbers stay the readable part */
+  .rep-daily th { font-size: 9px; line-height: 1.2; letter-spacing: 0; }
+  /* "dom 30" in bold is the widest day label: give it room or it runs into the first reading */
+  .rep-daily th:first-child,
+  .rep-daily td:first-child { width: 5.6em; padding-right: 5px; white-space: nowrap; }
+}
 .rep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .rep-table th {
   text-align: left;
@@ -541,6 +563,7 @@ a.btn { display: block; text-align: center; text-decoration: none; }
   .report { padding: 8mm 10mm; max-width: none; font-size: 11.5px; }
   .report h1 { font-size: 19px; }
   .report section { break-inside: avoid; }
+  .rep-scroll { overflow: visible; }
   .rep-daily { break-inside: auto; }
   .rep-daily thead { display: table-header-group; }
   .rep-daily tr { break-inside: avoid; }

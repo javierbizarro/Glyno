@@ -37,6 +37,10 @@ export class DexieEntryRepository implements EntryRepository {
     return this.db.entries.where('extId').anyOf(ids).toArray()
   }
 
+  between(from: number, to: number) {
+    return this.db.entries.where('ts').between(from, to, true, false).sortBy('ts')
+  }
+
   async clear() {
     await this.db.entries.clear()
   }

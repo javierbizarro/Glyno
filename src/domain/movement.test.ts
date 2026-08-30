@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Entry } from './types'
 import { defaultProfile } from './types'
 import { daysAgo } from './time'
-import { movementState } from './movement'
+import { detectedMinutesToday, movementState } from './movement'
 
 const p = { ...defaultProfile, low: 70, high: 180 }
 const MIN = 60_000
@@ -273,5 +273,30 @@ describe('movementState personal pattern suffix', () => {
       glucose(day(0, 10), 100),
     ]
     expect(movementState(p, entries, now).nudge).toBe('Ya te has movido hoy, 30 min.')
+  })
+})
+
+describe('detectedMinutesToday', () => {
+  const NOW = new Date('2026-08-30T20:00:00').getTime()
+  const today = (e: Partial<Entry>): Entry => ({ ts: new Date('2026-08-30T18:00:00').getTime(), kind: 'exercise', ...e })
+
+  it('is nothing when the phone has seen nothing', () => {
+    expect(detectedMinutesToday([], NOW)).toBe(0)
+    expect(detectedMinutesToday([today({ value: 30, source: 'manual' })], NOW)).toBe(0)
+  })
+
+  it('counts the workouts Salud filed', () => {
+    expect(detectedMinutesToday([today({ value: 40, source: 'health' })], NOW)).toBe(40)
+  })
+
+  it('never adds the ring to the workout it is already counting', () => {
+    // Apple's exercise minutes include the very walk it also filed as a workout
+    const seen = [today({ value: 40, source: 'health' }), today({ kind: 'activity', value: 45, source: 'health' })]
+    expect(detectedMinutesToday(seen, NOW)).toBe(45)
+  })
+
+  it('ignores yesterday', () => {
+    const yesterday = today({ ts: new Date('2026-08-29T18:00:00').getTime(), value: 60, source: 'health' })
+    expect(detectedMinutesToday([yesterday], NOW)).toBe(0)
   })
 })

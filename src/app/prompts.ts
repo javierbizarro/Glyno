@@ -4,6 +4,7 @@ import { WEEKDAY_LABEL } from '../domain/medication'
 import { thousands } from '../domain/number'
 import { bmiOf, WEIGHT_FOCUS_BMI, weeklyWeights, weightTrendPerWeek } from '../domain/weight'
 import type { Stats } from '../domain/stats'
+import { MIN_PATTERN_DELTA } from '../domain/localReview'
 
 // Prompt bodies are product copy: they stay in Spanish because Glyno speaks Spanish.
 // JSON keys requested from the model are English — they are code, parsed by app/meals.ts.
@@ -64,14 +65,21 @@ export function buildContext(p: Profile, stats: Stats, entries: Entry[], weights
     .filter(Boolean)
     .join(' · ')
 
+  // a difference under MIN_PATTERN_DELTA is measurement noise. Sent to the model it comes back
+  // written up as a finding — "los días que te mueves tu media baja 1 mg/dl" — which is worse
+  // than saying nothing, because it sounds authoritative
+  const big = (d: number) => Math.abs(d) >= MIN_PATTERN_DELTA
   const patterns = [
-    stats.exerciseDelta != null && stats.exerciseDays >= 2
+    stats.exerciseDelta != null && big(stats.exerciseDelta) && stats.exerciseDays >= 2
       ? `- días con ejercicio: ${Math.round(stats.exerciseDelta)} mg/dl (${stats.exerciseDays} días)`
       : null,
-    stats.sleepDelta != null && stats.shortSleepDays >= 2
+    stats.sleepDelta != null && big(stats.sleepDelta) && stats.shortSleepDays >= 2
       ? `- tras dormir menos de 6 h: ${stats.sleepDelta > 0 ? '+' : ''}${Math.round(stats.sleepDelta)} mg/dl (${stats.shortSleepDays} noches)`
       : null,
-    ...stats.tagEffects.slice(0, 4).map(t => `- tras "${t.label}": ${t.delta > 0 ? '+' : ''}${Math.round(t.delta)} mg/dl (${t.n} veces)`),
+    ...stats.tagEffects
+      .filter(t => big(t.delta))
+      .slice(0, 4)
+      .map(t => `- tras "${t.label}": ${t.delta > 0 ? '+' : ''}${Math.round(t.delta)} mg/dl (${t.n} veces)`),
   ]
     .filter(Boolean)
     .join('\n')
@@ -202,5 +210,6 @@ Devuelve SOLO JSON válido, sin markdown, con las claves EXACTAMENTE así (en in
 - "kind": "basal" si es una insulina lenta o basal (Lantus, Toujeo, Abasaglar, Tresiba…), "bolus" si es una insulina rápida de las comidas (Humalog, NovoRapid, Fiasp, Apidra…), y "pill" para todo lo demás (pastillas como la metformina e inyectables no insulínicos como Ozempic o Trulicity).
 - "weekday" SOLO si en la imagen se lee el día concreto de una pauta semanal (0 domingo … 6 sábado). Si no lo pone, null. No lo deduzcas.
 - Un medicamento por caja o por línea de la receta. Si la misma caja aparece dos veces, ponla una sola vez.
-- Si en la imagen no hay medicación reconocible, devuelve {"meds":[]}.`
+- Si en la imagen no hay medicación reconocible, devuelve {"meds":[]}.
+- Una receta u hoja de tratamiento lleva además datos del paciente (nombre, número de tarjeta sanitaria, dirección, número de colegiado). NO copies nada de eso: solo la medicación.`
 }

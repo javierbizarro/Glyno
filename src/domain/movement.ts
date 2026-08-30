@@ -26,6 +26,20 @@ export const CYCLING_ACTIVE_KM = 3
 export const WEEKLY_TARGET_MIN = 150
 
 /**
+ * Minutes of movement the phone has already seen today, so nobody writes down what is
+ * already written. Detected exercise minutes and imported workouts overlap — the ring counts
+ * the walk it also filed as a workout — so this takes the MAX, never the sum.
+ */
+export function detectedMinutesToday(entries: Entry[], now = Date.now()): number {
+  const today = entries.filter(e => e.ts >= daysAgo(0, now))
+  const ring = Math.max(0, ...today.filter(e => e.kind === 'activity').map(e => e.value ?? 0))
+  const workouts = today
+    .filter(e => e.kind === 'exercise' && e.source === 'health')
+    .reduce((sum, e) => sum + (e.value ?? 0), 0)
+  return Math.round(Math.max(ring, workouts))
+}
+
+/**
  * Movement as a lever on glucose, never as compensation for what was eaten:
  * no calorie counting, no talk of "burning". No streaks, no reproaches.
  */

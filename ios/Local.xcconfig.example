@@ -1,0 +1,5 @@
+// Copy this file to ios/Local.xcconfig and put your own Apple Team ID in.
+// You find it in Xcode → Settings → Accounts, or at developer.apple.com/account.
+// A free Apple ID is enough to run Glyno on your own iPhone (the app expires after 7 days).
+// Without this file the project still builds; you just pick the team in Xcode by hand.
+DEVELOPMENT_TEAM =

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Profile } from './domain/types'
-import { profiles } from './app/container'
+import { health, profiles } from './app/container'
+import { syncHealth } from './app/healthSync'
 import { Onboarding } from './ui/components/Onboarding'
 import { Today } from './ui/components/Today'
 import { Trends } from './ui/components/Trends'
@@ -32,14 +33,17 @@ const ICONS: Record<Tab, JSX.Element> = {
       <path d="M2 11h20M6 15h12a6 6 0 0 1-12 0z" />
     </svg>
   ),
-  // the current character's crowned heart, drawn in line stroke like the rest of the bar
+  // the same Glyno as everywhere else — rounded body and sprout — drawn in line stroke
+  // like the rest of the bar. It was still a crowned heart, a body she lost two versions ago
   glyno: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 20.5 C7.2 16.6 4.5 13.6 4.5 10.6 C4.5 8.4 6.1 6.8 8.2 6.8 C9.8 6.8 11.3 7.8 12 9.2 C12.7 7.8 14.2 6.8 15.8 6.8 C17.9 6.8 19.5 8.4 19.5 10.6 C19.5 13.6 16.8 16.6 12 20.5 Z" />
-      <path d="M9 6.5 L9 3 L10.5 4.5 L12 2.5 L13.5 4.5 L15 3 L15 6.5" />
-      <circle cx="9.9" cy="11.2" r=".6" fill="currentColor" stroke="none" />
-      <circle cx="14.1" cy="11.2" r=".6" fill="currentColor" stroke="none" />
-      <path d="M10.4 13.6q1.6 1.3 3.2 0" strokeWidth="1.5" />
+      <path d="M12 7.4c3.3 0 5.6 2.4 5.6 5.4 0 3.5-2.6 6.7-5.6 6.7s-5.6-3.2-5.6-6.7c0-3 2.3-5.4 5.6-5.4Z" />
+      <path d="M12 7.4V3.2" />
+      <path d="M12 5.1c1.3-2.2 4.1-1.8 4.1-1.8s-.8 2.9-3.5 2.7" />
+      <path d="M12 6.6C10.7 4.4 8.1 4.9 8.1 4.9s.8 2.5 3 2.1" />
+      <circle cx="10.2" cy="12.4" r=".75" fill="currentColor" stroke="none" />
+      <circle cx="13.8" cy="12.4" r=".75" fill="currentColor" stroke="none" />
+      <path d="M10.4 15.1q1.6 1.4 3.2 0" strokeWidth="1.5" />
     </svg>
   ),
   settings: (
@@ -71,6 +75,19 @@ export default function App() {
   // afterwards it only opens manually from Ajustes
   useEffect(() => {
     if (shouldAutoStartTour(profile)) setTouring(true)
+  }, [profile?.onboarded])
+
+  // Salud syncs by itself on every open and every return to the app: the point of the native
+  // app is that the diary fills without anyone remembering to fill it. Silent on purpose —
+  // failures are the Ajustes button's business, not an interruption.
+  useEffect(() => {
+    if (!profile?.onboarded) return
+    const pull = () => {
+      if (document.visibilityState === 'visible') syncHealth(health).catch(() => {})
+    }
+    pull()
+    document.addEventListener('visibilitychange', pull)
+    return () => document.removeEventListener('visibilitychange', pull)
   }, [profile?.onboarded])
 
   const endTour = () => {

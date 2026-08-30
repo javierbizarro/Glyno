@@ -6,3 +6,9 @@ dev-dist
 
 # internal notes and product decisions live outside the public repo
 .claude/
+
+# native build output (Capacitor keeps its own ios/.gitignore)
+ios/build*
+
+# your own Apple signing identity, never in the repo (see ios/Local.xcconfig.example)
+ios/Local.xcconfig

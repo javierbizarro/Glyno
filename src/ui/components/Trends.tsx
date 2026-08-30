@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Entry, Profile } from '../../domain/types'
 import { computeStats } from '../../domain/stats'
+import { agpProfile, hasSensorDensity, type AgpBand } from '../../domain/agp'
 import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
 import { bmiOf, WEIGHT_FOCUS_BMI, weeklyWeights, weightTrendPerWeek } from '../../domain/weight'
@@ -20,6 +21,8 @@ export function Trends({ profile }: { profile: Profile }) {
   if (historyOpen) return <History profile={profile} onClose={() => setHistoryOpen(false)} />
   const glucose = entries.filter(e => e.kind === 'glucose' && e.value != null)
   const stats = computeStats(entries, profile)
+  // percentile bands only where a sensor is feeding the diary; over finger pricks they lie
+  const agp = hasSensorDensity(glucose, 14) ? agpProfile(glucose) : []
 
   // only stays empty when there's NOTHING: a single entry already starts drawing,
   // and someone who doesn't measure glucose may still log blood pressure or weight
@@ -85,10 +88,21 @@ export function Trends({ profile }: { profile: Profile }) {
 
           <div className="card">
             <div className="row between" style={{ marginBottom: 8 }}>
-              <span className="label">Glucemia</span>
+              <span className="label">{agp.length > 0 ? 'Un día promedio' : 'Glucemia'}</span>
               <span className="muted small">rango {profile.low}–{profile.high}</span>
             </div>
-            <GlucoseChart points={glucose} profile={profile} />
+            {agp.length > 0 ? (
+              <>
+                <AgpChart bands={agp} profile={profile} />
+                <p className="muted small" style={{ marginTop: 6 }}>
+                  Tus 14 días puestos uno encima de otro: la línea es dónde sueles estar a cada hora
+                  y la banda, cuánto te baila esa hora. Con tantas lecturas del sensor, esto se lee
+                  mucho mejor que la curva día a día.
+                </p>
+              </>
+            ) : (
+              <GlucoseChart points={glucose} profile={profile} />
+            )}
             <details className="table-view">
               <summary>Ver como tabla</summary>
               <table className="data">
@@ -279,6 +293,58 @@ const ML = 4
 const MR = 30
 const MT = 8
 const MB = 20
+
+/**
+ * The AGP: the whole period folded onto one day. The dark line is where you usually are at
+ * each hour; the bands say how much that hour swings, which a chart of four thousand dots
+ * cannot show. Only drawn with sensor density — see domain/agp.ts.
+ */
+function AgpChart({ bands, profile }: { bands: AgpBand[]; profile: Profile }) {
+  const lows = bands.map(b => b.p5)
+  const highs = bands.map(b => b.p95)
+  const YMIN = Math.max(40, Math.min(profile.low - 20, Math.min(...lows) - 10))
+  const YMAX = Math.min(360, Math.max(profile.high + 30, Math.max(...highs) + 10))
+
+  const X = (minute: number) => ML + (minute / (24 * 60)) * (W - ML - MR)
+  const Y = (v: number) => {
+    const c = Math.max(YMIN, Math.min(YMAX, v))
+    return MT + (1 - (c - YMIN) / (YMAX - YMIN)) * (H - MT - MB)
+  }
+
+  // each band is drawn as one closed shape: out along the top, back along the bottom
+  const area = (top: (b: AgpBand) => number, bottom: (b: AgpBand) => number) =>
+    bands.map((b, i) => `${i ? 'L' : 'M'}${X(b.minute).toFixed(1)} ${Y(top(b)).toFixed(1)}`).join(' ') +
+    ' ' +
+    [...bands].reverse().map(b => `L${X(b.minute).toFixed(1)} ${Y(bottom(b)).toFixed(1)}`).join(' ') +
+    ' Z'
+
+  const median = bands.map((b, i) => `${i ? 'L' : 'M'}${X(b.minute).toFixed(1)} ${Y(b.p50).toFixed(1)}`).join(' ')
+  const hours = [0, 6, 12, 18, 24]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', display: 'block' }} role="img"
+      aria-label="Perfil de glucosa de un día promedio, por percentiles">
+      <rect x={ML} y={Y(profile.high)} width={W - ML - MR} height={Y(profile.low) - Y(profile.high)}
+        fill="var(--green-soft)" />
+      {/* 5-95 %: where you land on all but the strangest days */}
+      <path d={area(b => b.p95, b => b.p5)} fill="var(--green)" opacity="0.13" />
+      {/* 25-75 %: half of your readings live in here */}
+      <path d={area(b => b.p75, b => b.p25)} fill="var(--green)" opacity="0.28" />
+      <path d={median} fill="none" stroke="var(--green)" strokeWidth="2.4" strokeLinejoin="round" />
+      {[profile.low, profile.high].map(v => (
+        <g key={v}>
+          <line x1={ML} y1={Y(v)} x2={W - MR} y2={Y(v)} stroke="var(--line)" strokeDasharray="3 3" />
+          <text x={W - MR + 3} y={Y(v) + 3.5} fontSize="9" fill="var(--ink-2)">{v}</text>
+        </g>
+      ))}
+      {hours.map(h => (
+        <text key={h} x={X(h * 60)} y={H - 6} fontSize="9" fill="var(--ink-2)" textAnchor={h === 0 ? 'start' : h === 24 ? 'end' : 'middle'}>
+          {h === 24 ? '24 h' : `${h}`}
+        </text>
+      ))}
+    </svg>
+  )
+}
 
 function GlucoseChart({ points, profile }: { points: Entry[]; profile: Profile }) {
   const [tip, setTip] = useState<Entry | null>(null)

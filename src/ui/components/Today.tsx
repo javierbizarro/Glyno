@@ -4,7 +4,7 @@ import { rangeOf } from '../../domain/glucose'
 import { daysAgo } from '../../domain/time'
 import { mealMoment, suggestMoment, usualDoses, usualExercises, usualMeals } from '../../domain/meals'
 import { dueWeeklyMeds } from '../../domain/medication'
-import { movementState, WEEKLY_TARGET_MIN } from '../../domain/movement'
+import { detectedMinutesToday, movementState, WEEKLY_TARGET_MIN } from '../../domain/movement'
 import { entries } from '../../app/container'
 import { useWatch } from '../hooks'
 import { fmtDayLong, fmtTime, greeting, RANGE_LABEL, RANGE_VAR, timeAgo } from '../format'
@@ -188,6 +188,7 @@ function QuickSheet({
   onClose: () => void
 }) {
   const moment = mealMoment(Date.now())
+  const detected = detectedMinutesToday(recent)
   const lastWeight = [...recent].reverse().find(e => e.kind === 'weight')
   const usualForMoment = usualMeals(recent, moment, 4)
   const frequentMeals = usualForMoment.length ? usualForMoment : usualMeals(recent, undefined, 4)
@@ -368,6 +369,13 @@ function QuickSheet({
         {kind === 'exercise' && (
           <>
             <h3>Ejercicio</h3>
+            {/* what the phone already saw, so nobody writes down what is already written —
+                nadar, pesas o la bici estática siguen necesitando apuntarse */}
+            {detected > 0 && (
+              <p className="muted small">
+                Salud ya ha visto {detected} min de actividad hoy. Apunta solo lo que le falte.
+              </p>
+            )}
             {usualExercises(recent).length > 0 && (
               <div className="wrap">
                 {usualExercises(recent).map(x => (

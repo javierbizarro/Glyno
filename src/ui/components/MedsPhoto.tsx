@@ -73,8 +73,9 @@ export function MedsPhoto({
         {!matches && (
           <>
             <p className="muted">
-              Haz una foto a <b>las cajas</b> —juntas, con el nombre visible— y las paso al
-              botiquín. Tú confirmas todo antes de que se guarde nada.
+              Haz una foto a <b>las cajas</b> —juntas, con el nombre visible— o a la{' '}
+              <b>hoja de tratamiento</b> que te dio tu médico, y lo paso al botiquín. La hoja suele
+              ser más cómoda: lo lleva todo, con las pautas. Tú confirmas antes de que se guarde nada.
             </p>
             <label className="btn ghost" style={{ textAlign: 'center', cursor: 'pointer' }}>
               {photo ? 'Cambiar foto' : '📷 Hacer la foto'}
@@ -102,9 +103,9 @@ export function MedsPhoto({
               />
             )}
             <p className="muted small">
-              La foto viaja a Google para leerla; Glyno no la guarda. Si fotografías{' '}
-              <b>una receta</b>, ten en cuenta que ese papel lleva además tu nombre y tus datos:
-              con las cajas basta.
+              La foto viaja a Google para leerla; Glyno no la guarda. Si es una receta o una hoja de
+              tratamiento, <b>tapa con el dedo la parte de arriba</b>: ahí van tu nombre y tu número
+              de tarjeta sanitaria, y para leer tu medicación no hacen ninguna falta.
             </p>
           </>
         )}

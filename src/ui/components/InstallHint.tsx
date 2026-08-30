@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { isNative } from '../../app/platform'
 
 const isStandalone = () =>
   matchMedia('(display-mode: standalone)').matches ||
@@ -7,12 +8,15 @@ const isStandalone = () =>
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 
 // Install card: native button where the browser allows it (Android/Chrome),
-// manual guide on iOS. Hidden if already installed or if the user dismisses it.
+// manual guide on iOS. Hidden if already installed or if the user dismisses it —
+// and absent altogether inside the app, which is already installed by definition.
 export function InstallHint() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(
     () => window.glynoInstallPrompt ?? null,
   )
-  const [hidden, setHidden] = useState(() => isStandalone() || localStorage.getItem('glyno.installHint') === 'no')
+  const [hidden, setHidden] = useState(
+    () => isNative() || isStandalone() || localStorage.getItem('glyno.installHint') === 'no',
+  )
 
   useEffect(() => {
     const onInstallable = () => setDeferred(window.glynoInstallPrompt ?? null)

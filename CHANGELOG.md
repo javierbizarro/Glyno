@@ -3,6 +3,81 @@
 Qué ha cambiado en Glyno, de lo más nuevo a lo más viejo. La versión que llevas se ve en
 Ajustes → «Acerca de Glyno».
 
+## 0.10.0 — 30 de agosto de 2026
+
+### Añadido
+
+- **Glyno como app de iPhone de verdad.** Hasta ahora era una web que te añadías a la pantalla de
+  inicio; ahora hay una app nativa, con su icono, su pantalla de arranque y sin la barra de Safari
+  por medio. Por dentro es la misma Glyno de siempre — los datos, el diario y todo lo demás no
+  cambian.
+- **Salud del iPhone: tus datos entran solos.** Glucosa, pasos, sueño, peso, tensión y
+  entrenamientos pasan de la app Salud a tu diario **sin que tengas que apuntar nada**. La primera
+  vez trae el histórico del último año; después se pone al día sola cada vez que abres Glyno o
+  vuelves a ella. Nada se duplica: cada dato se guarda con el identificador que le da Salud, y los
+  totales del día (los pasos, por ejemplo) se actualizan según crecen en vez de repetirse.
+  Está en **Ajustes → Salud del iPhone**, y ahí decides tú: Glyno solo **lee**, nunca escribe nada
+  en Salud, y nada de eso sale de tu iPhone.
+- Los entrenamientos llegan con su nombre y su distancia (Caminar, Correr, Bici, Natación…), que es
+  algo que la ruta antigua de Atajos no sabía hacer. Y la **tensión** entra por primera vez sola.
+- Al apuntar ejercicio, si Salud ya vio actividad hoy Glyno te lo dice («Salud ya ha visto 42 min de
+  actividad hoy»), para que solo apuntes lo que le falte — nadar, pesas o la bici estática, que el
+  móvil no ve.
+
+- **Glyno ya no necesita IA para darte la valoración quincenal.** Si no has activado la IA —o si la
+  tienes activada pero falla, porque no hay internet o se agotó la cuota gratuita— Glyno la escribe
+  ella misma con tus mismos números: cómo vas, qué patrones asoman, dos o tres cosas que probar y
+  una frase de cierre. Es instantánea y no sale nada de tu móvil. Te dice siempre quién la ha
+  escrito, porque con la IA activada te la cuenta con más soltura y no queremos colártela.
+
+- **Leer la medicación de una foto ahora admite la hoja de tratamiento**, no solo las cajas. Suele
+  ser más cómoda —lo lleva todo y con las pautas— y antes te la desaconsejábamos. Se sigue diciendo
+  con claridad lo que hay que saber: la foto viaja a Google, así que tapa con el dedo la cabecera
+  del papel, donde van tu nombre y tu tarjeta sanitaria. Y Glyno tiene orden de no copiar nada de
+  eso aunque salga en la imagen.
+
+- **IA en el propio iPhone, sin clave** (iPhone 15 Pro y posteriores, con Apple Intelligence
+  activado). Cuando está, Glyno responde sin cuenta, sin internet y sin que nada salga del móvil.
+  Cuando no está —que es la mayoría de iPhones— todo sigue igual que hasta ahora. La IA del
+  dispositivo no sabe mirar fotos: el plato sigue necesitando la clave de Google.
+- **Gráfica de «un día promedio» para quien lleva sensor.** Si tus glucemias entran a ritmo de
+  sensor, la curva de 14 días se convierte en una mancha ilegible; en su lugar Glyno dibuja tus
+  catorce días superpuestos en uno solo: una línea con dónde sueles estar a cada hora y dos bandas
+  con cuánto te baila. Es como se leen los sensores en la consulta. Con mediciones de dedo no
+  aparece, porque con cuatro pinchazos al día esos porcentajes no significarían nada.
+
+### Corregido
+
+- **El informe médico no se imprimía dentro de la app.** El botón usaba el diálogo del navegador,
+  que dentro de una app no existe: se pulsaba y no pasaba nada. Ahora abre la hoja de impresión del
+  iPhone, con el informe ya maquetado en A4, y desde ahí se guarda como PDF o se manda a una
+  impresora. De paso se llama **«Imprimir»**, que es lo que hace, y los tres periodos (14, 30 y 90
+  días) ya no se amontonan: van en su propia fila.
+- **La cabecera del informe se metía debajo de la isla dinámica.**
+- **El informe se salía por la derecha en el móvil.** La tabla del registro diario está pensada
+  para un A4 y en una pantalla de teléfono no cabía: ahora solo salen los momentos en los que de
+  verdad mides —una columna de guiones no informa de nada—, y la tabla reparte el ancho disponible
+  en vez de desbordarse. En papel no cambia nada.
+- **Con varias medicinas, la cabecera del informe se leía como un muro.** El botiquín va ahora en
+  su propia línea, con su etiqueta «Medicación:», separado del tratamiento.
+- La foto del plato y la del botiquín podían cerrar la app de golpe: faltaba declararle a iOS para
+  qué usa Glyno la cámara y las fotos.
+- **La app giraba a horizontal**, donde nada estaba pensado para verse. Ahora se queda en vertical,
+  como ya hacía la versión web.
+- **El icono de Glyno en la barra de abajo seguía siendo un corazón con corona**, el cuerpo que
+  perdió hace dos versiones. Ahora es la Glyno de verdad, con su brote.
+- Glyno anunciaba como patrón diferencias de 1 o 2 mg/dl, que son ruido de medición y no significan
+  nada. Ahora se calla por debajo de 5, y tampoco se los pasa a la IA para que los redacte.
+
+### Cambiado
+
+- Dentro de la app **no hay contador de aperturas**: el ping anónimo de GoatCounter se queda solo
+  en la versión web. La app no manda absolutamente nada a ningún sitio, y por eso ya no lo promete.
+- Desaparecen las cosas que en una app no significan nada: la tarjeta de «instalar Glyno» (ya está
+  instalada) y el botón de «buscar actualización» (las actualizaciones vienen de la tienda).
+- **Compartir Glyno** manda ahora una dirección fija de la web. Antes compartía «la dirección en la
+  que estás», que dentro de una app es un enlace que no abre nada.
+
 ## 0.9.0 — 29 de agosto de 2026
 
 ### Añadido

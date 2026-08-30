@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { printer } from '../../app/container'
 import { MOMENTS, treatmentSummary, TYPE_FULL, type Entry, type Profile } from '../../domain/types'
 import { rangeOf } from '../../domain/glucose'
 import { WEEKDAY_LABEL } from '../../domain/medication'
@@ -58,14 +59,25 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
     const bucket = byDayMoment.get(dk)!
     bucket.set(m, [...(bucket.get(m) ?? []), e.value!])
   }
-  const cols = [...MOMENTS, 'otras']
+  // only the moments this person actually measures: an empty column is a column of dashes
+  // that pushes the table off a phone screen and wastes width on paper
+  const cols = [...MOMENTS, 'otras'].filter(c =>
+    [...byDayMoment.values()].some(bucket => bucket.get(c)?.length),
+  )
 
   return createPortal(
     <div className="report-overlay">
+      {/* two rows on purpose: on a phone the three periods and the two buttons never fit
+          on one, and wrapping them left the toolbar ragged */}
       <div className="report-toolbar no-print">
-        <button className="btn ghost small" onClick={onClose}>
-          ← Volver
-        </button>
+        <div className="row between">
+          <button className="btn ghost small" onClick={onClose}>
+            ← Volver
+          </button>
+          <button className="btn small" onClick={() => printer.print()}>
+            Imprimir
+          </button>
+        </div>
         <div className="wrap">
           {[14, 30, 90].map(d => (
             <button key={d} className={`chip ${days === d ? 'on' : ''}`} onClick={() => setDays(d)}>
@@ -73,9 +85,6 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
             </button>
           ))}
         </div>
-        <button className="btn small" onClick={() => window.print()}>
-          Guardar PDF
-        </button>
       </div>
 
       <div className="report">
@@ -89,18 +98,19 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
               ` · ${profile.measurement === 'sensor' ? 'sensor continuo' : 'glucómetro capilar'}`}
             <br />
             Tratamiento: {treatmentSummary(profile)}
+            <br />
             {profile.meds.length > 0 && (
               <>
-                {' — '}
+                Medicación:{' '}
                 {profile.meds
                   .map(
                     m =>
                       `${m.name}${m.dose ? ` ${m.dose}` : ''}${m.weekday != null ? ` (semanal, ${WEEKDAY_LABEL[m.weekday]})` : ''}`,
                   )
                   .join(' · ')}
+                <br />
               </>
             )}
-            <br />
             Periodo: {fmtDate(data.from)} – {fmtDate(data.to)} ({data.days} días) · Rango objetivo:{' '}
             {profile.low}–{profile.high} mg/dl · Generado el {fmtDate(Date.now())}
           </p>
@@ -171,7 +181,8 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
 
         <section>
           <h2>Registro diario (mg/dl)</h2>
-          <table className="rep-table rep-daily">
+          <div className="rep-scroll">
+            <table className="rep-table rep-daily">
             <thead>
               <tr>
                 <th>Día</th>
@@ -200,7 +211,8 @@ export function Report({ profile, onClose }: { profile: Profile; onClose: () => 
                 )
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
         </section>
 
         {profile.hypertension && data.bp.n > 0 && (

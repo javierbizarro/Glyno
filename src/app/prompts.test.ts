@@ -401,3 +401,36 @@ describe('medsPhotoPrompt', () => {
     expect(prompt).toContain('{"meds":[]}')
   })
 })
+
+describe('buildContext · noise never reaches the model', () => {
+  it('leaves out differences too small to be a pattern', () => {
+    // the model writes up whatever it is given: "tu media baja 1 mg/dl" reads as a finding
+    const noise = stats({
+      n: 40,
+      mean: 150,
+      exerciseDelta: -1,
+      exerciseDays: 6,
+      sleepDelta: 2,
+      shortSleepDays: 4,
+      tagEffects: [{ label: 'Cena copiosa', delta: 3, n: 5 }],
+    })
+    const ctx = buildContext(profile(), noise, [])
+    expect(ctx).toContain('(aún no hay patrones con datos suficientes)')
+    expect(ctx).not.toMatch(/1 mg\/dl|2 mg\/dl|3 mg\/dl/)
+  })
+
+  it('still passes on the ones that matter', () => {
+    const real = stats({ n: 40, mean: 150, exerciseDelta: -13, exerciseDays: 6 })
+    expect(buildContext(profile(), real, [])).toContain('-13 mg/dl')
+  })
+})
+
+describe('medsPhotoPrompt · a prescription is not only medication', () => {
+  it('reads the treatment sheet but refuses to copy who it belongs to', () => {
+    // the sheet carries the patient's name and health-card number; the med cabinet needs neither
+    const prompt = medsPhotoPrompt()
+    expect(prompt).toMatch(/receta u hoja de tratamiento/i)
+    expect(prompt).toMatch(/NO copies nada de eso/)
+    expect(prompt).toMatch(/tarjeta sanitaria/)
+  })
+})

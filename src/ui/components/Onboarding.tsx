@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { defaultProfile, DEFAULT_TARGETS, TYPE_FULL, TYPE_LABEL, type DiabetesType, type Measurement, type Med, type Profile } from '../../domain/types'
 import { Mascot3D } from './Mascot3D'
 import { InstallHint } from './InstallHint'
+import { isNative } from '../../app/platform'
 
 const STEPS = 7
 
@@ -47,7 +48,10 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
   }
 
   return (
-    <div className="screen" style={{ paddingTop: 36, gap: 22 }}>
+    <div
+      className="screen"
+      style={{ paddingTop: 'max(36px, calc(env(safe-area-inset-top) + 8px))', gap: 22 }}
+    >
       <div className="onb-progress">
         {Array.from({ length: STEPS }, (_, i) => (
           <span key={i} className={i <= step ? 'on' : ''} />
@@ -66,17 +70,20 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
           </h1>
           <p className="muted">
             Te acompaño con la diabetes: apuntamos juntos tus glucemias, busco patrones y te cuento lo
-            que veo. Tus datos de salud se quedan en tu dispositivo, no salen de aquí. Solo
-            contamos aperturas de la app de forma anónima, sin identificadores.
+            que veo. Tus datos de salud se quedan en tu dispositivo, no salen de aquí.
+            {/* the app pings nobody: promising a counter it does not have would be a lie */}
+            {!isNative() && ' Solo contamos aperturas de la app de forma anónima, sin identificadores.'}
           </p>
           <div className="stack">
             <span className="label">¿Cómo te llamas?</span>
+            {/* in a WebView autoFocus really does raise the keyboard, and it would cover the
+                welcome before it has been read; Safari ignores it, so the web keeps it */}
             <input
               type="text"
               placeholder="Tu nombre"
               value={p.name}
               onChange={e => set({ name: e.target.value })}
-              autoFocus
+              autoFocus={!isNative()}
             />
           </div>
           <button className="btn" onClick={next} disabled={!p.name.trim()}>

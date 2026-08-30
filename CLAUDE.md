@@ -7,6 +7,9 @@ mascota 3D (Glyno) y valoraciones con IA (Gemini free tier). Objetivo: coste 0 r
 
 - TODO corre en Docker: `make up` / `make down` / `make reset` / `make logs` / `make clean`.
   NUNCA ejecutar npm/node en el host (el usuario no quiere instalar nada en local).
+  **ÚNICA EXCEPCIÓN, pactada el 2026-08-30: la app iOS.** Capacitor, CocoaPods y Xcode no pueden
+  correr en Docker. `make ios` compila los assets DENTRO de Docker y solo la parte nativa
+  (`npx cap copy`, `xcodebuild`, `simctl`) en el Mac. Nada más se ejecuta fuera del contenedor.
 - Los datos del usuario viven en el navegador (IndexedDB `glyno` + localStorage `glyno.profile`).
   `make reset` los borra abriendo `/?reset`. Apagar Docker NO borra datos.
 - UI 100% en español, tono cercano (Glyno habla de tú). PERO el código y los commits van
@@ -50,6 +53,23 @@ mascota 3D (Glyno) y valoraciones con IA (Gemini free tier). Objetivo: coste 0 r
 (casos de uso; `container.ts` es la composición raíz) ← `ui/` (React; usa `useWatch` de
 `ui/hooks.ts` para reactividad). REGLA: la UI nunca importa de `adapters/`; la lógica de negocio
 nueva va a `domain/` si es pura o a `app/` si orquesta puertos.
+
+## App iOS (Capacitor, desde 0.10.0)
+
+- `make ios` = build nativa (`NATIVE=1`, sin service worker) + `cap copy` + `xcodebuild` +
+  instalar y lanzar en el simulador (`SIM` en el Makefile). El proyecto vive en `ios/`.
+- **La build de simulador va FIRMADA** (`CODE_SIGN_IDENTITY="-"`): sin firmar, Xcode descarta los
+  entitlements y HealthKit lanza una excepción de ObjC que mata la app.
+- **Plugin propio en Swift**: `ios/App/App/HealthPlugin.swift` (HealthKit, solo lectura). Capacitor
+  NO lo descubre solo: se registra en `MainViewController.swift`, que el `SceneDelegate` usa como
+  raíz. Si vuelve a salir «plugin is not implemented on ios», mirar ahí.
+- **Nunca pedir permiso de lectura sobre un tipo de correlación** (`HKCorrelationTypeIdentifier…`):
+  HealthKit lanza excepción. La tensión se pide como sistólica + diastólica y se LEE como
+  correlación.
+- Lo nativo se decide con `app/platform.ts` (`isNative()`): fuera el ping de GoatCounter, fuera
+  «Buscar actualización», fuera la tarjeta de instalar, y compartir con URL fija.
+- Los datos de Salud entran por `app/healthSync.ts` → `importHealthSamples` (dedupe por `extId`,
+  que para muestras puntuales es el UUID de HealthKit). Sincroniza sola al abrir y al volver.
 
 ## Memoria detallada
 

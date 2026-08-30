@@ -30,7 +30,8 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
   // the whole weight history: the AI reads the weekly trend, not just the last number
   const weights = useWatch(() => repo.watchByKind('weight'), [])
 
-  const [review, setReview] = useState<{ date: string; text: string } | null>(() => {
+  // `written` is absent in reviews cached before Glyno could write them herself: those were AI
+  const [review, setReview] = useState<{ date: string; text: string; written?: 'ai' | 'glyno'; aiError?: string } | null>(() => {
     try {
       return JSON.parse(localStorage.getItem(REVIEW_KEY) ?? 'null')
     } catch {
@@ -115,8 +116,8 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
     setBusy('review')
     setError('')
     try {
-      const text = await generateReview(profile, entries, weights)
-      const r = { date: new Date().toISOString(), text }
+      const { text, written, aiError } = await generateReview(profile, entries, weights)
+      const r = { date: new Date().toISOString(), text, written, aiError }
       setReview(r)
       localStorage.setItem(REVIEW_KEY, JSON.stringify(r))
     } catch (e) {
@@ -192,13 +193,23 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
           )}
         </div>
         {review ? (
-          <p style={{ fontSize: 14.5, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{review.text}</p>
+          <>
+            <p style={{ fontSize: 14.5, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{review.text}</p>
+            {/* who put it into words, said out loud: the numbers are always Glyno's own */}
+            {review.written === 'glyno' && (
+              <p className="muted small">
+                {review.aiError
+                  ? `La he escrito yo con tus datos: la IA no ha podido contestar (${review.aiError})`
+                  : 'La he escrito yo con tus datos, sin IA. Con la IA activada te la cuento con más soltura.'}
+              </p>
+            )}
+          </>
         ) : (
           <p className="muted">
             Le doy una lectura a tus últimos 14 días: cómo vas, qué patrones veo y qué puedes probar.
           </p>
         )}
-        <button className="btn" disabled={!aiOn || busy !== null || stats.n < 5} onClick={doReview}>
+        <button className="btn" disabled={busy !== null || stats.n < 5} onClick={doReview}>
           {busy === 'review' ? 'Leyendo tus datos…' : review ? 'Actualizar valoración' : 'Pídeme la valoración'}
         </button>
         {stats.n < 5 && <p className="muted small">Necesito al menos unos días de glucemias.</p>}

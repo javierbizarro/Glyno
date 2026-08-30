@@ -10,6 +10,8 @@ export interface EntryRepository {
   all(): Promise<Entry[]>
   /** entries whose extId is in the list (health-import dedupe) */
   byExtIds(ids: string[]): Promise<Entry[]>
+  /** entries in [from, to), ascending order — one shot, for matching an import against the diary */
+  between(from: number, to: number): Promise<Entry[]>
   /** entries with ts >= since, ascending order, live */
   watchSince(since: number): Watchable<Entry[]>
   /** entries in [from, to), ascending order, live */

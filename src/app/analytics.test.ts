@@ -1,11 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import { pingUrl, shouldCountVisit } from './analytics'
 
-const base = { hostname: 'javierbizarro.github.io', dnt: null as string | null, gpc: false, dev: false }
+const base = {
+  hostname: 'javierbizarro.github.io',
+  dnt: null as string | null,
+  gpc: false,
+  dev: false,
+  native: false,
+}
 
 describe('shouldCountVisit', () => {
   it('counts a normal production visit', () => {
     expect(shouldCountVisit(base)).toBe(true)
+  })
+
+  it('never counts inside the native app, however production-like the rest looks', () => {
+    // the app declares "no data collected": one ping would make that a lie
+    expect(shouldCountVisit({ ...base, native: true })).toBe(false)
   })
 
   it('never counts dev-server sessions, whatever the hostname', () => {

@@ -1,4 +1,6 @@
 import type { Entry } from '../domain/types'
+import type { HealthSample } from '../ports/health'
+import { CLAIMABLE, sameReading } from '../domain/healthMatch'
 import { entries } from './container'
 
 // STAGED PLUMBING — no UI feeds this module today. The iOS Shortcut route was retired
@@ -9,19 +11,12 @@ import { entries } from './container'
 // Contract of the payload any bridge builds. JSON keys are English (they are code);
 // sample kinds match EntryKind. Daily kinds carry a `date` (YYYY-MM-DD); point kinds
 // carry a `ts` (ISO local).
-interface RawSample {
-  kind?: string
-  ts?: string
-  date?: string
-  value?: number
-  minutes?: number
-  label?: string
-  km?: number
-}
 
 export interface HealthImportResult {
   added: number
   updated: number
+  /** already in the diary because the user had written it down: their row keeps the context */
+  merged: number
   ignored: number
   invalid: number
 }
@@ -38,15 +33,24 @@ const DAILY_HOUR: Record<string, string> = {
   cycling: 'T19:30:00',
 }
 
+const DAY = 86_400_000
+
 const isDate = (s: unknown): s is string => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
 const round1 = (x: number) => Math.round(x * 10) / 10
 
+/**
+ * Key of a point sample: its own id when the source gives one (HealthKit does), the instant
+ * otherwise. Two readings can share a minute, so the timestamp alone is not an identity.
+ * Daily totals are keyed on the date instead — the day is what they are.
+ */
+const pointId = (kind: string, id: string | undefined, ts: number) => `health:${kind}:${id ?? ts}`
+
 /** null when the sample is malformed or out of any plausible range */
-function toEntry(s: RawSample): Entry | null {
+function toEntry(s: HealthSample): Entry | null {
   if (s.kind === 'glucose') {
     const ts = new Date(s.ts ?? '').getTime()
     if (!Number.isFinite(ts) || s.value == null || s.value < 20 || s.value > 600) return null
-    return { ts, kind: 'glucose', value: s.value, source: 'health', extId: `health:glucose:${ts}` }
+    return { ts, kind: 'glucose', value: s.value, source: 'health', extId: pointId('glucose', s.id, ts) }
   }
   if (s.kind === 'exercise') {
     const ts = new Date(s.ts ?? '').getTime()
@@ -58,7 +62,20 @@ function toEntry(s: RawSample): Entry | null {
       label: s.label?.trim() || 'Ejercicio',
       ...(s.km != null && s.km > 0 ? { distanceKm: round1(s.km) } : {}),
       source: 'health',
-      extId: `health:exercise:${ts}`,
+      extId: pointId('exercise', s.id, ts),
+    }
+  }
+  if (s.kind === 'bp') {
+    const ts = new Date(s.ts ?? '').getTime()
+    if (!Number.isFinite(ts) || s.sys == null || s.dia == null) return null
+    if (s.sys < 60 || s.sys > 260 || s.dia < 30 || s.dia > 160) return null
+    return {
+      ts,
+      kind: 'bp',
+      sys: Math.round(s.sys),
+      dia: Math.round(s.dia),
+      source: 'health',
+      extId: pointId('bp', s.id, ts),
     }
   }
   if (s.kind === 'steps' || s.kind === 'sleep' || s.kind === 'weight' || s.kind === 'activity' || s.kind === 'cycling') {
@@ -98,7 +115,7 @@ const TIME = /^\d{1,2}:\d{2}$/
 const num = (s: string) => Number(s.replace(',', '.'))
 
 /** one line of the plain-text format → a raw sample; null when the line makes no sense */
-function parseLine(line: string, today: string): RawSample | null {
+function parseLine(line: string, today: string): HealthSample | null {
   const tokens = line.trim().split(/\s+/)
   const keyword = tokens.shift()?.toLowerCase().replace('ñ', 'n')
   const date = isDate(tokens[0]) ? tokens.shift()! : today
@@ -184,18 +201,9 @@ function parseLine(line: string, today: string): RawSample | null {
  * assembly — and so a human can type it in a note.
  */
 export async function importHealthPayload(text: string, now = Date.now()): Promise<HealthImportResult> {
-  const result: HealthImportResult = { added: 0, updated: 0, ignored: 0, invalid: 0 }
-  const candidates: Entry[] = []
-
-  const push = (raw: RawSample | null) => {
-    const e = raw && toEntry(raw)
-    if (e) candidates.push(e)
-    else result.invalid++
-  }
-
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
   if (text.trim().startsWith('{')) {
-    let data: { app?: string; type?: string; samples?: RawSample[] }
+    let data: { app?: string; type?: string; samples?: HealthSample[] }
     try {
       data = JSON.parse(text)
     } catch {
@@ -203,12 +211,26 @@ export async function importHealthPayload(text: string, now = Date.now()): Promi
     }
     if (data?.app !== 'glyno' || data.type !== 'health' || !Array.isArray(data.samples))
       throw new Error(BAD_PAYLOAD)
-    data.samples.forEach(push)
-  } else if (/^glyno salud$/i.test(lines[0] ?? '')) {
-    const today = localDate(now)
-    lines.slice(1).forEach(line => push(parseLine(line, today)))
-  } else {
-    throw new Error(BAD_PAYLOAD)
+    return importHealthSamples(data.samples)
+  }
+  if (!/^glyno salud$/i.test(lines[0] ?? '')) throw new Error(BAD_PAYLOAD)
+  const today = localDate(now)
+  return importHealthSamples(lines.slice(1).map(line => parseLine(line, today)))
+}
+
+/**
+ * The one door into the diary for anything Health hands over, whatever brought it: validation,
+ * dedupe by extId (against the database and inside the batch) and the daily-refresh rule.
+ * Nulls count as discarded samples, so a bridge can hand over what it could not read.
+ */
+export async function importHealthSamples(samples: (HealthSample | null)[]): Promise<HealthImportResult> {
+  const result: HealthImportResult = { added: 0, updated: 0, merged: 0, ignored: 0, invalid: 0 }
+  const candidates: Entry[] = []
+
+  for (const raw of samples) {
+    const e = raw && toEntry(raw)
+    if (e) candidates.push(e)
+    else result.invalid++
   }
   if (!candidates.length) return result
 
@@ -217,6 +239,7 @@ export async function importHealthPayload(text: string, now = Date.now()): Promi
   )
   const fresh: Entry[] = []
   const seenInBatch = new Set<string>()
+  const written = await handWritten(candidates)
 
   for (const e of candidates) {
     if (seenInBatch.has(e.extId!)) {
@@ -225,27 +248,52 @@ export async function importHealthPayload(text: string, now = Date.now()): Promi
     }
     seenInBatch.add(e.extId!)
     const prev = existing.get(e.extId!)
-    if (!prev) {
-      fresh.push(e)
-      result.added++
-    } else if (isDaily(e) && prev.value !== e.value) {
-      await entries.update(prev.id!, { value: e.value })
-      result.updated++
-    } else {
-      result.ignored++
+    if (prev) {
+      if (isDaily(e) && prev.value !== e.value) {
+        await entries.update(prev.id!, { value: e.value })
+        result.updated++
+      } else {
+        result.ignored++
+      }
+      continue
     }
+    // not in the diary under Salud's id — but the user may have written it down themselves
+    const own = written.findIndex(w => sameReading(w, e))
+    if (own >= 0) {
+      await entries.update(written[own].id!, { extId: e.extId })
+      written.splice(own, 1) // one hand-written row can only be one Salud sample
+      result.merged++
+      continue
+    }
+    fresh.push(e)
+    result.added++
   }
 
   if (fresh.length) await entries.bulkAdd(fresh)
   return result
 }
 
+/**
+ * The diary rows the user typed themselves that could be the same readings as this batch.
+ * Loaded in one go around the batch's span: matching sample by sample would mean a query each.
+ */
+async function handWritten(candidates: Entry[]): Promise<Entry[]> {
+  const claimable = candidates.filter(e => CLAIMABLE.includes(e.kind))
+  if (!claimable.length) return []
+  const stamps = claimable.map(e => e.ts)
+  const from = Math.min(...stamps) - DAY
+  const to = Math.max(...stamps) + DAY
+  return (await entries.between(from, to)).filter(e => e.source !== 'health' && !e.extId)
+}
+
 /** UI copy (Spanish) for the little confirmation the user sees after importing */
 export function healthImportSummary(r: HealthImportResult): string {
-  if (r.added || r.updated) {
+  if (r.added || r.updated || r.merged) {
     const parts = [
       r.added ? `${r.added} ${r.added === 1 ? 'registro nuevo' : 'registros nuevos'}` : null,
       r.updated ? `${r.updated} al día` : null,
+      // saying it out loud is the point: nothing was duplicated, their own row stayed
+      r.merged ? `${r.merged} que ya tenías ${r.merged === 1 ? 'apuntada' : 'apuntadas'}` : null,
     ].filter(Boolean)
     return `De Salud: ${parts.join(' y ')}.`
   }
