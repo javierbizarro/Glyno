@@ -10,26 +10,12 @@ import {
   type MealAnalysis,
   type MealSuggestion,
 } from '../domain/meals'
-import { parseJsonReply, ReplyFormatError } from '../domain/jsonReply'
+import { askJson } from './askJson'
 import type { AiImage } from '../ports/ai'
 import { ai, entries } from './container'
 import { buildContext, mealPrompt, suggestMealPrompt } from './prompts'
 
 export type { MealAnalysis, MealSuggestion } from '../domain/meals'
-
-/**
- * Asks and reads the answer. A garbled answer earns one second attempt — small models
- * fail at the format, not at the task — but a network or quota error does not: it would
- * only burn another call and make the user wait twice.
- */
-async function askJson<T>(ask: () => Promise<string>, shape: (raw: unknown) => T): Promise<T> {
-  try {
-    return shape(parseJsonReply(await ask()))
-  } catch (e) {
-    if (!(e instanceof ReplyFormatError)) throw e
-    return shape(parseJsonReply(await ask()))
-  }
-}
 
 export async function analyzeMeal(
   p: Profile,

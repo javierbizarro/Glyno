@@ -8,8 +8,10 @@ import { prepareDeviceAi, probeDeviceAi } from '../../app/container'
 import type { DeviceAiState } from '../../ports/deviceAi'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
 import { download } from '../format'
+import { useDeviceAi } from '../hooks'
 import { InstallHint } from './InstallHint'
 import { AiSetup } from './AiSetup'
+import { MedsPhoto } from './MedsPhoto'
 
 const KIND_LABEL: Record<Med['kind'], string> = {
   pill: 'Otra medicación',
@@ -38,6 +40,9 @@ export function Settings({
   const fileRef = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState('')
   const [wizard, setWizard] = useState(!!openAi)
+  // reading the med cabinet off a photo needs the AI on, like the plate
+  const device = useDeviceAi()
+  const aiOn = resolveAiSource(p, device.text) !== null
   useEffect(() => {
     if (openAi) onAiOpened?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -157,7 +162,7 @@ export function Settings({
         </div>
       </div>
 
-      <MedsEditor p={p} set={set} />
+      <MedsEditor p={p} set={set} aiOn={aiOn} />
 
       <div className="card stack">
         <span className="label">Sobre ti (opcional)</span>
@@ -302,7 +307,16 @@ export function Settings({
   )
 }
 
-function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => void }) {
+function MedsEditor({
+  p,
+  set,
+  aiOn,
+}: {
+  p: Profile
+  set: (patch: Partial<Profile>) => void
+  aiOn: boolean
+}) {
+  const [photo, setPhoto] = useState(false)
   const kinds = (
     [
       ['pill', p.pills],
@@ -365,6 +379,21 @@ function MedsEditor({ p, set }: { p: Profile; set: (patch: Partial<Profile>) => 
             </button>
           ))}
         </div>
+      )}
+      {aiOn && (
+        <button className="btn ghost" onClick={() => setPhoto(true)}>
+          📷 Leer mi medicación de una foto
+        </button>
+      )}
+      {photo && (
+        <MedsPhoto
+          profile={p}
+          onSave={meds => {
+            set({ meds })
+            setPhoto(false)
+          }}
+          onClose={() => setPhoto(false)}
+        />
       )}
       <p className="muted small">
         La dosis es texto libre: pon la cantidad y cuándo te toca, como «850 mg · desayuno y cena»

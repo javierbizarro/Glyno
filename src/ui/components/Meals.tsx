@@ -5,7 +5,7 @@ import { mealMoment, MEAL_MOMENT_LABEL } from '../../domain/meals'
 import { needsHypoCare } from '../../domain/glucose'
 import { entries as repo } from '../../app/container'
 import { analyzeMeal, logMeal, saveMeal, suggestMeal, type MealAnalysis, type MealSuggestion } from '../../app/meals'
-import type { AiImage } from '../../ports/ai'
+import { shrink, type Photo } from '../photo'
 import { resolveAiSource } from '../../domain/aiKey'
 import { useDeviceAi, useWatch } from '../hooks'
 import { fmtDayShort, fmtTime } from '../format'
@@ -29,27 +29,6 @@ const PROCESSING_LABEL: Record<NonNullable<MealAnalysis['processing']>, string> 
   homemade: 'casero',
   processed: 'procesado',
   ultraprocessed: 'ultraprocesado',
-}
-
-type Photo = AiImage & { preview: string }
-
-// shrink the photo to ≤1024px: less quota spent, faster upload
-async function shrink(file: File): Promise<Photo> {
-  const url = URL.createObjectURL(file)
-  const img = await new Promise<HTMLImageElement>((ok, ko) => {
-    const i = new Image()
-    i.onload = () => ok(i)
-    i.onerror = ko
-    i.src = url
-  })
-  const scale = Math.min(1, 1024 / Math.max(img.width, img.height))
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.round(img.width * scale)
-  canvas.height = Math.round(img.height * scale)
-  canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
-  URL.revokeObjectURL(url)
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.82)
-  return { mimeType: 'image/jpeg', base64: dataUrl.split(',')[1], preview: dataUrl }
 }
 
 export function Meals({ profile, onSetupAi }: { profile: Profile; onSetupAi: () => void }) {

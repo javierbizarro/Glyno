@@ -20,6 +20,16 @@ Ajustes → «Acerca de Glyno».
   puerta para las apps web: llegará con la app nativa.
 - En Ajustes, la clave guardada se ve enmascarada, con botones para **comprobar que funciona**,
   cambiarla o quitarla.
+- **El botiquín se puede rellenar con una foto.** En Ajustes → Botiquín, «📷 Leer mi medicación
+  de una foto»: haces una foto a las cajas y Glyno saca el nombre, la dosis tal como está impresa
+  y si es una pastilla, una insulina lenta o una rápida. **Nada se guarda sin que tú lo
+  confirmes**: sale una lista donde puedes corregir cada campo y marcar solo lo que quieras.
+  Lo que ya tenías manda: si el medicamento ya está con otra dosis, te enseña las dos y **se
+  queda la tuya** salvo que marques la de la foto; y lo que no salga en la foto no se toca ni se
+  borra — fotografiar dos cajas no vacía el botiquín.
+  La IA aquí solo **copia lo que pone**: no propone dosis, no corrige pautas y, si algo no se
+  lee, lo deja en blanco en vez de inventarlo. Con las cajas basta; si fotografías una receta,
+  la app te recuerda que ese papel lleva además tu nombre y tus datos.
 - **Las conversaciones con Glyno se separan solas, por día.** Antes había un único hilo que
   además **se comía en silencio los mensajes viejos** (guardaba solo los 20 últimos). Ahora la
   pestaña de Glyno enseña la conversación de hoy y, arriba, un discreto «Conversaciones

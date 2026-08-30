@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Entry, Profile } from '../domain/types'
 import { defaultProfile } from '../domain/types'
 import type { Stats } from '../domain/stats'
-import { buildContext, chatPrompt, mealPrompt, reviewPrompt, suggestMealPrompt } from './prompts'
+import { buildContext, chatPrompt, mealPrompt, medsPhotoPrompt, reviewPrompt, suggestMealPrompt } from './prompts'
 
 const profile = (over: Partial<Profile> = {}): Profile => ({ ...defaultProfile, name: 'Javier', ...over })
 
@@ -361,5 +361,43 @@ describe('mealPrompt', () => {
     const prompt = mealPrompt(p, false, '', reading)
     expect(prompt).not.toContain('Metformina')
     expect(prompt).toContain('Nunca hables de medicación ni dosis, tampoco si su glucemia está fuera de rango.')
+  })
+})
+
+describe('medsPhotoPrompt', () => {
+  const prompt = medsPhotoPrompt()
+
+  it('asks for a transcription, not for an opinion', () => {
+    expect(prompt).toMatch(/COPIAR lo que ponga/)
+    expect(prompt).toMatch(/no propongas ni corrijas dosis/i)
+    expect(prompt).toMatch(/no digas si la pauta es adecuada/i)
+  })
+
+  it('forbids filling in what cannot be read', () => {
+    expect(prompt).toMatch(/no añadas medicación que no aparezca/i)
+    expect(prompt).toMatch(/déjalo vacío/i)
+    expect(prompt).toMatch(/dato inventado/i)
+  })
+
+  it('asks for the exact JSON keys the parser expects', () => {
+    expect(prompt).toContain('{"meds":[{"name"')
+    expect(prompt).toContain('"kind"')
+    expect(prompt).toContain('"weekday"')
+    expect(prompt).toMatch(/SOLO JSON válido, sin markdown/)
+  })
+
+  it('explains which insulin is which, with the names people actually carry', () => {
+    expect(prompt).toMatch(/basal.*Lantus/)
+    expect(prompt).toMatch(/bolus.*Humalog/)
+    expect(prompt).toMatch(/Ozempic/)
+  })
+
+  it('does not let it guess the weekly day', () => {
+    expect(prompt).toMatch(/SOLO si en la imagen se lee el día concreto/)
+    expect(prompt).toMatch(/No lo deduzcas/)
+  })
+
+  it('has an answer for a photo with no medication in it', () => {
+    expect(prompt).toContain('{"meds":[]}')
   })
 })

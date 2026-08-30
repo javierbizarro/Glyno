@@ -185,3 +185,22 @@ AJUSTA A SU MOMENTO: si viene de una glucemia alta, sé más exigente con el sem
 ${info.hypo ? '\nATENCIÓN — su última glucemia está POR DEBAJO de su rango y es reciente: lo primero es resolver la hipoglucemia. No le digas que evite hidratos, no pongas traffic_light en red por los azúcares y deja "better_avoid" vacío; si el plato le sirve para remontar, dilo con claridad en el consejo.\n' : ''}
 Si la imagen no parece comida, devuelve {"dish": "no es comida", "carbs_g": 0, "fiber_g": 0, "calories_kcal": 0, "processing": "homemade", "glycemic_index": "low", "traffic_light": "green", "advice": "No he reconocido comida ahí.", "better_avoid": []}`
 }
+
+/**
+ * Reading the med cabinet off a photo. The model TRANSCRIBES and nothing else: the red line
+ * («nunca dosis ni cambios de medicación») is not softened by the fact that the doctor already
+ * wrote the dose — copying it is fine, judging or completing it is not.
+ */
+export function medsPhotoPrompt(): string {
+  return `Eres un lector de etiquetas. En la foto hay cajas de medicación o una receta médica. Tu ÚNICA tarea es COPIAR lo que ponga, como un escáner.
+
+REGLAS INQUEBRANTABLES: no propongas ni corrijas dosis, no digas si la pauta es adecuada, no añadas medicación que no aparezca en la imagen y no completes lo que no se lea. Si algo está borroso o cortado, déjalo vacío: es mucho mejor un hueco que un dato inventado, porque esto acaba en el historial de una persona con diabetes.
+
+Devuelve SOLO JSON válido, sin markdown, con las claves EXACTAMENTE así (en inglés) y los textos en español tal como estén impresos:
+{"meds":[{"name":"nombre del medicamento","dose":"la dosis y la pauta TAL CUAL estén escritas, o vacío si no se lee","kind":"pill"|"basal"|"bolus","weekday":número 0-6 o null}]}
+
+- "kind": "basal" si es una insulina lenta o basal (Lantus, Toujeo, Abasaglar, Tresiba…), "bolus" si es una insulina rápida de las comidas (Humalog, NovoRapid, Fiasp, Apidra…), y "pill" para todo lo demás (pastillas como la metformina e inyectables no insulínicos como Ozempic o Trulicity).
+- "weekday" SOLO si en la imagen se lee el día concreto de una pauta semanal (0 domingo … 6 sábado). Si no lo pone, null. No lo deduzcas.
+- Un medicamento por caja o por línea de la receta. Si la misma caja aparece dos veces, ponla una sola vez.
+- Si en la imagen no hay medicación reconocible, devuelve {"meds":[]}.`
+}
