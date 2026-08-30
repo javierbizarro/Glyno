@@ -147,8 +147,9 @@ export function AiSetup({
               nuevo. No tienes que configurar nada más.
             </li>
             <li>
-              Aparecerá un texto largo que empieza por <b className="mono">AIza</b>…: esa es la
-              clave. Tócala o toca <b>«Copiar»</b> 📋.
+              Aparecerá un <b>texto largo y raro</b> (empieza por <span className="mono">AQ.</span>
+              o por <span className="mono">AIza</span>, según la cuenta): esa es la clave. Tócala o
+              toca <b>«Copiar»</b> 📋.
             </li>
           </ol>
           <ShotCreate />
@@ -210,7 +211,7 @@ export function AiSetup({
                 autoCapitalize="off"
                 autoCorrect="off"
                 spellCheck={false}
-                placeholder="AIza…"
+                placeholder="Pega aquí la clave"
                 className="mono"
                 value={typed}
                 onChange={e => onTyped(e.target.value)}

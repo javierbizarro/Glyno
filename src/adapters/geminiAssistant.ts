@@ -23,15 +23,18 @@ export class GeminiAssistant implements AiAssistant {
   private async call(parts: GPart[]): Promise<string> {
     const key = this.getKey()
     if (!key) throw new Error('Falta la clave de la API. Ponla en Ajustes → Glyno IA.')
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(key)}`
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
+    // the key goes in the header, never in the URL: addresses end up in logs and histories,
+    // and Google's newer keys carry characters that do not belong in a query string
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({ contents: [{ role: 'user', parts }] }),
     })
     if (!res.ok) {
       const body = await res.text()
-      if (res.status === 400 || res.status === 403) throw new Error('La clave de la API no parece válida. Revísala en Ajustes.')
+      // 401 is what a malformed key gets ("expected OAuth 2 access token"); 400/403, a rejected one
+      if ([400, 401, 403].includes(res.status)) throw new Error('La clave de la API no parece válida. Revísala en Ajustes.')
       if (res.status === 429) throw new Error('Se agotó la cuota gratuita de hoy. Vuelve a intentarlo en un rato.')
       throw new Error(`Error de Gemini (${res.status}): ${body.slice(0, 160)}`)
     }

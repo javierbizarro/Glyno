@@ -23,6 +23,16 @@ Ajustes → «Acerca de Glyno».
 
 ### Corregido
 
+- **Las claves nuevas de Google (`AQ.…`) no se aceptaban.** Google ha cambiado el formato: ya no
+  todas empiezan por `AIza`. Glyno daba por hecho el formato viejo y rechazaba las nuevas sin
+  probarlas siquiera. Ahora reconoce las dos formas, rescata cualquier otra que Google invente
+  mañana (de todo lo pegado, la clave es lo más largo sin espacios) y **ningún mensaje vuelve a
+  decir por dónde tiene que empezar una clave**.
+- La clave viaja ahora en una **cabecera** y no en la dirección de la petición: las direcciones
+  acaban en registros e historiales, y los formatos nuevos llevan caracteres que ahí estorban.
+- Cuando la clave está mal formada, Google responde con un error (401) que Glyno no entendía y
+  soltaba en crudo. Ahora dice lo que hay que oír, y añade que una clave recién creada a veces
+  tarda un par de minutos en funcionar.
 - **El asistente rechazaba claves sin siquiera probarlas.** Si lo pegado no tenía la forma que
   Glyno esperaba, contestaba «las claves empiezan por AIza» y ahí se quedaba. Ahora esa forma es
   solo un consejo: salvo lo que es inútil enviar (una dirección web, algo demasiado corto), la

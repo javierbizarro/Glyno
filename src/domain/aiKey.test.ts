@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { cleanKey, keyBlocker, keyCheckOutcome, keyHint, looksLikeKey, resolveAiSource } from './aiKey'
 
-// shape of a real Google API key: "AIza" + 35 characters
+// the long-lived shape: "AIza" + 35 characters
 const KEY = 'AIzaSyBn3f_kQ2vLp7RtY9wXzA4cD6eF8gH0iJk'
+// the newer one Google hands out today, dots and all
+const NEW_KEY = 'AQ.Ab8RN6Jk2mQvXpL9wZ0tY4cD7eF1gH3iJ5kM6nP8qR'
 
 describe('cleanKey', () => {
   it('keeps a clean key untouched', () => {
@@ -18,6 +20,16 @@ describe('cleanKey', () => {
     expect(cleanKey(`Your API key: ${KEY} (keep it secret)`)).toBe(KEY)
   })
 
+  it('keeps the newer shape whole, dots included', () => {
+    expect(cleanKey(NEW_KEY)).toBe(NEW_KEY)
+    expect(cleanKey(`  ${NEW_KEY}\n`)).toBe(NEW_KEY)
+    expect(cleanKey(`Tu clave es ${NEW_KEY}, guárdala.`)).toBe(NEW_KEY)
+  })
+
+  it('rescues a shape nobody has seen yet: the key is the longest run without spaces', () => {
+    expect(cleanKey('Aquí tienes: ZZ9-0000-1111-2222-3333-4444 y ya está')).toBe('ZZ9-0000-1111-2222-3333-4444')
+  })
+
   it('drops invisible characters and curly quotes', () => {
     expect(cleanKey(`​«${KEY} »`)).toBe(KEY)
   })
@@ -29,8 +41,9 @@ describe('cleanKey', () => {
 })
 
 describe('looksLikeKey', () => {
-  it('accepts a well formed key', () => {
+  it('accepts both shapes Google hands out', () => {
     expect(looksLikeKey(KEY)).toBe(true)
+    expect(looksLikeKey(NEW_KEY)).toBe(true)
   })
 
   it('rejects anything else', () => {
@@ -46,8 +59,9 @@ describe('looksLikeKey', () => {
 })
 
 describe('keyBlocker', () => {
-  it('lets a well formed key through', () => {
+  it('lets both shapes through', () => {
     expect(keyBlocker(KEY)).toBeNull()
+    expect(keyBlocker(NEW_KEY)).toBeNull()
   })
 
   it('lets through what it does not recognise: the verdict is Google\'s, not ours', () => {
@@ -73,24 +87,29 @@ describe('keyBlocker', () => {
 })
 
 describe('keyHint', () => {
-  it('says nothing about a key with the usual shape', () => {
-    expect(keyHint(KEY)).toBe('')
-  })
-
-  it('spells the prefix out: «AIza» and «Alza» look the same on screen', () => {
-    const hint = keyHint('QWERTY-1234567890-abcdefghij')
-    expect(hint).toMatch(/A-I-z-a/)
-    expect(hint).toMatch(/i mayúscula/)
+  it('never lectures about how a key starts: Google has changed that once already', () => {
+    expect(keyHint(KEY)).not.toMatch(/AIza|empiez/i)
+    expect(keyHint(NEW_KEY)).not.toMatch(/AIza|empiez/i)
   })
 
   it('suspects a cut when the key is short', () => {
-    expect(keyHint('AIzaSyBn3f_kQ2vLp7RtY9wXzA4cD6')).toMatch(/media|39/i)
+    expect(keyHint('AIzaSyBn3f_kQ2vLp7RtY9')).toMatch(/media|entera/i)
+  })
+
+  it('suggests waiting for a brand new key to start working', () => {
+    expect(keyHint(NEW_KEY)).toMatch(/minutos/i)
   })
 })
 
 describe('keyCheckOutcome', () => {
   it('reads a rejected key as a failure', () => {
     const out = keyCheckOutcome(new Error('La clave de la API no parece válida. Revísala en Ajustes.'))
+    expect(out.ok).toBe(false)
+    expect(out.message).toMatch(/Google no acepta/i)
+  })
+
+  it('reads the 401 of a malformed key as a rejection, not as a mystery', () => {
+    const out = keyCheckOutcome(new Error('Error de Gemini (401): Request had invalid authentication credentials.'))
     expect(out.ok).toBe(false)
     expect(out.message).toMatch(/Google no acepta/i)
   })
