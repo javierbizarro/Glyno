@@ -95,14 +95,16 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     glyno.scale.setScalar(0.82)
     scene.add(glyno)
 
-    // body: three concentric layers, as in the drawing
+    // body: three concentric layers, in the SAME proportions as the flat icon — ink rim ~12 %
+    // of the width, a thin lilac band and a wide rose core. With a thinner rim it stopped
+    // looking like the icon and started looking like a plain circle.
     const body = new THREE.Group()
     body.add(bodyMesh(1.2, 0.5, outline))
-    const mid = bodyMesh(1.08, 0.56, lilac)
-    mid.position.z = 0.12
+    const mid = bodyMesh(0.912, 0.62, lilac)
+    mid.position.z = 0.1
     body.add(mid)
-    const front = bodyMesh(0.9, 0.6, rose)
-    front.position.z = 0.24
+    const front = bodyMesh(0.78, 0.68, rose)
+    front.position.z = 0.2
     body.add(front)
     glyno.add(body)
 
@@ -110,6 +112,7 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
     const sprout = new THREE.Group()
     sprout.position.set(0, HALF * 1.2 - 0.08, 0.22)
     sprout.rotation.x = -0.18
+    sprout.scale.setScalar(1.5)
     const stalk = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.46, 6, 12), stem)
     stalk.position.y = 0.28
     sprout.add(stalk)
@@ -123,85 +126,40 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
 
     // big eyes with two highlights, as originally drawn
     const eyes: THREE.Group[] = []
-    for (const x of [-0.3, 0.3]) {
+    for (const x of [-0.34, 0.34]) {
       const eye = new THREE.Group()
-      eye.position.set(x, 0.06, 0.62)
-      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.14, 24, 24), ink)
+      eye.position.set(x, 0.1, 0.62)
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.165, 24, 24), ink)
       ball.scale.set(0.85, 1, 0.6)
-      const big = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 12), white)
-      big.position.set(0.04, 0.05, 0.08)
-      const small = new THREE.Mesh(new THREE.SphereGeometry(0.026, 10, 10), white)
-      small.position.set(-0.045, -0.045, 0.08)
+      const big = new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 12), white)
+      big.position.set(0.05, 0.06, 0.09)
+      const small = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 10), white)
+      small.position.set(-0.055, -0.05, 0.09)
       eye.add(ball, big, small)
       eyes.push(eye)
       glyno.add(eye)
     }
 
-    const smile = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.022, 8, 24, Math.PI * 0.85), ink)
-    smile.position.set(0, -0.26, 0.66)
+    const smile = new THREE.Mesh(new THREE.TorusGeometry(0.135, 0.026, 8, 24, Math.PI * 0.85), ink)
+    smile.position.set(0, -0.28, 0.66)
     smile.rotation.set(-0.1, 0, Math.PI * 1.08)
     glyno.add(smile)
 
-    // little arms with a hand each, and a balloon string comes out of each hand.
-    // The shoulder sits low and the arm opens wide so the hand lands OUTSIDE the
-    // body's silhouette (max half-width ≈ 1.22): inside it wouldn't be visible.
-    const HAND_LEN = 0.62
-    const balloons: THREE.Group[] = []
+    // little arms with a hand each, poking out at the sides. The balloons of the original
+    // drawing are gone: they never survived a small size, and with them the character in the
+    // app looked nothing like the one in the icon.
     for (const side of [-1, 1]) {
-      const angle = side * -1.05
       const arm = new THREE.Group()
-      arm.position.set(side * 0.95, -0.45, 0.2)
-      arm.rotation.z = angle
-      const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.082, 0.42, 6, 12), lilacDeep)
+      // the hand has to land OUTSIDE the body (half-width ≈ 1.22) or it is simply not there
+      arm.position.set(side * 1.08, -0.42, 0.18)
+      arm.rotation.z = side * -1.32
+      const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.4, 6, 12), lilacDeep)
       upper.position.y = 0.3
-      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), lilacDeep)
-      hand.position.y = HAND_LEN
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), lilacDeep)
+      hand.position.y = 0.62
       arm.add(upper, hand)
       glyno.add(arm)
-
-      // hand position computed by hand: localToWorld would need matrices already
-      // updated and at this point they aren't yet (which is why the strings didn't line up before)
-      const handAt = new THREE.Vector3(
-        arm.position.x - Math.sin(angle) * HAND_LEN,
-        arm.position.y + Math.cos(angle) * HAND_LEN,
-        arm.position.z,
-      )
-
-      // the balloon group is anchored AT the hand: that way the string never detaches while swinging
-      const balloon = new THREE.Group()
-      balloon.position.copy(handAt)
-
-      // the string rises almost vertically: if the balloon drifts outward, it leaves
-      // the square canvas while swinging (visible width is the limit, not height)
-      const string = new THREE.CubicBezierCurve3(
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(side * 0.16, 0.5, 0.05),
-        new THREE.Vector3(side * -0.04, 1.02, -0.05),
-        new THREE.Vector3(side * 0.1, 1.5, 0),
-      )
-      balloon.add(new THREE.Mesh(new THREE.TubeGeometry(string, 26, 0.017, 6), outline))
-
-      const end = string.getPoint(1)
-      const knot = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), outline)
-      knot.position.copy(end)
-      // the heart hangs by its tip, which is where the string is tied
-      const heart = heartMesh(0.3, 0.16, rose)
-      heart.position.set(end.x, end.y + HALF * 0.3, end.z)
-      balloon.add(knot, heart)
-
-      balloons.push(balloon)
-      glyno.add(balloon)
     }
-
-    // string hanging from below
-    const tailCurve = new THREE.CubicBezierCurve3(
-      new THREE.Vector3(0.03, -HALF * 1.2 + 0.05, 0),
-      new THREE.Vector3(0.3, -1.62, 0),
-      new THREE.Vector3(-0.22, -1.78, 0),
-      new THREE.Vector3(0.14, -2.02, 0),
-    )
-    const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 26, 0.018, 6), outline)
-    glyno.add(tail)
 
     let raf = 0
     const t0 = performance.now()
@@ -217,12 +175,6 @@ export function Mascot3D({ size = 96 }: { size?: number }) {
       glyno.position.y = Math.sin(t * 1.5) * 0.04
       glyno.rotation.y = Math.sin(t * 0.45) * 0.12
       glyno.rotation.z = Math.sin(t * 0.7) * 0.022
-
-      // the balloons swing from the hand, out of phase with each other
-      balloons.forEach((b, i) => {
-        b.rotation.z = Math.sin(t * 1.25 + i * 2.1) * 0.11
-      })
-      tail.rotation.z = Math.sin(t * 1.3) * 0.1
 
       const blink = t % 4.2 > 4.02 ? 0.12 : 1
       eyes.forEach(e => (e.scale.y = blink))

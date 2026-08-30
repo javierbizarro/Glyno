@@ -26,8 +26,11 @@ Ajustes → «Acerca de Glyno».
   Dos motivos: un corazón en una app de salud se lee como tensión (y la app ya usa uno para eso),
   y una corona es el icono universal de «premium», que es justo lo que Glyno no es. Un brote,
   además, dice lo que sí hace: cuidarse poco a poco.
-  El icono de la app, el personaje pequeño de la barra de pestañas y el Glyno grande salen ahora
-  del **mismo dibujo**, que antes eran tres hechos por separado.
+  **También se despide de los globos.** Eran de la lámina original y hacían gracia, pero no
+  sobrevivían a ningún tamaño pequeño y hacían que el Glyno de la app no se pareciera al del
+  icono. Se queda con sus brazos, que ahora sí asoman. El icono de la app, el personaje pequeño
+  de la barra de pestañas y el Glyno grande salen del **mismo dibujo**, que antes eran tres
+  hechos por separado.
 - **El botiquín se puede rellenar con una foto.** En Ajustes → Botiquín, «📷 Leer mi medicación
   de una foto»: haces una foto a las cajas y Glyno saca el nombre, la dosis tal como está impresa
   y si es una pastilla, una insulina lenta o una rápida. **Nada se guarda sin que tú lo
