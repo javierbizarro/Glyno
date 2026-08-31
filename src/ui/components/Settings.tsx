@@ -9,7 +9,7 @@ import { isNative } from '../../app/platform'
 import { appUrl, shareApp } from '../../app/share'
 import type { DeviceAiState } from '../../ports/deviceAi'
 import { buildBackup, buildCsv, parseBackup, restoreBackup } from '../../app/backup'
-import { download } from '../format'
+import { saveFile } from '../../app/saveFile'
 import { useDeviceAi } from '../hooks'
 import { InstallHint } from './InstallHint'
 import { HealthCard } from './HealthCard'
@@ -65,14 +65,25 @@ export function Settings({
 
   const exportCsv = async () => {
     const { csv, count } = await buildCsv(p)
-    download(`glyno-diario-${today()}.csv`, new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }))
-    flash(`CSV exportado (${count} registros).`)
+    const outcome = await saveFile({
+      name: `glyno-diario-${today()}.csv`,
+      // the BOM is what makes Excel open the accents properly
+      text: '﻿' + csv,
+      mime: 'text/csv;charset=utf-8',
+    })
+    if (outcome === 'failed') flash('No se pudo exportar el CSV.')
+    else flash(`CSV listo (${count} registros).`)
   }
 
   const exportBackup = async () => {
     const json = await buildBackup(p)
-    download(`glyno-backup-${today()}.json`, new Blob([json], { type: 'application/json' }))
-    flash('Copia creada. Guárdala en iCloud/Drive.')
+    const outcome = await saveFile({
+      name: `glyno-backup-${today()}.json`,
+      text: json,
+      mime: 'application/json',
+    })
+    if (outcome === 'failed') flash('No se pudo crear la copia.')
+    else flash('Copia creada. Guárdala en iCloud/Drive.')
   }
 
   const importBackup = async (file: File) => {
@@ -208,7 +219,7 @@ export function Settings({
         <input
           ref={fileRef}
           type="file"
-          accept="application/json"
+          accept=".json,application/json"
           style={{ display: 'none' }}
           onChange={e => {
             const f = e.target.files?.[0]

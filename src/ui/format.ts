@@ -27,11 +27,3 @@ export function timeAgo(ts: number): string {
   if (h < 24) return `hace ${h} h`
   return `hace ${Math.round(h / 24)} d`
 }
-
-export function download(name: string, blob: Blob) {
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
-  a.download = name
-  a.click()
-  URL.revokeObjectURL(a.href)
-}

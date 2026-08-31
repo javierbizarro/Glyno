@@ -68,6 +68,10 @@ nueva va a `domain/` si es pura o a `app/` si orquesta puertos.
   correlación.
 - Lo nativo se decide con `app/platform.ts` (`isNative()`): fuera el ping de GoatCounter, fuera
   «Buscar actualización», fuera la tarjeta de instalar, y compartir con URL fija.
+- **Guardar ficheros (copia JSON, CSV): NUNCA con `<a download>`** — WKWebView lo ignora y el botón
+  no hace nada. `app/saveFile.ts` decide: ancla en web, `@capacitor/filesystem` (cache) + hoja de
+  compartir en nativo. Un plugin nuevo exige `npx cap sync ios` y el paquete en el `node_modules`
+  del host (el SPM apunta ahí): copiarlo con `docker compose cp`, sin npm en el Mac.
 - Los datos de Salud entran por `app/healthSync.ts` → `importHealthSamples` (dedupe por `extId`,
   que para muestras puntuales es el UUID de HealthKit). Sincroniza sola al abrir y al volver.
 
