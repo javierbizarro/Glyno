@@ -227,7 +227,7 @@ export function Settings({
           style={{ color: 'var(--red)', borderColor: 'var(--red)' }}
           onClick={() => {
             if (confirm('Se borrará TODO: perfil y diario. ¿Seguro? (Haz antes una copia si dudas)'))
-              // BASE_URL: on GitHub Pages the app lives under /Glyno/, not at the root
+              // BASE_URL, not '/': a fork of this repo may be served under a subpath
               location.href = `${import.meta.env.BASE_URL}?reset`
           }}
         >

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://javierbizarro.github.io/Glyno/"><b>Probar la app</b></a> ·
+  <a href="https://glyno.es/"><b>Probar la app</b></a> ·
   <a href="CHANGELOG.md">Historial de mejoras</a> ·
   <a href="CONTRIBUTING.md">Cómo colaborar</a> ·
   <a href="LICENSE">Condiciones de uso</a>
@@ -69,7 +69,7 @@ para no perder el diario si cambias de móvil o borras los datos del navegador.
 
 ## Cómo usarla
 
-1. Abre **https://javierbizarro.github.io/Glyno/** (o escanea `glyno-qr.png`).
+1. Abre **https://glyno.es/** (o escanea `glyno-qr.png`).
 2. Instálala para tenerla como una app: en **iPhone** con Safari → Compartir → *Añadir a pantalla de
    inicio*; en **Android** aparece un botón *Instalar*; en escritorio, el icono de la barra de
    direcciones.

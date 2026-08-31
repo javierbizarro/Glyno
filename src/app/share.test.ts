@@ -3,9 +3,7 @@ import { shareUrl, WEB_URL } from './share'
 
 describe('shareUrl', () => {
   it('shares the address the web app is being served from', () => {
-    expect(shareUrl('web', 'https://javierbizarro.github.io', '/Glyno/')).toBe(
-      'https://javierbizarro.github.io/Glyno/',
-    )
+    expect(shareUrl('web', 'https://glyno.es', '/')).toBe('https://glyno.es/')
     expect(shareUrl('web', 'http://localhost:5173', '/')).toBe('http://localhost:5173/')
   })
 

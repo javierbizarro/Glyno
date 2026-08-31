@@ -38,7 +38,8 @@ const paginasSinPwa = (): Plugin => ({
 const native = !!process.env.NATIVE
 
 export default defineConfig({
-  // on GitHub Pages the app lives at /Glyno/; locally and inside the native app, at the root
+  // glyno.es serves the app at the root, like the dev server and the native build. DEPLOY_BASE
+  // stays as the escape hatch for serving it under a subpath again (a github.io fork, a preview)
   base: native ? '/' : (process.env.DEPLOY_BASE ?? '/'),
   // build stamp: makes it possible to tell if the phone is serving a cached version.
   // Pinned to Madrid time because GitHub Actions builds in UTC, which is disorienting.

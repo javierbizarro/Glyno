@@ -4,7 +4,7 @@
 import { isNative, platform, type Platform } from './platform'
 
 /** where someone who receives the link actually lands */
-export const WEB_URL = 'https://javierbizarro.github.io/Glyno/'
+export const WEB_URL = 'https://glyno.es/'
 
 export const SHARE_TEXT =
   'Glyno, un copiloto para el día a día con diabetes: apunta tus glucemias, te busca patrones y prepara el informe para el médico. Gratis y sin cuentas.'

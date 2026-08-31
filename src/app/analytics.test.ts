@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { pingUrl, shouldCountVisit } from './analytics'
 
 const base = {
-  hostname: 'javierbizarro.github.io',
+  hostname: 'glyno.es',
   dnt: null as string | null,
   gpc: false,
   dev: false,
