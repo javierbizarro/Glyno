@@ -2,7 +2,7 @@
 export function Mascot({ size = 56 }: { size?: number }) {
   const body = 'M50 24 C65 24 76 35 76 49 C76 65 64 80 50 80 C36 80 24 65 24 49 C24 35 35 24 50 24 Z'
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" aria-label="Glyno" role="img">
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
       <path d={body} fill="#B792C0" stroke="#232743" strokeWidth="7" strokeLinejoin="round" />
       <path d={body} transform="translate(50 54) scale(0.74) translate(-50 -54)" fill="#DE7A90" />
       <g transform="translate(50 54) scale(1.18) translate(-50 -50)">

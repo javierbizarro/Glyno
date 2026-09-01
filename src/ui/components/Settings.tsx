@@ -113,12 +113,12 @@ export function Settings({
         <span className="label">Perfil</span>
         <div className="stack">
           <span className="label">Nombre</span>
-          <input type="text" value={p.name} onChange={e => set({ name: e.target.value })} />
+          <input type="text" aria-label="Tu nombre" value={p.name} onChange={e => set({ name: e.target.value })} />
         </div>
         <div className="row">
           <div className="stack" style={{ flex: 1 }}>
             <span className="label">Situación</span>
-            <select value={p.type} onChange={e => set({ type: e.target.value as DiabetesType })}>
+            <select aria-label="Situación: tipo de diabetes" value={p.type} onChange={e => set({ type: e.target.value as DiabetesType })}>
               {(Object.keys(TYPE_LABEL) as DiabetesType[]).map(t => (
                 <option key={t} value={t}>
                   {TYPE_FULL[t]}
@@ -128,7 +128,7 @@ export function Settings({
           </div>
           <div className="stack" style={{ flex: 1 }}>
             <span className="label">Medición</span>
-            <select value={p.measurement} onChange={e => set({ measurement: e.target.value as Measurement })}>
+            <select aria-label="Cómo mides la glucosa" value={p.measurement} onChange={e => set({ measurement: e.target.value as Measurement })}>
               <option value="meter">Glucómetro</option>
               <option value="sensor">Sensor</option>
               <option value="none">No la mido</option>
@@ -152,11 +152,11 @@ export function Settings({
         <div className="row">
           <div className="stack" style={{ flex: 1 }}>
             <span className="label">Rango mín.</span>
-            <input type="number" inputMode="numeric" value={p.low} onChange={e => set({ low: Number(e.target.value) })} />
+            <input type="number" inputMode="numeric" aria-label="Mínimo del rango objetivo, en mg/dl" value={p.low} onChange={e => set({ low: Number(e.target.value) })} />
           </div>
           <div className="stack" style={{ flex: 1 }}>
             <span className="label">Rango máx.</span>
-            <input type="number" inputMode="numeric" value={p.high} onChange={e => set({ high: Number(e.target.value) })} />
+            <input type="number" inputMode="numeric" aria-label="Máximo del rango objetivo, en mg/dl" value={p.high} onChange={e => set({ high: Number(e.target.value) })} />
           </div>
         </div>
       </div>
@@ -172,6 +172,7 @@ export function Settings({
             <input
               type="number"
               inputMode="numeric"
+              aria-label="Año de nacimiento"
               placeholder="1980"
               value={p.birthYear ?? ''}
               onChange={e => set({ birthYear: e.target.value ? Number(e.target.value) : undefined })}
@@ -182,6 +183,7 @@ export function Settings({
             <input
               type="number"
               inputMode="numeric"
+              aria-label="Altura en centímetros"
               placeholder="175"
               value={p.heightCm ?? ''}
               onChange={e => set({ heightCm: e.target.value ? Number(e.target.value) : undefined })}
@@ -193,6 +195,7 @@ export function Settings({
               type="number"
               inputMode="decimal"
               step="0.5"
+              aria-label="Objetivo de peso en kilos"
               placeholder="—"
               value={p.targetWeightKg ?? ''}
               onChange={e => set({ targetWeightKg: e.target.value ? Number(e.target.value) : undefined })}

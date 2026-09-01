@@ -269,6 +269,7 @@ export function AiSetup({
               <input
                 type="text"
                 inputMode="text"
+                aria-label="La clave de Google AI Studio"
                 autoCapitalize="off"
                 autoCorrect="off"
                 spellCheck={false}

@@ -165,17 +165,20 @@ export function MedsPhoto({
 
                 <input
                   type="text"
+                  aria-label="Nombre del medicamento"
                   value={choices[i].med.name}
                   onChange={e => edit(i, { name: e.target.value })}
                 />
                 <input
                   type="text"
+                  aria-label="Dosis y momento del medicamento"
                   placeholder="850 mg · desayuno y cena"
                   value={choices[i].med.dose ?? ''}
                   onChange={e => edit(i, { dose: e.target.value })}
                 />
                 <div className="row" style={{ gap: 8 }}>
                   <select
+                    aria-label="Tipo de medicamento"
                     value={choices[i].med.kind}
                     onChange={e => edit(i, { kind: e.target.value as Med['kind'] })}
                     style={{ flex: 1 }}
@@ -187,6 +190,7 @@ export function MedsPhoto({
                     ))}
                   </select>
                   <select
+                    aria-label="Días en que se toma"
                     value={choices[i].med.weekday ?? ''}
                     onChange={e => edit(i, { weekday: e.target.value === '' ? undefined : Number(e.target.value) })}
                     style={{ flex: 1 }}

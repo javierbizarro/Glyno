@@ -278,6 +278,7 @@ function Analyze({
         )}
         <input
           type="text"
+          aria-label="Descripción del plato"
           placeholder={photo ? 'Añade contexto (opcional)…' : 'O descríbelo: lentejas con arroz y un plátano'}
           value={desc}
           onChange={e => setDesc(e.target.value)}

@@ -274,6 +274,7 @@ function QuickSheet({
               type="number"
               inputMode="decimal"
               placeholder="120"
+              aria-label="Glucemia en mg/dl"
               autoFocus
               value={value}
               onChange={e => setValue(e.target.value)}
@@ -294,11 +295,11 @@ function QuickSheet({
             <div className="row">
               <div className="stack" style={{ flex: 1 }}>
                 <span className="label">Alta (sistólica)</span>
-                <input type="number" inputMode="numeric" placeholder="130" autoFocus value={value} onChange={e => setValue(e.target.value)} />
+                <input type="number" inputMode="numeric" placeholder="130" aria-label="Tensión alta (sistólica)" autoFocus value={value} onChange={e => setValue(e.target.value)} />
               </div>
               <div className="stack" style={{ flex: 1 }}>
                 <span className="label">Baja (diastólica)</span>
-                <input type="number" inputMode="numeric" placeholder="80" value={extra} onChange={e => setExtra(e.target.value)} />
+                <input type="number" inputMode="numeric" placeholder="80" aria-label="Tensión baja (diastólica)" value={extra} onChange={e => setExtra(e.target.value)} />
               </div>
             </div>
           </>
@@ -328,6 +329,7 @@ function QuickSheet({
               type="number"
               inputMode="decimal"
               placeholder="Unidades"
+              aria-label="Unidades de insulina"
               autoFocus
               value={value}
               onChange={e => setValue(e.target.value)}
@@ -357,10 +359,10 @@ function QuickSheet({
                 </div>
               </>
             )}
-            <input type="text" placeholder="¿Qué has comido?" value={label} onChange={e => setLabel(e.target.value)} />
+            <input type="text" placeholder="¿Qué has comido?" aria-label="Qué has comido" value={label} onChange={e => setLabel(e.target.value)} />
             <div className="stack">
               <span className="label">Hidratos (g) — opcional</span>
-              <input type="number" inputMode="numeric" placeholder="45" value={value} onChange={e => setValue(e.target.value)} />
+              <input type="number" inputMode="numeric" placeholder="45" aria-label="Hidratos de carbono en gramos" value={value} onChange={e => setValue(e.target.value)} />
             </div>
             <p className="muted small">En la pestaña Comida, Glyno puede estimar los hidratos con una foto.</p>
           </>
@@ -391,10 +393,10 @@ function QuickSheet({
                 ))}
               </div>
             )}
-            <input type="text" placeholder="Caminar, bici, pesas…" value={label} onChange={e => setLabel(e.target.value)} />
+            <input type="text" placeholder="Caminar, bici, pesas…" aria-label="Tipo de ejercicio" value={label} onChange={e => setLabel(e.target.value)} />
             <div className="stack">
               <span className="label">Minutos</span>
-              <input type="number" inputMode="numeric" placeholder="30" value={value} onChange={e => setValue(e.target.value)} />
+              <input type="number" inputMode="numeric" placeholder="30" aria-label="Minutos de ejercicio" value={value} onChange={e => setValue(e.target.value)} />
             </div>
           </>
         )}
@@ -408,6 +410,7 @@ function QuickSheet({
               inputMode="decimal"
               step="0.1"
               placeholder="kg"
+              aria-label="Peso en kilos"
               autoFocus
               value={value}
               onChange={e => setValue(e.target.value)}
@@ -430,7 +433,7 @@ function QuickSheet({
               ))}
             </div>
             <div className="row">
-              <input type="text" placeholder="Otra…" value={label} onChange={e => setLabel(e.target.value)} />
+              <input type="text" placeholder="Otra…" aria-label="Otra etiqueta de contexto" value={label} onChange={e => setLabel(e.target.value)} />
               <button
                 className="btn small"
                 disabled={!label.trim()}
@@ -474,6 +477,7 @@ function QuickSheet({
           <span className="muted small">¿Fue antes? Ajusta la hora</span>
           <input
             type="time"
+            aria-label="Hora del registro"
             value={time}
             onChange={e => changeTime(e.target.value)}
             style={{ width: 'auto' }}

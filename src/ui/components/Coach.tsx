@@ -295,6 +295,7 @@ export function Coach({ profile, onSetupAi }: { profile: Profile; onSetupAi: () 
           <input
             type="text"
             placeholder="Pregúntale a Glyno…"
+            aria-label="Escribe tu pregunta para Glyno"
             value={question}
             onChange={e => setQuestion(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !busy && ask()}

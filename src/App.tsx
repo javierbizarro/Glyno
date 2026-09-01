@@ -16,19 +16,19 @@ export type Tab = 'today' | 'trends' | 'meals' | 'glyno' | 'settings'
 
 const ICONS: Record<Tab, JSX.Element> = {
   today: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <circle cx="12" cy="12" r="4" />
       <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
     </svg>
   ),
   trends: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 17l5-6 4 3 6-8" />
       <path d="M21 3v18H3" opacity=".35" />
     </svg>
   ),
   meals: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <path d="M4 11a8 8 0 0 1 16 0" />
       <path d="M2 11h20M6 15h12a6 6 0 0 1-12 0z" />
     </svg>
@@ -36,7 +36,7 @@ const ICONS: Record<Tab, JSX.Element> = {
   // the same Glyno as everywhere else — rounded body and sprout — drawn in line stroke
   // like the rest of the bar. It was still a crowned heart, a body she lost two versions ago
   glyno: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 7.4c3.3 0 5.6 2.4 5.6 5.4 0 3.5-2.6 6.7-5.6 6.7s-5.6-3.2-5.6-6.7c0-3 2.3-5.4 5.6-5.4Z" />
       <path d="M12 7.4V3.2" />
       <path d="M12 5.1c1.3-2.2 4.1-1.8 4.1-1.8s-.8 2.9-3.5 2.7" />
@@ -47,7 +47,7 @@ const ICONS: Record<Tab, JSX.Element> = {
     </svg>
   ),
   settings: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <path d="M4 8h10M18 8h2M4 16h2M10 16h10" />
       <circle cx="16" cy="8" r="2" />
       <circle cx="8" cy="16" r="2" />
@@ -143,9 +143,14 @@ export default function App() {
       <nav className="tabbar" ref={tabbar}>
         <div className="inner">
           {(Object.keys(TAB_LABEL) as Tab[]).map(t => (
-            <button key={t} className={`tab ${tab === t ? 'on' : ''}`} onClick={() => setTab(t)}>
+            <button
+              key={t}
+              className={`tab ${tab === t ? 'on' : ''}`}
+              aria-current={tab === t ? 'page' : undefined}
+              onClick={() => setTab(t)}
+            >
               {t === 'glyno' && tab === 'glyno' ? <Mascot size={22} /> : ICONS[t]}
-              {TAB_LABEL[t]}
+              <span className="tab-label">{TAB_LABEL[t]}</span>
             </button>
           ))}
         </div>

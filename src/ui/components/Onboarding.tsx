@@ -81,6 +81,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
             <input
               type="text"
               placeholder="Tu nombre"
+              aria-label="Tu nombre"
               value={p.name}
               onChange={e => set({ name: e.target.value })}
               autoFocus={!isNative()}
@@ -233,6 +234,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
               <input
                 type="number"
                 inputMode="numeric"
+                aria-label="Mínimo del rango objetivo, en mg/dl"
                 value={p.low}
                 onChange={e => set({ low: Number(e.target.value) })}
               />
@@ -242,6 +244,7 @@ export function Onboarding({ initial, onDone }: { initial: Profile | null; onDon
               <input
                 type="number"
                 inputMode="numeric"
+                aria-label="Máximo del rango objetivo, en mg/dl"
                 value={p.high}
                 onChange={e => set({ high: Number(e.target.value) })}
               />
@@ -316,10 +319,11 @@ function MedsStep({
       )}
       {/* stacked: on mobile, two fields in a row clip the example text */}
       <div className="stack">
-        <input type="text" placeholder="Metformina" value={name} onChange={e => setName(e.target.value)} />
+        <input type="text" placeholder="Metformina" aria-label="Nombre del medicamento" value={name} onChange={e => setName(e.target.value)} />
         <input
           type="text"
           placeholder="850 mg · desayuno y cena"
+          aria-label="Dosis y momento del medicamento"
           value={dose}
           onChange={e => setDose(e.target.value)}
         />
